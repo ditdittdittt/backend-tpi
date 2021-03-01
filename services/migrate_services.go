@@ -19,12 +19,14 @@ func Migrate() {
 		&entities.Permission{},
 		&entities.Role{},
 		&entities.Tpi{},
+		&entities.Transaction{},
+		&entities.TransactionItem{},
 		&entities.User{},
 		&entities.UserDistrict{},
 		&entities.UserStatus{},
 		&entities.UserSuperadmin{},
 		&entities.UserTpi{},
-		)
+	)
 
 	if err != nil {
 		panic(err)

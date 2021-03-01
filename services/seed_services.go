@@ -10,24 +10,35 @@ import (
 )
 
 func Seed() {
-	//caughtStatusRepository := repository.NewCaughtStatusRepository(*database.DB)
-	//caughtStatus1 := &entities.CaughtStatus{
-	//	ID:     1,
-	//	Status: "Belum terjual",
-	//}
-	//caughtStatus2 := &entities.CaughtStatus{
-	//	ID:     2,
-	//	Status: "Sudah terjual",
-	//}
-	//
+	caughtStatusRepository := repository.NewCaughtStatusRepository(*database.DB)
+	caughtStatusMap := map[int]string{
+		1: "Proses lelang",
+		2: "Menunggu pembayaran",
+		3: "Transaksi selesai",
+	}
+	for index, key := range caughtStatusMap {
+		caughtStatus := &entities.CaughtStatus{
+			ID:     index,
+			Status: key,
+		}
+		caughtStatusRepository.Create(caughtStatus)
+	}
 
-	//
-	//fishTypeRepository := repository.NewFishTypeRepository(*database.DB)
-	//fishType1 := &entities.FishType{
-	//	ID:   1,
-	//	Name: "Net",
-	//	Code: "FT01",
-	//}
+	fishTypeRepository := repository.NewFishTypeRepository(*database.DB)
+	fishType1 := &entities.FishType{
+		ID:   1,
+		Name: "Tenggiri",
+		Code: "FT01",
+	}
+	fishTypeRepository.Create(fishType1)
+
+	fishingGearRepository := repository.NewFishingGearRepository(*database.DB)
+	fishingGear1 := &entities.FishingGear{
+		ID:   1,
+		Name: "Net",
+		Code: "FG01",
+	}
+	fishingGearRepository.Create(fishingGear1)
 
 	districtRepository := repository.NewDistrictRepository(*database.DB)
 	district1 := &entities.District{
@@ -37,13 +48,27 @@ func Seed() {
 	}
 	districtRepository.Create(district1)
 
+	fishingAreaRepository := repository.NewFishingAreaRepository(*database.DB)
+	fishingArea1 := &entities.FishingArea{
+		ID:                  1,
+		DistrictID:          1,
+		District:            entities.District{},
+		Name:                "Bekasi",
+		SouthLatitudeDegree: "145",
+		SouthLatitudeMinute: "23",
+		SouthLatitudeSecond: "12",
+		EastLongitudeDegree: "123",
+		EastLongitudeMinute: "23",
+		EastLongitudeSecond: "12",
+	}
+	fishingAreaRepository.Create(fishingArea1)
+
 	tpiRepository := repository.NewTpiRepository(*database.DB)
 	tpi1 := &entities.Tpi{
 		ID:         1,
 		DistrictID: 1,
 		District:   entities.District{},
 		Name:       "TPI Bekasi",
-		Location:   "Bekasi",
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 		Code:       "B01",
@@ -58,7 +83,7 @@ func Seed() {
 	}
 	for index, key := range userStatusMap {
 		userStatus := &entities.UserStatus{
-			ID: index,
+			ID:     index,
 			Status: key,
 		}
 		userStatusRepository.Create(userStatus)
@@ -75,8 +100,8 @@ func Seed() {
 	}
 	for index, key := range roleMap {
 		role := &entities.Role{
-			ID:         index,
-			Name:       key,
+			ID:   index,
+			Name: key,
 		}
 		roleRepository.Create(role)
 	}
@@ -103,12 +128,12 @@ func Seed() {
 	userSuperadmin := &entities.UserSuperadmin{
 		ID:     1,
 		UserID: 1,
-		User:   entities.User{
-			ID:           1,
-			RoleID:       1,
-			Role:         entities.Role{
-				ID:         1,
-				Name:       "superadmin",
+		User: entities.User{
+			ID:     1,
+			RoleID: 1,
+			Role: entities.Role{
+				ID:   1,
+				Name: "superadmin",
 				Permission: []entities.Permission{
 					{
 						ID: 1,
