@@ -21,7 +21,7 @@ type transactionHandler struct {
 
 func NewTransactionHandler(server *gin.Engine, transactionUsecase usecase.TransactionUsecase) {
 	handler := &transactionHandler{transactionUsecase: transactionUsecase}
-	server.POST("/create", middleware.AuthorizeJWT(constant.CreateTransaction), handler.Create)
+	server.POST("/transaction", middleware.AuthorizeJWT(constant.CreateTransaction), handler.Create)
 }
 
 func (h *transactionHandler) Create(c *gin.Context) {
@@ -35,7 +35,12 @@ func (h *transactionHandler) Create(c *gin.Context) {
 		return
 	}
 
+	curUserID := c.MustGet("userID")
+	curTpiID := c.MustGet("tpiID")
+
 	transaction := &entities.Transaction{
+		UserID:           curUserID.(int),
+		TpiID:            curTpiID.(int),
 		BuyerID:          request.BuyerID,
 		DistributionArea: request.DistributionArea,
 		TotalPrice:       request.TotalPrice,

@@ -19,14 +19,19 @@ type caughtUsecase struct {
 
 func (c *caughtUsecase) Create(caught *entities.Caught, caughtData []entities.CaughtData) error {
 
-	caught.CaughtStatusID = 1
-	caught.CreatedAt = time.Now()
-	caught.UpdatedAt = time.Now()
-
 	for _, caughtFish := range caughtData {
-		caught.FishTypeID = caughtFish.FishTypeID
-		caught.Weight = caughtFish.Weight
-		caught.WeightUnit = caughtFish.WeightUnit
+		caught := &entities.Caught{
+			UserID:         caught.UserID,
+			TpiID:          caught.TpiID,
+			FisherID:       caught.FisherID,
+			FishingGearID:  caught.FishingGearID,
+			FishingAreaID:  caught.FishingAreaID,
+			CaughtStatusID: 1,
+			TripDay:        caught.TripDay,
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
+			CaughtData:     caughtFish,
+		}
 
 		err := c.caughtRepository.Create(caught)
 		if err != nil {

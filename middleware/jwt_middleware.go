@@ -19,7 +19,7 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
 			return
 		}
-		
+
 		tokenString := authHeader[len(BEARER_SCHEMA):]
 		token, err := services.NewJWTAuthService().ValidateToken(tokenString)
 		if err != nil {
@@ -41,6 +41,32 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 		if !helper.ValidatePermission(curUser.Role.Permission, function) {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Message": "Forbidden"})
 			return
+		}
+
+		switch curUser.RoleID {
+		case 1:
+			userSuperadminRepository := repository.NewUserSuperadminRepository(*database.DB)
+			_, err := userSuperadminRepository.GetByUserID(curUser.ID)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
+				return
+			}
+		case 2:
+			userDistrictRepository := repository.NewUserDistrictRepository(*database.DB)
+			curUserRole, err := userDistrictRepository.GetByUserID(curUser.ID)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
+				return
+			}
+			c.Set("districtID", curUserRole.DistrictID)
+		case 3:
+			userTpiRepository := repository.NewUserTpiRepository(*database.DB)
+			curUserRole, err := userTpiRepository.GetByUserID(curUser.ID)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
+				return
+			}
+			c.Set("tpiID", curUserRole.TpiID)
 		}
 
 		c.Set("userID", curUser.ID)

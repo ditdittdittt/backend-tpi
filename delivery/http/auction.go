@@ -35,7 +35,12 @@ func (h *auctionHandler) Create(c *gin.Context) {
 		return
 	}
 
+	curUserID := c.MustGet("userID")
+	curTpiID := c.MustGet("tpiID")
+
 	auction := &entities.Auction{
+		UserID:   curUserID.(int),
+		TpiID:    curTpiID.(int),
 		CaughtID: request.CaughtID,
 		Price:    request.Price,
 	}

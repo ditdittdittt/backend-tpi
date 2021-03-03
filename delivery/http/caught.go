@@ -35,7 +35,12 @@ func (h *caughtHandler) Create(c *gin.Context) {
 		return
 	}
 
+	curUserID := c.MustGet("userID")
+	curTpiID := c.MustGet("tpiID")
+
 	caught := &entities.Caught{
+		UserID:        curUserID.(int),
+		TpiID:         curTpiID.(int),
 		FisherID:      request.FisherID,
 		FishingGearID: request.FishingGearID,
 		FishingAreaID: request.FishingAreaID,

@@ -44,5 +44,30 @@ func main() {
 	userTpiUsecase := usecase.NewUserTpiUsecase(userTpiRepository)
 	http.NewUserTpiHandler(r, userTpiUsecase)
 
+	// Fisher
+	fisherRepository := repository.NewFisherRepository(*database.DB)
+	fisherUsecase := usecase.NewFisherUsecase(fisherRepository)
+	http.NewFisherHandler(r, fisherUsecase)
+
+	// Buyer
+	buyerRepository := repository.NewBuyerRepository(*database.DB)
+	buyerUsecase := usecase.NewBuyerUsecase(buyerRepository)
+	http.NewBuyerHandler(r, buyerUsecase)
+
+	// Caught
+	caughtRepository := repository.NewCaughtRepository(*database.DB)
+	caughtUsecase := usecase.NewCaughtUsecase(caughtRepository)
+	http.NewCaughtHandler(r, caughtUsecase)
+
+	// Auction
+	auctionRepository := repository.NewAuctionRepository(*database.DB)
+	auctionUsecase := usecase.NewAuctionUsecase(auctionRepository, caughtRepository)
+	http.NewAuctionHandler(r, auctionUsecase)
+
+	// Transaction
+	transactionRepository := repository.NewTransactionRepository(*database.DB)
+	transactionUsecase := usecase.NewTransactionUsecase(transactionRepository, auctionRepository, caughtRepository)
+	http.NewTransactionHandler(r, transactionUsecase)
+
 	r.Run(":9090")
 }
