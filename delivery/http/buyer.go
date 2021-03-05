@@ -13,6 +13,7 @@ import (
 
 type BuyerHandler interface {
 	Create(c *gin.Context)
+	Index(c *gin.Context)
 }
 
 type buyerHandler struct {
@@ -22,6 +23,7 @@ type buyerHandler struct {
 func NewBuyerHandler(server *gin.Engine, buyerUsecase usecase.BuyerUsecase) {
 	handler := &buyerHandler{BuyerUsecase: buyerUsecase}
 	server.POST("/buyer", middleware.AuthorizeJWT(constant.CreateBuyer), handler.Create)
+	server.GET("/buyers", handler.Index)
 }
 
 func (h *buyerHandler) Create(c *gin.Context) {
@@ -59,5 +61,23 @@ func (h *buyerHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
+	})
+}
+
+func (h *buyerHandler) Index(c *gin.Context) {
+	buyers, err := h.BuyerUsecase.Index()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: buyers,
 	})
 }

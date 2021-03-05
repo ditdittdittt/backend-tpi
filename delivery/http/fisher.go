@@ -22,6 +22,7 @@ type fisherHandler struct {
 func NewFisherHandler(server *gin.Engine, fisherUsecase usecase.FisherUsecase) {
 	handler := &fisherHandler{FisherUsecase: fisherUsecase}
 	server.POST("/fisher", middleware.AuthorizeJWT(constant.CreateFisher), handler.Create)
+	server.GET("/fishers", handler.Index)
 }
 
 func (h *fisherHandler) Create(c *gin.Context) {
@@ -61,5 +62,23 @@ func (h *fisherHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
+	})
+}
+
+func (h *fisherHandler) Index(c *gin.Context) {
+	fishers, err := h.FisherUsecase.Index()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: fishers,
 	})
 }

@@ -54,6 +54,21 @@ func main() {
 	buyerUsecase := usecase.NewBuyerUsecase(buyerRepository)
 	http.NewBuyerHandler(r, buyerUsecase)
 
+	// Fishing gear
+	fishingGearRepository := repository.NewFishingGearRepository(*database.DB)
+	fishingGearUsecase := usecase.NewFishingGearUsecase(fishingGearRepository)
+	http.NewFishingGearHandler(r, fishingGearUsecase)
+
+	// Fishing area
+	fishingAreaRepository := repository.NewFishingAreaRepository(*database.DB)
+	fishingAreaUsecase := usecase.NewFishingAreaUsecase(fishingAreaRepository)
+	http.NewFishingAreaHandler(r, fishingAreaUsecase)
+
+	// Fish type
+	fishTypeRepository := repository.NewFishTypeRepository(*database.DB)
+	fishTypeUsecase := usecase.NewFishTypeUsecase(fishTypeRepository)
+	http.NewFishTypeHandler(r, fishTypeUsecase)
+
 	// Caught
 	caughtRepository := repository.NewCaughtRepository(*database.DB)
 	caughtUsecase := usecase.NewCaughtUsecase(caughtRepository)

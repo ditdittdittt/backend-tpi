@@ -13,6 +13,7 @@ import (
 
 type FishingGearHandler interface {
 	Create(c *gin.Context)
+	Index(c *gin.Context)
 }
 
 type fishingGearHandler struct {
@@ -22,6 +23,7 @@ type fishingGearHandler struct {
 func NewFishingGearHandler(server *gin.Engine, fishingGearusecase usecase.FishingGearUsecase) {
 	handler := &fishingGearHandler{FishingGearUsecase: fishingGearusecase}
 	server.POST("/fishing-gear", middleware.AuthorizeJWT(constant.CreateFishingGear), handler.Create)
+	server.GET("/fishing-gears", handler.Index)
 }
 
 func (h *fishingGearHandler) Create(c *gin.Context) {
@@ -53,5 +55,23 @@ func (h *fishingGearHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
+	})
+}
+
+func (h *fishingGearHandler) Index(c *gin.Context) {
+	fishingGears, err := h.FishingGearUsecase.Index()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: fishingGears,
 	})
 }

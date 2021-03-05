@@ -13,6 +13,7 @@ import (
 
 type FishingAreaHandler interface {
 	Create(c *gin.Context)
+	Index(c *gin.Context)
 }
 
 type fishingAreaHandler struct {
@@ -22,6 +23,7 @@ type fishingAreaHandler struct {
 func NewFishingAreaHandler(server *gin.Engine, fishingAreaUsecase usecase.FishingAreaUsecase) {
 	handler := &fishingAreaHandler{fishingAreaUsecase: fishingAreaUsecase}
 	server.POST("/fishing-area", middleware.AuthorizeJWT(constant.CreateFishingArea), handler.Create)
+	server.GET("/fishing-areas", handler.Index)
 }
 
 func (h *fishingAreaHandler) Create(c *gin.Context) {
@@ -59,5 +61,23 @@ func (h *fishingAreaHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
+	})
+}
+
+func (h *fishingAreaHandler) Index(c *gin.Context) {
+	fishingAreas, err := h.fishingAreaUsecase.Index()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: fishingAreas,
 	})
 }

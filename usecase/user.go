@@ -13,11 +13,23 @@ import (
 type UserUsecase interface {
 	Login(username string, password string) (token string, err error)
 	GetUser(id int) (user entities.User, err error)
+	Index() (users []entities.User, err error)
 }
 
 type userUsecase struct {
-	jwtService		services.JWTService
-	userRepository	repository.UserRepository
+	jwtService     services.JWTService
+	userRepository repository.UserRepository
+}
+
+func (u *userUsecase) Index() (users []entities.User, err error) {
+	selectedField := []string{"username", "name", "nik", "address", "role_id", "status", "created_at", "updated_at"}
+
+	users, err = u.userRepository.GetWithSelectedField(selectedField)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fisher repository error")
+	}
+
+	return users, nil
 }
 
 func (u *userUsecase) GetUser(id int) (user entities.User, err error) {

@@ -9,10 +9,22 @@ import (
 
 type FishingGearUsecase interface {
 	Create(fishingGear *entities.FishingGear) error
+	Index() (fishingGears []entities.FishingGear, err error)
 }
 
 type fishingGearUsecase struct {
 	FishingGearRepository repository.FishingGearRepository
+}
+
+func (f *fishingGearUsecase) Index() (fishingGears []entities.FishingGear, err error) {
+	selectedField := []string{"code", "name"}
+
+	fishingGears, err = f.FishingGearRepository.GetWithSelectedField(selectedField)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fishing gear repository error")
+	}
+
+	return fishingGears, nil
 }
 
 func (f *fishingGearUsecase) Create(fishingGear *entities.FishingGear) error {

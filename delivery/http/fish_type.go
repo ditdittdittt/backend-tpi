@@ -13,6 +13,7 @@ import (
 
 type FishTypeHandler interface {
 	Create(c *gin.Context)
+	Index(c *gin.Context)
 }
 
 type fishTypeHandler struct {
@@ -22,6 +23,7 @@ type fishTypeHandler struct {
 func NewFishTypeHandler(server *gin.Engine, fishTypeUsecase usecase.FishTypeUsecase) {
 	handler := &fishTypeHandler{fishTypeUsecase: fishTypeUsecase}
 	server.POST("/fish-type", middleware.AuthorizeJWT(constant.CreateFishType), handler.Create)
+	server.GET("/fish-types", handler.Index)
 }
 
 func (h *fishTypeHandler) Create(c *gin.Context) {
@@ -53,5 +55,23 @@ func (h *fishTypeHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
+	})
+}
+
+func (h *fishTypeHandler) Index(c *gin.Context) {
+	fishTypes, err := h.fishTypeUsecase.Index()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: fishTypes,
 	})
 }

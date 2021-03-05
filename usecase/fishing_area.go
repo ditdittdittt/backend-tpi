@@ -9,10 +9,22 @@ import (
 
 type FishingAreaUsecase interface {
 	Create(fishingArea *entities.FishingArea) error
+	Index() (fishingAreas []entities.FishingArea, err error)
 }
 
 type fishingAreaUsecase struct {
 	fishingAreaRepository repository.FishingAreaRepository
+}
+
+func (f *fishingAreaUsecase) Index() (fishingAreas []entities.FishingArea, err error) {
+	selectedField := []string{"name", "south_latitude_degree", "south_latitude_minute", "south_latitude_second", "east_longitude_degree", "east_longitude_minute", "east_longitude_second"}
+
+	fishingAreas, err = f.fishingAreaRepository.GetWithSelectedField(selectedField)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fishing area repository error")
+	}
+
+	return fishingAreas, nil
 }
 
 func (f *fishingAreaUsecase) Create(fishingArea *entities.FishingArea) error {

@@ -9,10 +9,22 @@ import (
 
 type FishTypeUsecase interface {
 	Create(fishType *entities.FishType) error
+	Index() (fishTypes []entities.FishType, err error)
 }
 
 type fishTypeUsecase struct {
 	fishTypeRepository repository.FishTypeRepository
+}
+
+func (f *fishTypeUsecase) Index() (fishTypes []entities.FishType, err error) {
+	selectedField := []string{"code", "name"}
+
+	fishTypes, err = f.fishTypeRepository.GetWithSelectedField(selectedField)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fish type repository error")
+	}
+
+	return fishTypes, nil
 }
 
 func (f *fishTypeUsecase) Create(fishType *entities.FishType) error {

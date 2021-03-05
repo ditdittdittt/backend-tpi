@@ -7,11 +7,20 @@ import (
 )
 
 type FisherRepository interface {
+	GetWithSelectedField(selectedField []string) (fishers []entities.Fisher, err error)
 	Create(fisher *entities.Fisher) error
 }
 
 type fisherRepository struct {
 	db gorm.DB
+}
+
+func (f *fisherRepository) GetWithSelectedField(selectedField []string) (fishers []entities.Fisher, err error) {
+	err = f.db.Select(selectedField).Find(&fishers).Error
+	if err != nil {
+		return nil, err
+	}
+	return fishers, err
 }
 
 func (f *fisherRepository) Create(fisher *entities.Fisher) error {

@@ -13,10 +13,19 @@ type UserRepository interface {
 	GetByNik(nik string) (user entities.User, err error)
 	GetByUsername(username string) (user entities.User, err error)
 	GetByToken(token string) (user entities.User, err error)
+	GetWithSelectedField(selectedField []string) (users []entities.User, err error)
 }
 
 type userRepository struct {
-	db	gorm.DB
+	db gorm.DB
+}
+
+func (u *userRepository) GetWithSelectedField(selectedField []string) (users []entities.User, err error) {
+	err = u.db.Select(selectedField).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, err
 }
 
 func (u *userRepository) Update(user *entities.User) (err error) {

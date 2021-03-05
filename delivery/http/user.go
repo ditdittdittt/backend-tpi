@@ -13,13 +13,14 @@ import (
 type UserHandler interface {
 	Login(c *gin.Context)
 	GetUser(c *gin.Context)
+	Index(c *gin.Context)
 }
 
 type userHandler struct {
-	UserUsecase		usecase.UserUsecase
+	UserUsecase usecase.UserUsecase
 }
 
-func NewUserHandler(server *gin.Engine, userUsecase usecase.UserUsecase)  {
+func NewUserHandler(server *gin.Engine, userUsecase usecase.UserUsecase) {
 	handler := &userHandler{UserUsecase: userUsecase}
 	user := server.Group("/auth")
 	{
@@ -38,9 +39,9 @@ func (handler *userHandler) Login(c *gin.Context) {
 	token, err := handler.UserUsecase.Login(request.Username, request.Password)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
-			ResponseCode:    constant.ErrorResponseCode,
-			ResponseDesc:    "Login error",
-			ResponseData:    err.Error(),
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: "Login error",
+			ResponseData: err.Error(),
 		})
 		return
 	}
@@ -67,9 +68,9 @@ func (handler *userHandler) GetUser(c *gin.Context) {
 	user, err := handler.UserUsecase.GetUser(curUserIDint)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
-			ResponseCode:    constant.ErrorResponseCode,
-			ResponseDesc:    constant.Failed,
-			ResponseData:    err.Error(),
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
 		})
 		return
 	}
@@ -78,12 +79,30 @@ func (handler *userHandler) GetUser(c *gin.Context) {
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
 		ResponseData: map[string]interface{}{
-			"id": user.ID,
-			"role_id": user.RoleID,
-			"nik": user.Nik,
-			"name": user.Name,
-			"address": user.Address,
+			"id":       user.ID,
+			"role_id":  user.RoleID,
+			"nik":      user.Nik,
+			"name":     user.Name,
+			"address":  user.Address,
 			"username": user.Username,
 		},
+	})
+}
+
+func (handler *userHandler) Index(c *gin.Context) {
+	users, err := handler.UserUsecase.Index()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: users,
 	})
 }
