@@ -16,7 +16,6 @@ const (
 
 	CreateTpi         = "create-tpi"
 	CreateFishType    = "create-fish-type"
-	CreateFishingArea = "create-fishing-area"
 	CreateCaught      = "create-caught"
 	CreateAuction     = "create-auction"
 	CreateTransaction = "create-transaction"
@@ -35,4 +34,9 @@ const (
 	UpdateFishingGear  = "update-fishing-gear"
 	GetByIDFishingGear = "getbyid-fishing-gear"
 	DeleteFishingGear  = "delete-fishing-gear"
+
+	CreateFishingArea  = "create-fishing-area"
+	UpdateFishingArea  = "update-fishing-area"
+	GetByIDFishingArea = "getbyid-fishing-area"
+	DeleteFishingArea  = "delete-fishing-area"
 )

@@ -32,7 +32,7 @@ func (f *fisherRepository) GetByID(id int) (fisher entities.Fisher, err error) {
 	if err != nil {
 		return entities.Fisher{}, err
 	}
-	return fisher, err
+	return fisher, nil
 }
 
 func (f *fisherRepository) Update(fisher *entities.Fisher) error {

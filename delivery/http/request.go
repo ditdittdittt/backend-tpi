@@ -133,3 +133,14 @@ type UpdateFishingGearRequest struct {
 	Name string `json:"name"`
 	Code string `json:"code"`
 }
+
+type UpdateFishingAreaRequest struct {
+	DistrictID          int    `json:"district_id"`
+	SouthLatitudeDegree string `json:"south_latitude_degree"`
+	SouthLatitudeMinute string `json:"south_latitude_minute"`
+	SouthLatitudeSecond string `json:"south_latitude_second"`
+	EastLongitudeDegree string `json:"east_longitude_degree"`
+	EastLongitudeMinute string `json:"east_longitude_minute"`
+	EastLongitudeSecond string `json:"east_longitude_second"`
+	Name                string `json:"name"`
+}
