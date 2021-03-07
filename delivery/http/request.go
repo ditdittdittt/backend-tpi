@@ -144,3 +144,8 @@ type UpdateFishingAreaRequest struct {
 	EastLongitudeSecond string `json:"east_longitude_second"`
 	Name                string `json:"name"`
 }
+
+type UpdateFishTypeRequest struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
