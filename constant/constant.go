@@ -15,7 +15,6 @@ const (
 	GetUser             = "get-user"
 
 	CreateTpi         = "create-tpi"
-	CreateFisher      = "create-fisher"
 	CreateBuyer       = "create-buyer"
 	CreateFishType    = "create-fish-type"
 	CreateFishingGear = "create-fishing-gear"
@@ -23,4 +22,9 @@ const (
 	CreateCaught      = "create-caught"
 	CreateAuction     = "create-auction"
 	CreateTransaction = "create-transaction"
+
+	CreateFisher  = "create-fisher"
+	UpdateFisher  = "update-fisher"
+	GetByIDFisher = "getbyid-fisher"
+	DeleteFisher  = "delete-fisher"
 )

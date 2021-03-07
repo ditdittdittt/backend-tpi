@@ -52,7 +52,6 @@ func Seed() {
 	fishingArea1 := &entities.FishingArea{
 		ID:                  1,
 		DistrictID:          1,
-		District:            entities.District{},
 		Name:                "Bekasi",
 		SouthLatitudeDegree: "145",
 		SouthLatitudeMinute: "23",

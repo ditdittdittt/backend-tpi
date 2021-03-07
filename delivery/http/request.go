@@ -110,3 +110,13 @@ type CreateTransactionRequest struct {
 	TotalPrice       float64 `json:"total_price"`
 	AuctionsIDs      []int   `json:"auction_ids"`
 }
+
+type UpdateFisherRequest struct {
+	Nik         string `json:"nik"`
+	Name        string `json:"name"`
+	Address     string `json:"address"`
+	ShipType    string `json:"ship_type"`
+	AbkTotal    int    `json:"abk_total"`
+	PhoneNumber string `json:"phone_number"`
+	Status      string `json:"status"`
+}

@@ -7,12 +7,40 @@ import (
 )
 
 type FisherRepository interface {
-	GetWithSelectedField(selectedField []string) (fishers []entities.Fisher, err error)
 	Create(fisher *entities.Fisher) error
+	GetByID(id int) (fisher entities.Fisher, err error)
+	GetWithSelectedField(selectedField []string) (fishers []entities.Fisher, err error)
+	Update(fisher *entities.Fisher) error
+	Delete(id int) error
 }
 
 type fisherRepository struct {
 	db gorm.DB
+}
+
+func (f *fisherRepository) Delete(id int) error {
+	err := f.db.Delete(&entities.Fisher{}, id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (f *fisherRepository) GetByID(id int) (fisher entities.Fisher, err error) {
+	err = f.db.First(&fisher, id).Error
+	if err != nil {
+		return entities.Fisher{}, err
+	}
+	return fisher, err
+}
+
+func (f *fisherRepository) Update(fisher *entities.Fisher) error {
+	err := f.db.Model(&fisher).Updates(fisher).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *fisherRepository) GetWithSelectedField(selectedField []string) (fishers []entities.Fisher, err error) {
