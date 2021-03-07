@@ -128,3 +128,8 @@ type UpdateBuyerRequest struct {
 	PhoneNumber string `json:"phone_number"`
 	Status      string `json:"status"`
 }
+
+type UpdateFishingGearRequest struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
