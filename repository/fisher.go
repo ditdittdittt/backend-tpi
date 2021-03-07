@@ -8,8 +8,8 @@ import (
 
 type FisherRepository interface {
 	Create(fisher *entities.Fisher) error
-	GetByID(id int) (fisher entities.Fisher, err error)
 	GetWithSelectedField(selectedField []string) (fishers []entities.Fisher, err error)
+	GetByID(id int) (fisher entities.Fisher, err error)
 	Update(fisher *entities.Fisher) error
 	Delete(id int) error
 }

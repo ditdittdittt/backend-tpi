@@ -120,3 +120,11 @@ type UpdateFisherRequest struct {
 	PhoneNumber string `json:"phone_number"`
 	Status      string `json:"status"`
 }
+
+type UpdateBuyerRequest struct {
+	Nik         string `json:"nik"`
+	Name        string `json:"name"`
+	Address     string `json:"address"`
+	PhoneNumber string `json:"phone_number"`
+	Status      string `json:"status"`
+}

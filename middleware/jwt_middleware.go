@@ -23,7 +23,7 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 		tokenString := authHeader[len(BEARER_SCHEMA):]
 		token, err := services.NewJWTAuthService().ValidateToken(tokenString)
 		if err != nil {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
 			return
 		}
 

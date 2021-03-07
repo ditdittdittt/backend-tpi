@@ -11,6 +11,9 @@ import (
 
 type BuyerUsecase interface {
 	Create(buyer *entities.Buyer) error
+	Delete(id int) error
+	Update(buyer *entities.Buyer) error
+	GetByID(id int) (entities.Buyer, error)
 	Index() (buyers []entities.Buyer, err error)
 }
 
@@ -18,8 +21,37 @@ type buyerUsecase struct {
 	BuyerRepository repository.BuyerRepository
 }
 
+func (b *buyerUsecase) Delete(id int) error {
+	err := b.BuyerRepository.Delete(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Delete] Buyer repository error")
+	}
+
+	return nil
+}
+
+func (b *buyerUsecase) Update(buyer *entities.Buyer) error {
+	buyer.UpdatedAt = time.Now()
+
+	err := b.BuyerRepository.Update(buyer)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Buyer repository error")
+	}
+
+	return nil
+}
+
+func (b *buyerUsecase) GetByID(id int) (entities.Buyer, error) {
+	buyer, err := b.BuyerRepository.GetByID(id)
+	if err != nil {
+		return buyer, stacktrace.Propagate(err, "[GetByID] Buyer repository error")
+	}
+
+	return buyer, nil
+}
+
 func (b *buyerUsecase) Index() (buyers []entities.Buyer, err error) {
-	selectedField := []string{"nik", "name", "status", "address", "phone_number", "created_at", "updated_at"}
+	selectedField := []string{"id", "nik", "name", "status", "address", "phone_number", "created_at", "updated_at"}
 
 	buyers, err = b.BuyerRepository.GetWithSelectedField(selectedField)
 	if err != nil {
