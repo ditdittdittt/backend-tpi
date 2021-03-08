@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/palantir/stacktrace"
 
@@ -14,6 +15,8 @@ type UserUsecase interface {
 	Login(username string, password string) (token string, err error)
 	GetUser(id int) (user entities.User, err error)
 	Index() (users []entities.User, err error)
+	Update(user *entities.User) error
+	GetByID(id int) (entities.User, error)
 }
 
 type userUsecase struct {
@@ -21,12 +24,30 @@ type userUsecase struct {
 	userRepository repository.UserRepository
 }
 
-func (u *userUsecase) Index() (users []entities.User, err error) {
-	selectedField := []string{"username", "name", "nik", "address", "role_id", "status", "created_at", "updated_at"}
-
-	users, err = u.userRepository.GetWithSelectedField(selectedField)
+func (u *userUsecase) GetByID(id int) (entities.User, error) {
+	user, err := u.userRepository.GetByID(id)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fisher repository error")
+		return user, stacktrace.Propagate(err, "[GetByID] User repository error")
+	}
+
+	return user, nil
+}
+
+func (u *userUsecase) Update(user *entities.User) error {
+	user.UpdatedAt = time.Now()
+
+	err := u.userRepository.Update(user)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] User repository error")
+	}
+
+	return nil
+}
+
+func (u *userUsecase) Index() (users []entities.User, err error) {
+	users, err = u.userRepository.Get()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[GetSelectedField] User repository error")
 	}
 
 	return users, nil

@@ -14,10 +14,20 @@ type UserRepository interface {
 	GetByUsername(username string) (user entities.User, err error)
 	GetByToken(token string) (user entities.User, err error)
 	GetWithSelectedField(selectedField []string) (users []entities.User, err error)
+	Get() (users []entities.User, err error)
 }
 
 type userRepository struct {
 	db gorm.DB
+}
+
+func (u *userRepository) Get() (users []entities.User, err error) {
+	err = u.db.Preload("Role").Preload("UserStatus").Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (u *userRepository) GetWithSelectedField(selectedField []string) (users []entities.User, err error) {
@@ -50,7 +60,7 @@ func (u *userRepository) Create(user *entities.User) (err error) {
 }
 
 func (u *userRepository) GetByID(id int) (user entities.User, err error) {
-	err = u.db.Find(&user, id).Error
+	err = u.db.Preload("Role").Preload("UserStatus").Find(&user, id).Error
 	return user, err
 }
 

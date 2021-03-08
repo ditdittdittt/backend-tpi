@@ -13,6 +13,8 @@ const (
 	CreateTpiOfficer    = "create-tpi-officer"
 	CreateTpiCashier    = "create-tpi-cashier"
 	GetUser             = "get-user"
+	GetByIDUser         = "getbyid-user"
+	UpdateUser          = "update-user"
 
 	CreateTpi         = "create-tpi"
 	CreateCaught      = "create-caught"
