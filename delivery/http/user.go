@@ -61,12 +61,6 @@ func (handler *userHandler) Login(c *gin.Context) {
 }
 
 func (handler *userHandler) GetUser(c *gin.Context) {
-	var request GetUserRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	curUserID := c.MustGet("userID")
 	curUserIDint := curUserID.(int)
 
