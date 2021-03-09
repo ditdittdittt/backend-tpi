@@ -8,10 +8,20 @@ import (
 
 type TransactionRepository interface {
 	Create(transaction *entities.Transaction) error
+	Get() (transactions []entities.Transaction, err error)
 }
 
 type transactionRepository struct {
 	db gorm.DB
+}
+
+func (t *transactionRepository) Get() (transactions []entities.Transaction, err error) {
+	err = t.db.Preload("Buyer").Preload("TransactionItem").Preload("TransactionItem.Auction").Find(&transactions).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }
 
 func (t *transactionRepository) Create(transaction *entities.Transaction) error {

@@ -13,6 +13,7 @@ import (
 
 type CaughtHandler interface {
 	Create(c *gin.Context)
+	Index(c *gin.Context)
 }
 
 type caughtHandler struct {
@@ -22,16 +23,13 @@ type caughtHandler struct {
 func NewCaughtHandler(server *gin.Engine, caughtUsecase usecase.CaughtUsecase) {
 	handler := &caughtHandler{CaughtUsecase: caughtUsecase}
 	server.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
+	server.GET("/caughts", handler.Index)
 }
 
 func (h *caughtHandler) Create(c *gin.Context) {
 	var request CreateCaughtRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, Response{
-			ResponseCode: constant.ErrorResponseCode,
-			ResponseDesc: constant.Failed,
-			ResponseData: err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
 		return
 	}
 
@@ -49,16 +47,26 @@ func (h *caughtHandler) Create(c *gin.Context) {
 
 	err := h.CaughtUsecase.Create(caught, request.CaughtFishData)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
-			ResponseCode: constant.ErrorResponseCode,
-			ResponseDesc: constant.Failed,
-			ResponseData: err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
 	}
 
 	c.JSON(http.StatusOK, Response{
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
+	})
+}
+
+func (h *caughtHandler) Index(c *gin.Context) {
+	caughts, err := h.CaughtUsecase.Index()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: caughts,
 	})
 }

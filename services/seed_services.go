@@ -130,7 +130,7 @@ func Seed() {
 		User: entities.User{
 			ID:     1,
 			RoleID: 1,
-			Role: entities.Role{
+			Role: &entities.Role{
 				ID:   1,
 				Name: "superadmin",
 				Permission: []entities.Permission{

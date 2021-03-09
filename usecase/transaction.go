@@ -11,12 +11,22 @@ import (
 
 type TransactionUsecase interface {
 	Create(transaction *entities.Transaction, auctionIDs []int) error
+	Index() ([]entities.Transaction, error)
 }
 
 type transactionUsecase struct {
 	transactionRepository repository.TransactionRepository
 	auctionRepository     repository.AuctionRepository
 	caughtRepository      repository.CaughtRepository
+}
+
+func (t *transactionUsecase) Index() ([]entities.Transaction, error) {
+	transactions, err := t.transactionRepository.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }
 
 func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionIDs []int) error {
@@ -26,7 +36,7 @@ func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionID
 	transaction.UpdatedAt = time.Now()
 
 	for _, auctionID := range auctionIDs {
-		transaction.TransactionItem = append(transaction.TransactionItem, entities.TransactionItem{
+		transaction.TransactionItem = append(transaction.TransactionItem, &entities.TransactionItem{
 			AuctionID: auctionID,
 		})
 		auction, err := t.auctionRepository.GetByID(auctionID)

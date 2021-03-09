@@ -11,10 +11,20 @@ type CaughtRepository interface {
 	Create(caught *entities.Caught) error
 	Update(caught *entities.Caught, data map[string]interface{}) error
 	BulkUpdate(id []int, data map[string]interface{}) error
+	Get() (caughts []entities.Caught, err error)
 }
 
 type caughtRepository struct {
 	db gorm.DB
+}
+
+func (c *caughtRepository) Get() (caughts []entities.Caught, err error) {
+	err = c.db.Preload("Fisher").Preload("FishType").Preload("FishingGear").Preload("FishingArea").Preload("CaughtStatus").Find(&caughts).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return caughts, nil
 }
 
 func (c *caughtRepository) BulkUpdate(id []int, data map[string]interface{}) error {

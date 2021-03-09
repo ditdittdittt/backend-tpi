@@ -11,10 +11,20 @@ import (
 
 type CaughtUsecase interface {
 	Create(caught *entities.Caught, caughtData []entities.CaughtData) error
+	Index() ([]entities.Caught, error)
 }
 
 type caughtUsecase struct {
 	caughtRepository repository.CaughtRepository
+}
+
+func (c *caughtUsecase) Index() ([]entities.Caught, error) {
+	caughts, err := c.caughtRepository.Get()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[Get] Caught repository error")
+	}
+
+	return caughts, nil
 }
 
 func (c *caughtUsecase) Create(caught *entities.Caught, caughtData []entities.CaughtData) error {
