@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/ditdittdittt/backend-tpi/database"
@@ -28,6 +29,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(cors.Default())
 	// User
 	jwtService := services.NewJWTAuthService()
 	userRepository := repository.NewUserRepository(*database.DB)
