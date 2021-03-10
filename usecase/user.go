@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -67,7 +66,6 @@ func (u *userUsecase) Login(username string, password string) (token string, err
 	if err != nil {
 		return "", stacktrace.Propagate(err, "[GetByUsername] User repository error")
 	}
-	fmt.Println(user.Role.Permission)
 
 	if user.Password != password {
 		return "", stacktrace.NewError("Password didn't match")
