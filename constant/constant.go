@@ -15,11 +15,16 @@ const (
 	GetUser             = "get-user"
 	GetByIDUser         = "getbyid-user"
 	UpdateUser          = "update-user"
+	Logout              = "logout"
 
 	CreateTpi         = "create-tpi"
-	CreateCaught      = "create-caught"
-	CreateAuction     = "create-auction"
 	CreateTransaction = "create-transaction"
+
+	CreateCaught  = "create-caught"
+	InquiryCaught = "inquiry-caught"
+
+	CreateAuction  = "create-auction"
+	InquiryAuction = "inquiry-auction"
 
 	CreateFisher  = "create-fisher"
 	UpdateFisher  = "update-fisher"

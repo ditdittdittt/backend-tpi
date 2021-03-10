@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/database"
 	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository"
@@ -38,9 +39,12 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
 			return
 		}
-		if !helper.ValidatePermission(curUser.Role.Permission, function) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Message": "Forbidden"})
-			return
+
+		if function != constant.Logout {
+			if !helper.ValidatePermission(curUser.Role.Permission, function) {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Message": "Forbidden"})
+				return
+			}
 		}
 
 		switch curUser.RoleID {

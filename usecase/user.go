@@ -12,6 +12,7 @@ import (
 
 type UserUsecase interface {
 	Login(username string, password string) (token string, err error)
+	Logout(id int) error
 	GetUser(id int) (user entities.User, err error)
 	Index() (users []entities.User, err error)
 	Update(user *entities.User) error
@@ -21,6 +22,21 @@ type UserUsecase interface {
 type userUsecase struct {
 	jwtService     services.JWTService
 	userRepository repository.UserRepository
+}
+
+func (u *userUsecase) Logout(id int) error {
+	user, err := u.userRepository.GetByID(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] User repository error")
+	}
+
+	user.Token = ""
+	err = u.userRepository.Update(&user)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] User repository error")
+	}
+
+	return nil
 }
 
 func (u *userUsecase) GetByID(id int) (entities.User, error) {

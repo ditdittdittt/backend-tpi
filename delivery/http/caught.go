@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -14,6 +15,7 @@ import (
 type CaughtHandler interface {
 	Create(c *gin.Context)
 	Index(c *gin.Context)
+	Inquiry(c *gin.Context)
 }
 
 type caughtHandler struct {
@@ -24,6 +26,7 @@ func NewCaughtHandler(server *gin.Engine, caughtUsecase usecase.CaughtUsecase) {
 	handler := &caughtHandler{CaughtUsecase: caughtUsecase}
 	server.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
 	server.GET("/caughts", handler.Index)
+	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.InquiryCaught), handler.Inquiry)
 }
 
 func (h *caughtHandler) Create(c *gin.Context) {
@@ -59,6 +62,28 @@ func (h *caughtHandler) Create(c *gin.Context) {
 
 func (h *caughtHandler) Index(c *gin.Context) {
 	caughts, err := h.CaughtUsecase.Index()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: caughts,
+	})
+}
+
+func (h *caughtHandler) Inquiry(c *gin.Context) {
+	fisherID := c.DefaultQuery("fisher_id", "0")
+	intFisherID, _ := strconv.Atoi(fisherID)
+
+	fishTypeID := c.DefaultQuery("fish_type_id", "0")
+	intFishTypeID, _ := strconv.Atoi(fishTypeID)
+
+	tpiID := c.MustGet("tpiID")
+
+	caughts, err := h.CaughtUsecase.Inquiry(intFisherID, intFishTypeID, tpiID.(int))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

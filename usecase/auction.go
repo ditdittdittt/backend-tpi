@@ -11,11 +11,33 @@ import (
 
 type AuctionUsecase interface {
 	Create(auction *entities.Auction) error
+	Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Auction, error)
 }
 
 type auctionUsecase struct {
 	auctionRepository repository.AuctionRepository
 	caughtRepository  repository.CaughtRepository
+}
+
+func (a *auctionUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Auction, error) {
+	queryMap := map[string]interface{}{
+		"caughts.tpi_id": tpiID,
+	}
+
+	if fisherID != 0 {
+		queryMap["caughts.fisher_id"] = fisherID
+	}
+
+	if fishTypeID != 0 {
+		queryMap["caughts.fish_type_id"] = fishTypeID
+	}
+
+	auctions, err := a.auctionRepository.Search(queryMap)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[Search] Caught repository")
+	}
+
+	return auctions, nil
 }
 
 func (a *auctionUsecase) Create(auction *entities.Auction) error {

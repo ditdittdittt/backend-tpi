@@ -12,10 +12,33 @@ import (
 type CaughtUsecase interface {
 	Create(caught *entities.Caught, caughtData []entities.CaughtData) error
 	Index() ([]entities.Caught, error)
+	Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Caught, error)
 }
 
 type caughtUsecase struct {
 	caughtRepository repository.CaughtRepository
+}
+
+func (c *caughtUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Caught, error) {
+	queryMap := map[string]interface{}{
+		"tpi_id":           tpiID,
+		"caught_status_id": 1,
+	}
+
+	if fisherID != 0 {
+		queryMap["fisher_id"] = fisherID
+	}
+
+	if fishTypeID != 0 {
+		queryMap["fish_type_id"] = fishTypeID
+	}
+
+	caughts, err := c.caughtRepository.Search(queryMap)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[Search] Caught repository")
+	}
+
+	return caughts, nil
 }
 
 func (c *caughtUsecase) Index() ([]entities.Caught, error) {
