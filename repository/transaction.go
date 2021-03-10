@@ -16,7 +16,12 @@ type transactionRepository struct {
 }
 
 func (t *transactionRepository) Get() (transactions []entities.Transaction, err error) {
-	err = t.db.Preload("Buyer").Preload("TransactionItem").Preload("TransactionItem.Auction").Preload("TransactionItem.Auction.Caught").Find(&transactions).Error
+	err = t.db.Preload("Buyer").
+		Preload("TransactionItem").
+		Preload("TransactionItem.Auction").
+		Preload("TransactionItem.Auction.Caught").
+		Preload("TransactionItem.Auction.Caught.Fisher").
+		Preload("TransactionItem.Auction.Caught.FishType").Find(&transactions).Error
 	if err != nil {
 		return nil, err
 	}
