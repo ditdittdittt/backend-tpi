@@ -6,7 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type TransactionUsecase interface {
@@ -15,9 +15,9 @@ type TransactionUsecase interface {
 }
 
 type transactionUsecase struct {
-	transactionRepository repository.TransactionRepository
-	auctionRepository     repository.AuctionRepository
-	caughtRepository      repository.CaughtRepository
+	transactionRepository mysql.TransactionRepository
+	auctionRepository     mysql.AuctionRepository
+	caughtRepository      mysql.CaughtRepository
 }
 
 func (t *transactionUsecase) Index() ([]entities.Transaction, error) {
@@ -64,9 +64,9 @@ func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionID
 }
 
 func NewTransactionUsecase(
-	transactionRepository repository.TransactionRepository,
-	auctionRepository repository.AuctionRepository,
-	caughtRepository repository.CaughtRepository,
+	transactionRepository mysql.TransactionRepository,
+	auctionRepository mysql.AuctionRepository,
+	caughtRepository mysql.CaughtRepository,
 ) TransactionUsecase {
 	return &transactionUsecase{
 		transactionRepository: transactionRepository,

@@ -6,7 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type CaughtUsecase interface {
@@ -16,7 +16,7 @@ type CaughtUsecase interface {
 }
 
 type caughtUsecase struct {
-	caughtRepository repository.CaughtRepository
+	caughtRepository mysql.CaughtRepository
 }
 
 func (c *caughtUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Caught, error) {
@@ -75,6 +75,6 @@ func (c *caughtUsecase) Create(caught *entities.Caught, caughtData []entities.Ca
 	return nil
 }
 
-func NewCaughtUsecase(caughtRepository repository.CaughtRepository) CaughtUsecase {
+func NewCaughtUsecase(caughtRepository mysql.CaughtRepository) CaughtUsecase {
 	return &caughtUsecase{caughtRepository: caughtRepository}
 }

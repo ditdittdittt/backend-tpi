@@ -6,7 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type UserDistrictUsecase interface {
@@ -14,7 +14,7 @@ type UserDistrictUsecase interface {
 }
 
 type userDistrictUsecase struct {
-	userDistrictRepository repository.UserDistrictRepository
+	userDistrictRepository mysql.UserDistrictRepository
 }
 
 func (u *userDistrictUsecase) CreateDistrictAccount(userDistrict *entities.UserDistrict) error {
@@ -32,6 +32,6 @@ func (u *userDistrictUsecase) CreateDistrictAccount(userDistrict *entities.UserD
 	return nil
 }
 
-func NewUserDistrictUsecase(userDistrictRepository repository.UserDistrictRepository) UserDistrictUsecase {
+func NewUserDistrictUsecase(userDistrictRepository mysql.UserDistrictRepository) UserDistrictUsecase {
 	return &userDistrictUsecase{userDistrictRepository: userDistrictRepository}
 }

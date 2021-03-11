@@ -6,7 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type BuyerUsecase interface {
@@ -18,7 +18,7 @@ type BuyerUsecase interface {
 }
 
 type buyerUsecase struct {
-	BuyerRepository repository.BuyerRepository
+	BuyerRepository mysql.BuyerRepository
 }
 
 func (b *buyerUsecase) Delete(id int) error {
@@ -74,6 +74,6 @@ func (b *buyerUsecase) Create(buyer *entities.Buyer) error {
 	return nil
 }
 
-func NewBuyerUsecase(buyerRepository repository.BuyerRepository) BuyerUsecase {
+func NewBuyerUsecase(buyerRepository mysql.BuyerRepository) BuyerUsecase {
 	return &buyerUsecase{BuyerRepository: buyerRepository}
 }

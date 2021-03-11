@@ -6,7 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type AuctionUsecase interface {
@@ -15,8 +15,8 @@ type AuctionUsecase interface {
 }
 
 type auctionUsecase struct {
-	auctionRepository repository.AuctionRepository
-	caughtRepository  repository.CaughtRepository
+	auctionRepository mysql.AuctionRepository
+	caughtRepository  mysql.CaughtRepository
 }
 
 func (a *auctionUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Auction, error) {
@@ -67,6 +67,6 @@ func (a *auctionUsecase) Create(auction *entities.Auction) error {
 	return nil
 }
 
-func NewAuctionUsecase(auctionRepository repository.AuctionRepository, caughtRepository repository.CaughtRepository) AuctionUsecase {
+func NewAuctionUsecase(auctionRepository mysql.AuctionRepository, caughtRepository mysql.CaughtRepository) AuctionUsecase {
 	return &auctionUsecase{auctionRepository: auctionRepository, caughtRepository: caughtRepository}
 }

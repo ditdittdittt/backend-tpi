@@ -4,7 +4,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type FishingAreaUsecase interface {
@@ -16,7 +16,7 @@ type FishingAreaUsecase interface {
 }
 
 type fishingAreaUsecase struct {
-	fishingAreaRepository repository.FishingAreaRepository
+	fishingAreaRepository mysql.FishingAreaRepository
 }
 
 func (f *fishingAreaUsecase) Delete(id int) error {
@@ -75,6 +75,6 @@ func (f *fishingAreaUsecase) Create(fishingArea *entities.FishingArea) error {
 	return nil
 }
 
-func NewFishingAreaUsecase(fishingAreaRepository repository.FishingAreaRepository) FishingAreaUsecase {
+func NewFishingAreaUsecase(fishingAreaRepository mysql.FishingAreaRepository) FishingAreaUsecase {
 	return &fishingAreaUsecase{fishingAreaRepository: fishingAreaRepository}
 }

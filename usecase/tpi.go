@@ -6,7 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type TpiUsecase interface {
@@ -14,7 +14,7 @@ type TpiUsecase interface {
 }
 
 type tpiUsecase struct {
-	tpiRepository repository.TpiRepository
+	tpiRepository mysql.TpiRepository
 }
 
 func (t *tpiUsecase) Create(tpi *entities.Tpi) error {
@@ -29,6 +29,6 @@ func (t *tpiUsecase) Create(tpi *entities.Tpi) error {
 	return nil
 }
 
-func NewTpiUsecase(tpiRepository repository.TpiRepository) TpiUsecase {
+func NewTpiUsecase(tpiRepository mysql.TpiRepository) TpiUsecase {
 	return &tpiUsecase{tpiRepository: tpiRepository}
 }

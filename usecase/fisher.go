@@ -6,7 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type FisherUsecase interface {
@@ -18,7 +18,7 @@ type FisherUsecase interface {
 }
 
 type fisherUsecase struct {
-	fisherRepository repository.FisherRepository
+	fisherRepository mysql.FisherRepository
 }
 
 func (f *fisherUsecase) Delete(id int) error {
@@ -73,6 +73,6 @@ func (f *fisherUsecase) Create(fisher *entities.Fisher) error {
 	return nil
 }
 
-func NewFisherUsecase(fisherRepository repository.FisherRepository) FisherUsecase {
+func NewFisherUsecase(fisherRepository mysql.FisherRepository) FisherUsecase {
 	return &fisherUsecase{fisherRepository: fisherRepository}
 }

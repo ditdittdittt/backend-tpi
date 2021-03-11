@@ -17,6 +17,7 @@ func Migrate() {
 		&entities.FishingArea{},
 		&entities.FishingGear{},
 		&entities.Permission{},
+		&entities.Province{},
 		&entities.Role{},
 		&entities.Tpi{},
 		&entities.Transaction{},

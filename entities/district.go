@@ -1,7 +1,8 @@
 package entities
 
 type District struct {
-	ID         int    `json:"id"`
-	ProvinceID int    `json:"province_id"`
-	Name       string `json:"name"`
+	ID         int      `json:"id"`
+	ProvinceID int      `json:"province_id"`
+	Province   Province `json:"province"`
+	Name       string   `json:"name"`
 }

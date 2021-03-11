@@ -6,7 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 	"github.com/ditdittdittt/backend-tpi/services"
 )
 
@@ -21,7 +21,7 @@ type UserUsecase interface {
 
 type userUsecase struct {
 	jwtService     services.JWTService
-	userRepository repository.UserRepository
+	userRepository mysql.UserRepository
 }
 
 func (u *userUsecase) Logout(id int) error {
@@ -101,6 +101,6 @@ func (u *userUsecase) Login(username string, password string) (token string, err
 	return token, nil
 }
 
-func NewUserUsecase(jwtService services.JWTService, userRepository repository.UserRepository) UserUsecase {
+func NewUserUsecase(jwtService services.JWTService, userRepository mysql.UserRepository) UserUsecase {
 	return &userUsecase{userRepository: userRepository, jwtService: jwtService}
 }

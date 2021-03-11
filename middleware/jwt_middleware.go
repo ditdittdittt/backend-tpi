@@ -8,7 +8,7 @@ import (
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/database"
 	"github.com/ditdittdittt/backend-tpi/helper"
-	"github.com/ditdittdittt/backend-tpi/repository"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 	"github.com/ditdittdittt/backend-tpi/services"
 )
 
@@ -33,7 +33,7 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			return
 		}
 
-		userRepository := repository.NewUserRepository(*database.DB)
+		userRepository := mysql.NewUserRepository(*database.DB)
 		curUser, err := userRepository.GetByToken(token.Raw)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
@@ -49,14 +49,14 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 
 		switch curUser.RoleID {
 		case 1:
-			userSuperadminRepository := repository.NewUserSuperadminRepository(*database.DB)
+			userSuperadminRepository := mysql.NewUserSuperadminRepository(*database.DB)
 			_, err := userSuperadminRepository.GetByUserID(curUser.ID)
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
 				return
 			}
 		case 2:
-			userDistrictRepository := repository.NewUserDistrictRepository(*database.DB)
+			userDistrictRepository := mysql.NewUserDistrictRepository(*database.DB)
 			curUserRole, err := userDistrictRepository.GetByUserID(curUser.ID)
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
@@ -64,7 +64,7 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			}
 			c.Set("districtID", curUserRole.DistrictID)
 		case 3:
-			userTpiRepository := repository.NewUserTpiRepository(*database.DB)
+			userTpiRepository := mysql.NewUserTpiRepository(*database.DB)
 			curUserRole, err := userTpiRepository.GetByUserID(curUser.ID)
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
