@@ -16,7 +16,7 @@ type userDistrictRepository struct {
 }
 
 func (u *userDistrictRepository) GetByUserID(userID int) (userDistrict entities.UserDistrict, err error) {
-	err = u.db.Where("user_id = ?", userID).First(&userDistrict).Error
+	err = u.db.Preload("District").Where("user_id = ?", userID).First(&userDistrict).Error
 	if err != nil {
 		return entities.UserDistrict{}, err
 	}

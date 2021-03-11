@@ -45,7 +45,6 @@ func (h *fishingAreaHandler) Create(c *gin.Context) {
 	}
 
 	fishingArea := &entities.FishingArea{
-		DistrictID:          request.DistrictID,
 		SouthLatitudeDegree: request.SouthLatitudeDegree,
 		SouthLatitudeMinute: request.SouthLatitudeMinute,
 		SouthLatitudeSecond: request.SouthLatitudeSecond,
@@ -55,7 +54,16 @@ func (h *fishingAreaHandler) Create(c *gin.Context) {
 		Name:                request.Name,
 	}
 
-	err := h.fishingAreaUsecase.Create(fishingArea)
+	tpiID, _ := c.Get("tpiID")
+
+	districtID, ok := c.Get("districtID")
+	if ok {
+		fishingArea.DistrictID = districtID.(int)
+	} else {
+		fishingArea.DistrictID = 0
+	}
+
+	err := h.fishingAreaUsecase.Create(fishingArea, tpiID.(int))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,

@@ -30,11 +30,7 @@ func main() {
 
 	r := gin.Default()
 	r.Use(cors.Default())
-	// User
 	jwtService := services.NewJWTAuthService()
-	userRepository := mysql.NewUserRepository(*database.DB)
-	userUsecase := usecase.NewUserUsecase(jwtService, userRepository)
-	http.NewUserHandler(r, userUsecase)
 
 	// User District
 	userDistrictRepository := mysql.NewUserDistrictRepository(*database.DB)
@@ -45,6 +41,11 @@ func main() {
 	userTpiRepository := mysql.NewUserTpiRepository(*database.DB)
 	userTpiUsecase := usecase.NewUserTpiUsecase(userTpiRepository)
 	http.NewUserTpiHandler(r, userTpiUsecase)
+
+	// User
+	userRepository := mysql.NewUserRepository(*database.DB)
+	userUsecase := usecase.NewUserUsecase(jwtService, userRepository, userDistrictRepository, userTpiRepository)
+	http.NewUserHandler(r, userUsecase)
 
 	// Fisher
 	fisherRepository := mysql.NewFisherRepository(*database.DB)
@@ -60,11 +61,6 @@ func main() {
 	fishingGearRepository := mysql.NewFishingGearRepository(*database.DB)
 	fishingGearUsecase := usecase.NewFishingGearUsecase(fishingGearRepository)
 	http.NewFishingGearHandler(r, fishingGearUsecase)
-
-	// Fishing area
-	fishingAreaRepository := mysql.NewFishingAreaRepository(*database.DB)
-	fishingAreaUsecase := usecase.NewFishingAreaUsecase(fishingAreaRepository)
-	http.NewFishingAreaHandler(r, fishingAreaUsecase)
 
 	// Fish type
 	fishTypeRepository := mysql.NewFishTypeRepository(*database.DB)
@@ -85,6 +81,16 @@ func main() {
 	transactionRepository := mysql.NewTransactionRepository(*database.DB)
 	transactionUsecase := usecase.NewTransactionUsecase(transactionRepository, auctionRepository, caughtRepository)
 	http.NewTransactionHandler(r, transactionUsecase)
+
+	// TPI
+	tpiRepository := mysql.NewTpiRepository(*database.DB)
+	tpiUsecase := usecase.NewTpiUsecase(tpiRepository)
+	http.NewTpiHandler(r, tpiUsecase)
+
+	// Fishing area
+	fishingAreaRepository := mysql.NewFishingAreaRepository(*database.DB)
+	fishingAreaUsecase := usecase.NewFishingAreaUsecase(fishingAreaRepository, tpiRepository)
+	http.NewFishingAreaHandler(r, fishingAreaUsecase)
 
 	r.Run(":9090")
 }

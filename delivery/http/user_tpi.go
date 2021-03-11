@@ -21,7 +21,7 @@ type usertTpiHandler struct {
 	UserTpiUsecase usecase.UserTpiUsecase
 }
 
-func NewUserTpiHandler(server *gin.Engine, userTpiUsecase usecase.UserTpiUsecase)  {
+func NewUserTpiHandler(server *gin.Engine, userTpiUsecase usecase.UserTpiUsecase) {
 	handler := &usertTpiHandler{UserTpiUsecase: userTpiUsecase}
 	user := server.Group("/auth")
 	{
@@ -39,8 +39,8 @@ func (h *usertTpiHandler) CreateTpiAdmin(c *gin.Context) {
 	}
 
 	tpiUser := &entities.UserTpi{
-		User:       entities.User{
-			RoleID:   request.RoleID,
+		User: entities.User{
+			RoleID:   3,
 			Nik:      request.Nik,
 			Name:     request.Name,
 			Address:  request.Address,
@@ -52,9 +52,9 @@ func (h *usertTpiHandler) CreateTpiAdmin(c *gin.Context) {
 	err := h.UserTpiUsecase.CreateTpiAccount(tpiUser)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
-			ResponseCode:    constant.ErrorResponseCode,
-			ResponseDesc:    constant.Failed,
-			ResponseData:    err.Error(),
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
 		})
 		return
 	}
@@ -72,23 +72,25 @@ func (h *usertTpiHandler) CreateTpiOfficer(c *gin.Context) {
 		return
 	}
 
+	tpiID := c.MustGet("tpiID")
+
 	tpiUser := &entities.UserTpi{
-		User:       entities.User{
-			RoleID:   request.RoleID,
+		User: entities.User{
+			RoleID:   4,
 			Nik:      request.Nik,
 			Name:     request.Name,
 			Address:  request.Address,
 			Username: request.Username,
 		},
-		TpiID: request.TpiID,
+		TpiID: tpiID.(int),
 	}
 
 	err := h.UserTpiUsecase.CreateTpiAccount(tpiUser)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
-			ResponseCode:    constant.ErrorResponseCode,
-			ResponseDesc:    constant.Failed,
-			ResponseData:    err.Error(),
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
 		})
 		return
 	}
@@ -106,23 +108,25 @@ func (h *usertTpiHandler) CreateTpiCashier(c *gin.Context) {
 		return
 	}
 
+	tpiID := c.MustGet("tpiID")
+
 	tpiUser := &entities.UserTpi{
-		User:       entities.User{
-			RoleID:   request.RoleID,
+		User: entities.User{
+			RoleID:   5,
 			Nik:      request.Nik,
 			Name:     request.Name,
 			Address:  request.Address,
 			Username: request.Username,
 		},
-		TpiID: request.TpiID,
+		TpiID: tpiID.(int),
 	}
 
 	err := h.UserTpiUsecase.CreateTpiAccount(tpiUser)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
-			ResponseCode:    constant.ErrorResponseCode,
-			ResponseDesc:    constant.Failed,
-			ResponseData:    err.Error(),
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
 		})
 		return
 	}

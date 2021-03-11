@@ -35,8 +35,10 @@ func (h *tpiHandler) Create(c *gin.Context) {
 		return
 	}
 
+	districtID := c.MustGet("districtID")
+
 	tpi := &entities.Tpi{
-		DistrictID: request.DistrictID,
+		DistrictID: districtID.(int),
 		Name:       request.Name,
 		Code:       request.Code,
 	}

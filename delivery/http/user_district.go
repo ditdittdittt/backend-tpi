@@ -16,10 +16,10 @@ type UserDistrictHandler interface {
 }
 
 type userDistrictHandler struct {
-	UserDistrictUsecase		usecase.UserDistrictUsecase
+	UserDistrictUsecase usecase.UserDistrictUsecase
 }
 
-func NewUserDistrictHandler(server *gin.Engine, userDistrictUsecase usecase.UserDistrictUsecase)  {
+func NewUserDistrictHandler(server *gin.Engine, userDistrictUsecase usecase.UserDistrictUsecase) {
 	handler := &userDistrictHandler{UserDistrictUsecase: userDistrictUsecase}
 	user := server.Group("/auth")
 	{
@@ -35,8 +35,8 @@ func (h *userDistrictHandler) CreateDistrictAdmin(c *gin.Context) {
 	}
 
 	districtUser := &entities.UserDistrict{
-		User:       entities.User{
-			RoleID:   request.RoleID,
+		User: entities.User{
+			RoleID:   2,
 			Nik:      request.Nik,
 			Name:     request.Name,
 			Address:  request.Address,
@@ -48,9 +48,9 @@ func (h *userDistrictHandler) CreateDistrictAdmin(c *gin.Context) {
 	err := h.UserDistrictUsecase.CreateDistrictAccount(districtUser)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
-			ResponseCode:    constant.ErrorResponseCode,
-			ResponseDesc:    constant.Failed,
-			ResponseData:    err.Error(),
+			ResponseCode: constant.ErrorResponseCode,
+			ResponseDesc: constant.Failed,
+			ResponseData: err.Error(),
 		})
 		return
 	}

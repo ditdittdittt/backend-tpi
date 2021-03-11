@@ -8,7 +8,7 @@ import (
 )
 
 type FishingAreaUsecase interface {
-	Create(fishingArea *entities.FishingArea) error
+	Create(fishingArea *entities.FishingArea, tpiID int) error
 	Delete(id int) error
 	Update(fishingArea *entities.FishingArea) error
 	GetByID(id int) (entities.FishingArea, error)
@@ -17,6 +17,7 @@ type FishingAreaUsecase interface {
 
 type fishingAreaUsecase struct {
 	fishingAreaRepository mysql.FishingAreaRepository
+	tpiRepository         mysql.TpiRepository
 }
 
 func (f *fishingAreaUsecase) Delete(id int) error {
@@ -66,7 +67,15 @@ func (f *fishingAreaUsecase) Index() (fishingAreas []entities.FishingArea, err e
 	return fishingAreas, nil
 }
 
-func (f *fishingAreaUsecase) Create(fishingArea *entities.FishingArea) error {
+func (f *fishingAreaUsecase) Create(fishingArea *entities.FishingArea, tpiID int) error {
+	if fishingArea.DistrictID == 0 {
+		tpi, err := f.tpiRepository.GetByID(tpiID)
+		if err != nil {
+			return stacktrace.Propagate(err, "[GetByID] Tpi repository error")
+		}
+		fishingArea.DistrictID = tpi.DistrictID
+	}
+
 	err := f.fishingAreaRepository.Create(fishingArea)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Create] Fishing Area Repository error")
@@ -75,6 +84,6 @@ func (f *fishingAreaUsecase) Create(fishingArea *entities.FishingArea) error {
 	return nil
 }
 
-func NewFishingAreaUsecase(fishingAreaRepository mysql.FishingAreaRepository) FishingAreaUsecase {
-	return &fishingAreaUsecase{fishingAreaRepository: fishingAreaRepository}
+func NewFishingAreaUsecase(fishingAreaRepository mysql.FishingAreaRepository, tpiRepository mysql.TpiRepository) FishingAreaUsecase {
+	return &fishingAreaUsecase{fishingAreaRepository: fishingAreaRepository, tpiRepository: tpiRepository}
 }

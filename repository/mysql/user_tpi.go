@@ -16,7 +16,7 @@ type userTpiRepository struct {
 }
 
 func (u *userTpiRepository) GetByUserID(userID int) (userTpi entities.UserTpi, err error) {
-	err = u.db.Where("user_id = ?", userID).First(&userTpi).Error
+	err = u.db.Preload("Tpi").Where("user_id = ?", userID).First(&userTpi).Error
 	if err != nil {
 		return entities.UserTpi{}, err
 	}

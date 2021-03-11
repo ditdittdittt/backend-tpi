@@ -40,7 +40,7 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			return
 		}
 
-		if function != constant.Logout {
+		if function != constant.Pass {
 			if !helper.ValidatePermission(curUser.Role.Permission, function) {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Message": "Forbidden"})
 				return
@@ -63,7 +63,7 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 				return
 			}
 			c.Set("districtID", curUserRole.DistrictID)
-		case 3:
+		case 3, 4, 5:
 			userTpiRepository := mysql.NewUserTpiRepository(*database.DB)
 			curUserRole, err := userTpiRepository.GetByUserID(curUser.ID)
 			if err != nil {

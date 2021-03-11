@@ -14,6 +14,7 @@ import (
 
 type AuctionHandler interface {
 	Create(c *gin.Context)
+	Index(c *gin.Context)
 	Inquiry(c *gin.Context)
 }
 
@@ -25,6 +26,7 @@ func NewAuctionHandler(server *gin.Engine, auctionUsecase usecase.AuctionUsecase
 	handler := &auctionHandler{auctionUsecase: auctionUsecase}
 	server.POST("/auction", middleware.AuthorizeJWT(constant.CreateAuction), handler.Create)
 	server.GET("/auction/inquiry", middleware.AuthorizeJWT(constant.InquiryAuction), handler.Inquiry)
+	server.GET("/auctions", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 }
 
 func (h *auctionHandler) Create(c *gin.Context) {
@@ -66,6 +68,31 @@ func (h *auctionHandler) Inquiry(c *gin.Context) {
 	tpiID := c.MustGet("tpiID")
 
 	auctions, err := h.auctionUsecase.Inquiry(intFisherID, intFishTypeID, tpiID.(int))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: auctions,
+	})
+}
+
+func (h *auctionHandler) Index(c *gin.Context) {
+	fisherID := c.DefaultQuery("fisher_id", "0")
+	intFisherID, _ := strconv.Atoi(fisherID)
+
+	fishTypeID := c.DefaultQuery("fish_type_id", "0")
+	intFishTypeID, _ := strconv.Atoi(fishTypeID)
+
+	caughtStatusID := c.DefaultQuery("caught_status_id", "0")
+	intCaughtStatusID, _ := strconv.Atoi(caughtStatusID)
+
+	tpiID := c.MustGet("tpiID")
+
+	auctions, err := h.auctionUsecase.Index(intFisherID, intFishTypeID, intCaughtStatusID, tpiID.(int))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

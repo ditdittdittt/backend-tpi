@@ -13,15 +13,17 @@ import (
 type UserUsecase interface {
 	Login(username string, password string) (token string, err error)
 	Logout(id int) error
-	GetUser(id int) (user entities.User, err error)
+	GetUser(id int) (user entities.User, location string, err error)
 	Index() (users []entities.User, err error)
 	Update(user *entities.User) error
 	GetByID(id int) (entities.User, error)
 }
 
 type userUsecase struct {
-	jwtService     services.JWTService
-	userRepository mysql.UserRepository
+	jwtService             services.JWTService
+	userRepository         mysql.UserRepository
+	userDistrictRepository mysql.UserDistrictRepository
+	userTpiRepository      mysql.UserTpiRepository
 }
 
 func (u *userUsecase) Logout(id int) error {
@@ -68,13 +70,29 @@ func (u *userUsecase) Index() (users []entities.User, err error) {
 	return users, nil
 }
 
-func (u *userUsecase) GetUser(id int) (user entities.User, err error) {
+func (u *userUsecase) GetUser(id int) (user entities.User, location string, err error) {
 	user, err = u.userRepository.GetByID(id)
 	if err != nil {
-		return entities.User{}, stacktrace.Propagate(err, "[GetByID] User repository error")
+		return entities.User{}, "", stacktrace.Propagate(err, "[GetByID] User repository error")
 	}
 
-	return user, err
+	switch user.RoleID {
+	case 2:
+		userDetail, err := u.userDistrictRepository.GetByUserID(user.ID)
+		if err != nil {
+			return entities.User{}, "", stacktrace.Propagate(err, "[GetByUserID] User district repository error")
+		}
+		return user, userDetail.District.Name, nil
+	case 3, 4, 5:
+		userDetail, err := u.userTpiRepository.GetByUserID(user.ID)
+		if err != nil {
+			return entities.User{}, "", stacktrace.Propagate(err, "[GetByUserID] User district repository error")
+		}
+		return user, userDetail.Tpi.Name, nil
+	default:
+		return user, "", nil
+	}
+
 }
 
 func (u *userUsecase) Login(username string, password string) (token string, err error) {
@@ -101,6 +119,6 @@ func (u *userUsecase) Login(username string, password string) (token string, err
 	return token, nil
 }
 
-func NewUserUsecase(jwtService services.JWTService, userRepository mysql.UserRepository) UserUsecase {
-	return &userUsecase{userRepository: userRepository, jwtService: jwtService}
+func NewUserUsecase(jwtService services.JWTService, userRepository mysql.UserRepository, userDistrictRepository mysql.UserDistrictRepository, userTpiRepository mysql.UserTpiRepository) UserUsecase {
+	return &userUsecase{userRepository: userRepository, jwtService: jwtService, userDistrictRepository: userDistrictRepository, userTpiRepository: userTpiRepository}
 }

@@ -11,7 +11,6 @@ type GetUserRequest struct {
 }
 
 type CreateTpiAdminRequest struct {
-	RoleID   int    `json:"role_id" binding:"required,eq=3"`
 	TpiID    int    `json:"tpi_id" binding:"required"`
 	Nik      string `json:"nik" binding:"required"`
 	Name     string `json:"name" binding:"required"`
@@ -20,8 +19,6 @@ type CreateTpiAdminRequest struct {
 }
 
 type CreateTpiOfficerRequest struct {
-	RoleID   int    `json:"role_id" binding:"required,eq=4"`
-	TpiID    int    `json:"tpi_id" binding:"required"`
 	Nik      string `json:"nik" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Address  string `json:"address" binding:"required"`
@@ -29,8 +26,6 @@ type CreateTpiOfficerRequest struct {
 }
 
 type CreateTpiCashierRequest struct {
-	RoleID   int    `json:"role_id" binding:"required,eq=5"`
-	TpiID    int    `json:"tpi_id" binding:"required"`
 	Nik      string `json:"nik" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Address  string `json:"address" binding:"required"`
@@ -38,7 +33,6 @@ type CreateTpiCashierRequest struct {
 }
 
 type CreateDistrictAdminRequest struct {
-	RoleID     int    `json:"role_id" binding:"required,eq=2"`
 	DistrictID int    `json:"district_id" binding:"required"`
 	Nik        string `json:"nik" binding:"required"`
 	Name       string `json:"name" binding:"required"`
@@ -47,9 +41,8 @@ type CreateDistrictAdminRequest struct {
 }
 
 type CreateTpiRequest struct {
-	DistrictID int    `json:"district_id" binding:"required"`
-	Name       string `json:"name" binding:"required"`
-	Code       string `json:"code" binding:"required"`
+	Name string `json:"name" binding:"required"`
+	Code string `json:"code" binding:"required"`
 }
 
 type CreateFisherRequest struct {
@@ -81,7 +74,6 @@ type CreateFishingGearRequest struct {
 }
 
 type CreateFishingAreaRequest struct {
-	DistrictID          int    `json:"district_id"`
 	SouthLatitudeDegree string `json:"south_latitude_degree"`
 	SouthLatitudeMinute string `json:"south_latitude_minute"`
 	SouthLatitudeSecond string `json:"south_latitude_second"`

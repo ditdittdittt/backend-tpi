@@ -60,7 +60,7 @@ func (u *userRepository) Create(user *entities.User) (err error) {
 }
 
 func (u *userRepository) GetByID(id int) (user entities.User, err error) {
-	err = u.db.Preload("Role").Preload("UserStatus").Find(&user, id).Error
+	err = u.db.Preload("Role").Preload("Role.Permission").Preload("UserStatus").Find(&user, id).Error
 	return user, err
 }
 

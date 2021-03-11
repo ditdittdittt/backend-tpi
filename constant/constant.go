@@ -15,7 +15,6 @@ const (
 	GetUser             = "get-user"
 	GetByIDUser         = "getbyid-user"
 	UpdateUser          = "update-user"
-	Logout              = "logout"
 
 	CreateTpi         = "create-tpi"
 	CreateTransaction = "create-transaction"
@@ -50,4 +49,6 @@ const (
 	UpdateFishType  = "update-fish-type"
 	GetByIDFishType = "getbyid-fish-type"
 	DeleteFishType  = "delete-fish-type"
+
+	Pass = "pass"
 )

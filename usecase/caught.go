@@ -11,7 +11,7 @@ import (
 
 type CaughtUsecase interface {
 	Create(caught *entities.Caught, caughtData []entities.CaughtData) error
-	Index() ([]entities.Caught, error)
+	Index(fisherID int, fishTypeID int, caughtStatusID int, tpiID int) ([]entities.Caught, error)
 	Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Caught, error)
 }
 
@@ -41,8 +41,27 @@ func (c *caughtUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]enti
 	return caughts, nil
 }
 
-func (c *caughtUsecase) Index() ([]entities.Caught, error) {
-	caughts, err := c.caughtRepository.Get()
+func (c *caughtUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int, tpiID int) ([]entities.Caught, error) {
+	queryMap := map[string]interface{}{
+		"tpi_id": tpiID,
+	}
+
+	if fisherID != 0 {
+		queryMap["fisher_id"] = fisherID
+	}
+
+	if fishTypeID != 0 {
+		queryMap["fish_type_id"] = fishTypeID
+	}
+
+	if caughtStatusID != 0 {
+		queryMap["caught_status_id"] = caughtStatusID
+	}
+
+	startDate := time.Now().Format("2006-01-02")
+	toDate := time.Now().String()
+
+	caughts, err := c.caughtRepository.Get(queryMap, startDate, toDate)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[Get] Caught repository error")
 	}

@@ -29,7 +29,7 @@ func NewUserHandler(server *gin.Engine, userUsecase usecase.UserUsecase) {
 	{
 		user.POST("/get-user", middleware.AuthorizeJWT(constant.GetUser), handler.GetUser)
 		user.POST("/login", handler.Login)
-		user.POST("/logout", middleware.AuthorizeJWT(constant.Logout), handler.Logout)
+		user.POST("/logout", middleware.AuthorizeJWT(constant.Pass), handler.Logout)
 	}
 	server.GET("/users", handler.Index)
 	server.GET("/user/:id", middleware.AuthorizeJWT(constant.GetByIDUser), handler.GetByID)
@@ -62,7 +62,7 @@ func (handler *userHandler) GetUser(c *gin.Context) {
 	curUserID := c.MustGet("userID")
 	curUserIDint := curUserID.(int)
 
-	user, err := handler.UserUsecase.GetUser(curUserIDint)
+	user, location, err := handler.UserUsecase.GetUser(curUserIDint)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -71,7 +71,10 @@ func (handler *userHandler) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
-		ResponseData: user,
+		ResponseData: map[string]interface{}{
+			"user":     user,
+			"location": location,
+		},
 	})
 }
 
