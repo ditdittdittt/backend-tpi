@@ -21,7 +21,10 @@ type transactionUsecase struct {
 }
 
 func (t *transactionUsecase) Index() ([]entities.Transaction, error) {
-	transactions, err := t.transactionRepository.Get()
+	startDate := time.Now().Format("2006-01-02")
+	toDate := time.Now().String()
+
+	transactions, err := t.transactionRepository.Get(startDate, toDate)
 	if err != nil {
 		return nil, err
 	}

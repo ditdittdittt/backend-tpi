@@ -8,15 +8,16 @@ import (
 
 type TransactionRepository interface {
 	Create(transaction *entities.Transaction) error
-	Get() (transactions []entities.Transaction, err error)
+	Get(startDate string, toDate string) (transactions []entities.Transaction, err error)
 }
 
 type transactionRepository struct {
 	db gorm.DB
 }
 
-func (t *transactionRepository) Get() (transactions []entities.Transaction, err error) {
-	err = t.db.Preload("Buyer").
+func (t *transactionRepository) Get(startDate string, toDate string) (transactions []entities.Transaction, err error) {
+	err = t.db.Where("created_at BETWEEN ? AND ?", startDate, toDate).
+		Preload("Buyer").
 		Preload("TransactionItem").
 		Preload("TransactionItem.Auction").
 		Preload("TransactionItem.Auction.Caught").

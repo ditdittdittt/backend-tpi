@@ -19,7 +19,7 @@ type auctionRepository struct {
 
 func (a *auctionRepository) Get(query map[string]interface{}, startDate string, toDate string) (auctions []entities.Auction, err error) {
 	err = a.db.Where("created_at BETWEEN ? AND ?", startDate, toDate).
-		Preload("Caught", query).
+		Where("caught_id IN (?)", a.db.Table("caughts").Select("id").Where(query)).
 		Preload("Caught").
 		Preload("Caught.Fisher").
 		Preload("Caught.FishType").
@@ -33,7 +33,11 @@ func (a *auctionRepository) Get(query map[string]interface{}, startDate string, 
 }
 
 func (a *auctionRepository) Search(query map[string]interface{}) (auctions []entities.Auction, err error) {
-	err = a.db.Where("caught_id IN (?)", a.db.Table("caughts").Select("id").Where(query)).Preload("Caught").Preload("Caught.Fisher").Preload("Caught.FishType").Find(&auctions).Error
+	err = a.db.Where("caught_id IN (?)", a.db.Table("caughts").Select("id").Where(query)).
+		Preload("Caught").
+		Preload("Caught.Fisher").
+		Preload("Caught.FishType").
+		Find(&auctions).Error
 	if err != nil {
 		return nil, err
 	}

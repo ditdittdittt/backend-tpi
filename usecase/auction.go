@@ -23,19 +23,19 @@ type auctionUsecase struct {
 
 func (a *auctionUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int, tpiID int) ([]entities.Auction, error) {
 	queryMap := map[string]interface{}{
-		"caughts.tpi_id": tpiID,
+		"tpi_id": tpiID,
 	}
 
 	if fisherID != 0 {
-		queryMap["caughts.fisher_id"] = fisherID
+		queryMap["fisher_id"] = fisherID
 	}
 
 	if fishTypeID != 0 {
-		queryMap["caughts.fish_type_id"] = fishTypeID
+		queryMap["fish_type_id"] = fishTypeID
 	}
 
 	if caughtStatusID != 0 {
-		queryMap["caughts.caught_status_id"] = caughtStatusID
+		queryMap["caught_status_id"] = caughtStatusID
 	}
 
 	startDate := time.Now().Format("2006-01-02")
