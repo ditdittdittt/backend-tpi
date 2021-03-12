@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -50,15 +51,17 @@ func (a *auctionUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int,
 
 func (a *auctionUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Auction, error) {
 	queryMap := map[string]interface{}{
-		"caughts.tpi_id": tpiID,
+		"tpi_id":           tpiID,
+		"caught_status_id": 2,
 	}
 
 	if fisherID != 0 {
-		queryMap["caughts.fisher_id"] = fisherID
+		queryMap["fisher_id"] = fisherID
 	}
 
 	if fishTypeID != 0 {
-		queryMap["caughts.fish_type_id"] = fishTypeID
+		queryMap["fish_type_id"] = fishTypeID
+		fmt.Println(fishTypeID)
 	}
 
 	auctions, err := a.auctionRepository.Search(queryMap)

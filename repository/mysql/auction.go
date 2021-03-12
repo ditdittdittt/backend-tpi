@@ -33,7 +33,7 @@ func (a *auctionRepository) Get(query map[string]interface{}, startDate string, 
 }
 
 func (a *auctionRepository) Search(query map[string]interface{}) (auctions []entities.Auction, err error) {
-	err = a.db.Preload("Caught", query).Preload("Caught").Preload("Caught.FishType").Preload("Caught.Fisher").Find(&auctions).Error
+	err = a.db.Where("caught_id IN (?)", a.db.Table("caughts").Select("id").Where(query)).Preload("Caught").Preload("Caught.Fisher").Preload("Caught.FishType").Find(&auctions).Error
 	if err != nil {
 		return nil, err
 	}
