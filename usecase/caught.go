@@ -13,10 +13,30 @@ type CaughtUsecase interface {
 	Create(caught *entities.Caught, caughtData []entities.CaughtData) error
 	Index(fisherID int, fishTypeID int, caughtStatusID int, tpiID int) ([]entities.Caught, error)
 	Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Caught, error)
+	GetByID(id int) (entities.Caught, error)
+	Delete(id int) error
 }
 
 type caughtUsecase struct {
 	caughtRepository mysql.CaughtRepository
+}
+
+func (c *caughtUsecase) Delete(id int) error {
+	err := c.caughtRepository.Delete(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Delete] Caught repository error")
+	}
+
+	return nil
+}
+
+func (c *caughtUsecase) GetByID(id int) (entities.Caught, error) {
+	caught, err := c.caughtRepository.GetByID(id)
+	if err != nil {
+		return entities.Caught{}, stacktrace.Propagate(err, "[GetByID] Caught repository error")
+	}
+
+	return caught, nil
 }
 
 func (c *caughtUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Caught, error) {

@@ -14,11 +14,41 @@ type AuctionUsecase interface {
 	Create(auction *entities.Auction) error
 	Index(fisherID int, fishTypeID int, caughtStatusID int, tpiID int) ([]entities.Auction, error)
 	Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Auction, error)
+	GetByID(id int) (entities.Auction, error)
+	Delete(id int) error
+	Update(auction *entities.Auction) error
 }
 
 type auctionUsecase struct {
 	auctionRepository mysql.AuctionRepository
 	caughtRepository  mysql.CaughtRepository
+}
+
+func (a *auctionUsecase) Update(auction *entities.Auction) error {
+	err := a.auctionRepository.Update(auction)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Auction repository error")
+	}
+
+	return nil
+}
+
+func (a *auctionUsecase) Delete(id int) error {
+	err := a.auctionRepository.Delete(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Delete] Auction repository error")
+	}
+
+	return nil
+}
+
+func (a *auctionUsecase) GetByID(id int) (entities.Auction, error) {
+	auction, err := a.auctionRepository.GetByID(id)
+	if err != nil {
+		return entities.Auction{}, stacktrace.Propagate(err, "[GetByID] Auction repository error")
+	}
+
+	return auction, nil
 }
 
 func (a *auctionUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int, tpiID int) ([]entities.Auction, error) {

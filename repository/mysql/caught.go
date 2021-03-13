@@ -13,10 +13,20 @@ type CaughtRepository interface {
 	BulkUpdate(id []int, data map[string]interface{}) error
 	Get(query map[string]interface{}, startDate string, toDate string) (caughts []entities.Caught, err error)
 	Search(query map[string]interface{}) (caughts []entities.Caught, err error)
+	Delete(id int) error
 }
 
 type caughtRepository struct {
 	db gorm.DB
+}
+
+func (c *caughtRepository) Delete(id int) error {
+	err := c.db.Delete(&entities.Caught{}, id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *caughtRepository) Search(query map[string]interface{}) (caughts []entities.Caught, err error) {
@@ -59,7 +69,7 @@ func (c *caughtRepository) GetByID(id int) (caught entities.Caught, err error) {
 }
 
 func (c *caughtRepository) Update(caught *entities.Caught, data map[string]interface{}) error {
-	err := c.db.Model(caught).Updates(data).Error
+	err := c.db.Model(&caught).Updates(data).Error
 	if err != nil {
 		return err
 	}

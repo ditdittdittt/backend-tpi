@@ -141,3 +141,7 @@ type UpdateFishTypeRequest struct {
 	Name string `json:"name"`
 	Code string `json:"code"`
 }
+
+type UpdateAuctionRequest struct {
+	Price float64 `json:"price"`
+}

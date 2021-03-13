@@ -11,10 +11,29 @@ type AuctionRepository interface {
 	GetByID(id int) (auction entities.Auction, err error)
 	Search(query map[string]interface{}) (auctions []entities.Auction, err error)
 	Get(query map[string]interface{}, startDate string, toDate string) (auctions []entities.Auction, err error)
+	Delete(id int) error
+	Update(auction *entities.Auction) error
 }
 
 type auctionRepository struct {
 	db gorm.DB
+}
+
+func (a *auctionRepository) Update(auction *entities.Auction) error {
+	err := a.db.Model(&auction).Updates(auction).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *auctionRepository) Delete(id int) error {
+	err := a.db.Delete(&entities.Auction{}, id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *auctionRepository) Get(query map[string]interface{}, startDate string, toDate string) (auctions []entities.Auction, err error) {

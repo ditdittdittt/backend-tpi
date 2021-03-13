@@ -16,6 +16,9 @@ type CaughtHandler interface {
 	Create(c *gin.Context)
 	Index(c *gin.Context)
 	Inquiry(c *gin.Context)
+	GetByID(c *gin.Context)
+	Update(c *gin.Context)
+	Delete(c *gin.Context)
 }
 
 type caughtHandler struct {
@@ -27,6 +30,9 @@ func NewCaughtHandler(server *gin.Engine, caughtUsecase usecase.CaughtUsecase) {
 	server.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
 	server.GET("/caughts", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.InquiryCaught), handler.Inquiry)
+	server.GET("/caught/:id", middleware.AuthorizeJWT(constant.GetByIDCaught), handler.GetByID)
+	server.PUT("/caught/:id", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
+	server.DELETE("/caught/:id", middleware.AuthorizeJWT(constant.DeleteCaught), handler.Delete)
 }
 
 func (h *caughtHandler) Create(c *gin.Context) {
@@ -104,5 +110,52 @@ func (h *caughtHandler) Inquiry(c *gin.Context) {
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
 		ResponseData: caughts,
+	})
+}
+
+func (h *caughtHandler) GetByID(c *gin.Context) {
+	caughtID := c.Param("id")
+	intCaughtID, err := strconv.Atoi(caughtID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	caught, err := h.CaughtUsecase.GetByID(intCaughtID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+		ResponseData: caught,
+	})
+}
+
+func (h *caughtHandler) Update(c *gin.Context) {
+	// TODO Update
+	c.JSON(http.StatusOK, gin.H{"Message": "Fungsi belum diimplementasi"})
+
+}
+
+func (h *caughtHandler) Delete(c *gin.Context) {
+	caughtID := c.Param("id")
+	intCaughtID, err := strconv.Atoi(caughtID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	err = h.CaughtUsecase.Delete(intCaughtID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
 	})
 }

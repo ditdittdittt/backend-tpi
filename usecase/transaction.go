@@ -12,12 +12,37 @@ import (
 type TransactionUsecase interface {
 	Create(transaction *entities.Transaction, auctionIDs []int) error
 	Index() ([]entities.Transaction, error)
+	GetByID(id int) (entities.Transaction, error)
+	Update(transaction *entities.Transaction) error
+	Delete(id int) error
 }
 
 type transactionUsecase struct {
 	transactionRepository mysql.TransactionRepository
 	auctionRepository     mysql.AuctionRepository
 	caughtRepository      mysql.CaughtRepository
+}
+
+func (t *transactionUsecase) GetByID(id int) (entities.Transaction, error) {
+	transaction, err := t.transactionRepository.GetByID(id)
+	if err != nil {
+		return entities.Transaction{}, stacktrace.Propagate(err, "[GetByID] Transaction repository error")
+	}
+
+	return transaction, nil
+}
+
+func (t *transactionUsecase) Update(transaction *entities.Transaction) error {
+	panic("implement me")
+}
+
+func (t *transactionUsecase) Delete(id int) error {
+	err := t.transactionRepository.Delete(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Delete] Transaction repository error")
+	}
+
+	return nil
 }
 
 func (t *transactionUsecase) Index() ([]entities.Transaction, error) {

@@ -16,14 +16,24 @@ const (
 	GetByIDUser         = "getbyid-user"
 	UpdateUser          = "update-user"
 
-	CreateTpi         = "create-tpi"
-	CreateTransaction = "create-transaction"
+	CreateTpi = "create-tpi"
 
 	CreateCaught  = "create-caught"
 	InquiryCaught = "inquiry-caught"
+	GetByIDCaught = "getbyid-caught"
+	UpdateCaught  = "update-caught"
+	DeleteCaught  = "delete-caught"
 
 	CreateAuction  = "create-auction"
 	InquiryAuction = "inquiry-auction"
+	GetByIDAuction = "getbyid-auction"
+	UpdateAuction  = "update-auction"
+	DeleteAuction  = "delete-auction"
+
+	CreateTransaction  = "create-transaction"
+	GetByIDTransaction = "getbyid-transaction"
+	UpdateTransaction  = "update-transaction"
+	DeleteTransaction  = "delete-transaction"
 
 	CreateFisher  = "create-fisher"
 	UpdateFisher  = "update-fisher"
