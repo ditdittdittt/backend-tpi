@@ -16,7 +16,10 @@ const (
 	GetByIDUser         = "getbyid-user"
 	UpdateUser          = "update-user"
 
-	CreateTpi = "create-tpi"
+	CreateTpi  = "create-tpi"
+	GetByIDTpi = "getbyid-tpi"
+	UpdateTpi  = "update-tpi"
+	DeleteTpi  = "delete-tpi"
 
 	CreateCaught  = "create-caught"
 	InquiryCaught = "inquiry-caught"

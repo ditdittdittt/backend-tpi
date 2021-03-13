@@ -9,10 +9,20 @@ import (
 type DistrictRepository interface {
 	Create(district *entities.District) error
 	BulkInsert(districts []entities.District) error
+	Get(query map[string]interface{}) (districts []entities.District, err error)
 }
 
 type districtRepository struct {
 	db gorm.DB
+}
+
+func (d *districtRepository) Get(query map[string]interface{}) (districts []entities.District, err error) {
+	err = d.db.Find(&districts, query).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return districts, nil
 }
 
 func (d *districtRepository) BulkInsert(districts []entities.District) error {

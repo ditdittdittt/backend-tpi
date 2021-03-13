@@ -8,6 +8,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/database"
 	"github.com/ditdittdittt/backend-tpi/delivery/http"
+	"github.com/ditdittdittt/backend-tpi/repository/client"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 	"github.com/ditdittdittt/backend-tpi/services"
 	"github.com/ditdittdittt/backend-tpi/usecase"
@@ -91,6 +92,16 @@ func main() {
 	fishingAreaRepository := mysql.NewFishingAreaRepository(*database.DB)
 	fishingAreaUsecase := usecase.NewFishingAreaUsecase(fishingAreaRepository, tpiRepository)
 	http.NewFishingAreaHandler(r, fishingAreaUsecase)
+
+	// District
+	districtRepository := mysql.NewDistrictRepository(*database.DB)
+	districtUsecase := usecase.NewDistrictUsecase(districtRepository)
+	http.NewDistrictHandler(r, districtUsecase)
+
+	// Province
+	provinceClientRepository := client.NewProvinceRepository()
+	provinceUsecase := usecase.NewProvinceUsecase(provinceClientRepository)
+	http.NewProvinceHandler(r, provinceUsecase)
 
 	r.Run(":9090")
 }

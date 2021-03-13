@@ -30,9 +30,9 @@ func NewAuctionHandler(server *gin.Engine, auctionUsecase usecase.AuctionUsecase
 	server.POST("/auction", middleware.AuthorizeJWT(constant.CreateAuction), handler.Create)
 	server.GET("/auction/inquiry", middleware.AuthorizeJWT(constant.InquiryAuction), handler.Inquiry)
 	server.GET("/auctions", middleware.AuthorizeJWT(constant.Pass), handler.Index)
-	server.GET("/auction/:id", middleware.AuthorizeJWT(constant.GetByIDAuction), handler.GetByID)
-	server.PUT("/auction/:id", middleware.AuthorizeJWT(constant.UpdateAuction), handler.Update)
-	server.DELETE("/auction/:id", middleware.AuthorizeJWT(constant.DeleteAuction), handler.Delete)
+	server.GET("/auction/{id:[0-9]+}", middleware.AuthorizeJWT(constant.GetByIDAuction), handler.GetByID)
+	server.PUT("/auction/{id:[0-9]+}", middleware.AuthorizeJWT(constant.UpdateAuction), handler.Update)
+	server.DELETE("/auction/{id:[0-9]+}", middleware.AuthorizeJWT(constant.DeleteAuction), handler.Delete)
 }
 
 func (h *auctionHandler) Create(c *gin.Context) {

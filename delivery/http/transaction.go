@@ -29,7 +29,8 @@ func NewTransactionHandler(server *gin.Engine, transactionUsecase usecase.Transa
 	server.POST("/transaction", middleware.AuthorizeJWT(constant.CreateTransaction), handler.Create)
 	server.GET("/transactions", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 	server.GET("/transaction/:id", middleware.AuthorizeJWT(constant.GetByIDTransaction))
-
+	server.PUT("/transaction/:id", middleware.AuthorizeJWT(constant.UpdateTransaction), handler.Update)
+	server.DELETE("/transaction/:id", middleware.AuthorizeJWT(constant.DeleteTransaction), handler.Delete)
 }
 
 func (h *transactionHandler) Create(c *gin.Context) {

@@ -68,11 +68,7 @@ func (h *fishTypeHandler) Create(c *gin.Context) {
 func (h *fishTypeHandler) Index(c *gin.Context) {
 	fishTypes, err := h.fishTypeUsecase.Index()
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
-			ResponseCode: constant.ErrorResponseCode,
-			ResponseDesc: constant.Failed,
-			ResponseData: err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
 	}
 
