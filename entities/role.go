@@ -1,7 +1,7 @@
 package entities
 
 type Role struct {
-	ID         int
-	Name       string
-	Permission []*Permission `gorm:"many2many:role_permissions"`
+	ID         int           `json:"id"`
+	Name       string        `json:"name"`
+	Permission []*Permission `gorm:"many2many:role_permissions" json:"-"`
 }

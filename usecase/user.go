@@ -76,6 +76,10 @@ func (u *userUsecase) GetUser(id int) (user entities.User, location string, err 
 		return entities.User{}, "", stacktrace.Propagate(err, "[GetByID] User repository error")
 	}
 
+	for _, permission := range user.Role.Permission {
+		user.Permissions = append(user.Permissions, permission.Name)
+	}
+
 	switch user.RoleID {
 	case 2:
 		userDetail, err := u.userDistrictRepository.GetByUserID(user.ID)
