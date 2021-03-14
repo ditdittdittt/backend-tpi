@@ -33,11 +33,32 @@ func (t *transactionUsecase) GetByID(id int) (entities.Transaction, error) {
 }
 
 func (t *transactionUsecase) Update(transaction *entities.Transaction) error {
-	panic("implement me")
+	err := t.transactionRepository.Update(transaction)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Transaction repository error")
+	}
+
+	return nil
 }
 
 func (t *transactionUsecase) Delete(id int) error {
-	err := t.transactionRepository.Delete(id)
+	transaction, err := t.transactionRepository.GetByID(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] Transaction repository error")
+	}
+
+	data := map[string]interface{}{
+		"caught_status_id": 2,
+	}
+
+	for _, transactionItem := range transaction.TransactionItem {
+		err := t.caughtRepository.Update(transactionItem.Auction.Caught, data)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Update] Transaction repository error")
+		}
+	}
+
+	err = t.transactionRepository.Delete(id)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Delete] Transaction repository error")
 	}

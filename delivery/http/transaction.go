@@ -100,8 +100,32 @@ func (h *transactionHandler) GetByID(c *gin.Context) {
 }
 
 func (h *transactionHandler) Update(c *gin.Context) {
+	var request UpdateTransactionRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"Message": "Fungsi belum diimplementasi"})
+	curUserID := c.MustGet("userID")
+	curTpiID := c.MustGet("tpiID")
+
+	transaction := &entities.Transaction{
+		UserID:           curUserID.(int),
+		TpiID:            curTpiID.(int),
+		BuyerID:          request.BuyerID,
+		DistributionArea: request.DistributionArea,
+	}
+
+	err := h.transactionUsecase.Update(transaction)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+	})
 }
 
 func (h *transactionHandler) Delete(c *gin.Context) {

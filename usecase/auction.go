@@ -34,7 +34,21 @@ func (a *auctionUsecase) Update(auction *entities.Auction) error {
 }
 
 func (a *auctionUsecase) Delete(id int) error {
-	err := a.auctionRepository.Delete(id)
+	auction, err := a.auctionRepository.GetByID(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] Auction repository error")
+	}
+
+	data := map[string]interface{}{
+		"caught_status_id": 1,
+	}
+
+	err = a.caughtRepository.Update(auction.Caught, data)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Caught repository error")
+	}
+
+	err = a.auctionRepository.Delete(id)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Delete] Auction repository error")
 	}

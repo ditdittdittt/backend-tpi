@@ -7,9 +7,6 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type GetUserRequest struct {
-}
-
 type CreateTpiAdminRequest struct {
 	TpiID    int    `json:"tpi_id" binding:"required"`
 	Nik      string `json:"nik" binding:"required"`
@@ -149,4 +146,19 @@ type UpdateAuctionRequest struct {
 type UpdateTpiRequest struct {
 	DistrictID int    `json:"district_id"`
 	Name       string `json:"name"`
+}
+
+type UpdateCaughtRequest struct {
+	FisherID      int     `json:"fisher_id"`
+	TripDay       int     `json:"trip_day"`
+	FishingGearID int     `json:"fishing_gear_id"`
+	FishingAreaID int     `json:"fishing_area_id"`
+	FishTypeID    int     `json:"fish_type_id"`
+	Weight        float64 `json:"weight"`
+	WeightUnit    string  `json:"weight_unit"`
+}
+
+type UpdateTransactionRequest struct {
+	BuyerID          int    `json:"buyer_id"`
+	DistributionArea string `json:"distribution_area"`
 }

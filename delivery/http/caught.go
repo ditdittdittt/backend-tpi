@@ -135,9 +135,46 @@ func (h *caughtHandler) GetByID(c *gin.Context) {
 }
 
 func (h *caughtHandler) Update(c *gin.Context) {
-	// TODO Update
-	c.JSON(http.StatusOK, gin.H{"Message": "Fungsi belum diimplementasi"})
+	var request UpdateCaughtRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
+	caughtID := c.Param("id")
+	intCaughtID, err := strconv.Atoi(caughtID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	curUserID := c.MustGet("userID")
+	curTpiID := c.MustGet("tpiID")
+
+	caught := &entities.Caught{
+		ID:            intCaughtID,
+		UserID:        curUserID.(int),
+		TpiID:         curTpiID.(int),
+		FisherID:      request.FisherID,
+		FishingGearID: request.FishingGearID,
+		FishingAreaID: request.FishingAreaID,
+		TripDay:       request.TripDay,
+	}
+
+	caught.FishTypeID = request.FishTypeID
+	caught.Weight = request.Weight
+	caught.WeightUnit = request.WeightUnit
+
+	err = h.CaughtUsecase.Update(caught)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+	})
 }
 
 func (h *caughtHandler) Delete(c *gin.Context) {

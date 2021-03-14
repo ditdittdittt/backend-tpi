@@ -19,7 +19,7 @@ type transactionRepository struct {
 }
 
 func (t *transactionRepository) GetByID(id int) (transaction entities.Transaction, err error) {
-	err = t.db.First(&transaction, id).Error
+	err = t.db.Preload("TransactionItem").Preload("TransactionItem.Auction").Preload("TransactionItem.Auction.Caught").First(&transaction, id).Error
 	if err != nil {
 		return entities.Transaction{}, err
 	}
@@ -27,7 +27,11 @@ func (t *transactionRepository) GetByID(id int) (transaction entities.Transactio
 }
 
 func (t *transactionRepository) Update(transaction *entities.Transaction) error {
-	panic("implement me")
+	err := t.db.Model(&transaction).Updates(transaction).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (t *transactionRepository) Delete(id int) error {
