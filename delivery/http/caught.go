@@ -29,9 +29,9 @@ func NewCaughtHandler(server *gin.Engine, caughtUsecase usecase.CaughtUsecase) {
 	handler := &caughtHandler{CaughtUsecase: caughtUsecase}
 	server.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
 	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.InquiryCaught), handler.Inquiry)
-	server.GET("/caught/{id:[0-9]+}", middleware.AuthorizeJWT(constant.GetByIDCaught), handler.GetByID)
-	server.PUT("/caught/{id:[0-9]+}", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
-	server.DELETE("/caught/{id:[0-9]+}", middleware.AuthorizeJWT(constant.DeleteCaught), handler.Delete)
+	server.GET("/caught/getbyid/:id", middleware.AuthorizeJWT(constant.GetByIDCaught), handler.GetByID)
+	server.PUT("/caught/update/:id", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
+	server.DELETE("/caught/delete/:id", middleware.AuthorizeJWT(constant.DeleteCaught), handler.Delete)
 	server.GET("/caughts", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 }
 
