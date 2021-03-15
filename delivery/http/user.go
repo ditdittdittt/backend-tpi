@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
+	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -93,7 +94,39 @@ func (handler *userHandler) Index(c *gin.Context) {
 }
 
 func (handler *userHandler) Update(c *gin.Context) {
+	var request UpdateUserRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
+	userID := c.Param("id")
+	intUserID, err := strconv.Atoi(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	user := &entities.User{
+		ID:           intUserID,
+		UserStatusID: request.UserStatusID,
+		Nik:          request.Nik,
+		Name:         request.Name,
+		Address:      request.Address,
+		Username:     request.Username,
+		Password:     request.Password,
+	}
+
+	err = handler.UserUsecase.Update(user)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+	})
 }
 
 func (handler *userHandler) GetByID(c *gin.Context) {

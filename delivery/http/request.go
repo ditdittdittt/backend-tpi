@@ -162,3 +162,12 @@ type UpdateTransactionRequest struct {
 	BuyerID          int    `json:"buyer_id"`
 	DistributionArea string `json:"distribution_area"`
 }
+
+type UpdateUserRequest struct {
+	UserStatusID int    `json:"user_status_id"`
+	Nik          string `json:"nik"`
+	Name         string `json:"name"`
+	Address      string `json:"address"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+}
