@@ -1,6 +1,9 @@
 package mysql
 
 import (
+	"fmt"
+	"strconv"
+
 	"gorm.io/gorm"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
@@ -14,10 +17,40 @@ type CaughtRepository interface {
 	Get(query map[string]interface{}, startDate string, toDate string) (caughts []entities.Caught, err error)
 	Search(query map[string]interface{}) (caughts []entities.Caught, err error)
 	Delete(id int) error
+	GetWeightTotal(fishTypeID int, tpiID int, from string, to string) (float64, error)
 }
 
 type caughtRepository struct {
 	db gorm.DB
+}
+
+func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, from string, to string) (float64, error) {
+	var result float64
+	query := `SELECT COALESCE(	
+				SUM(
+    			CASE
+ 				WHEN weight_unit = "Ton" THEN weight * 1000
+ 				WHEN weight_unit = "Kwintal" THEN weight * 100
+    			WHEN weight_unit = "Kg" THEN weight * 1
+ 				END), 0) AS total
+			FROM caughts WHERE created_at BETWEEN "%s" AND "%s"`
+
+	query = fmt.Sprintf(query, from, to)
+
+	if fishTypeID != 0 {
+		query = query + ` AND fish_type_id = ` + strconv.Itoa(fishTypeID)
+	}
+
+	if tpiID != 0 {
+		query = query + " AND tpi_id = " + strconv.Itoa(tpiID)
+	}
+
+	err := c.db.Raw(query).Scan(&result).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
 }
 
 func (c *caughtRepository) Delete(id int) error {

@@ -103,5 +103,9 @@ func main() {
 	provinceUsecase := usecase.NewProvinceUsecase(provinceClientRepository)
 	http.NewProvinceHandler(r, provinceUsecase)
 
+	// Report
+	reportUsecase := usecase.NewReportUsecase(caughtRepository, auctionRepository, transactionRepository, fishTypeRepository)
+	http.NewReportHandler(r, reportUsecase)
+
 	r.Run(":9090")
 }
