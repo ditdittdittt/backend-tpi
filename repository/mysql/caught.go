@@ -30,7 +30,7 @@ func (c *caughtRepository) GetFisherTotal(status string, tpiID int, from string,
 	query := `SELECT COALESCE(COUNT(DISTINCT c.fisher_id), 0) 
 		FROM caughts AS c 
 		INNER JOIN fishers AS f ON c.fisher_id = f.id
-		WHERE c.created_at BETWEEN "%s" AND "%s" AND f.status = "%s"`
+		WHERE c.created_at BETWEEN "%s" AND "%s" AND f.status = "%s" AND c.caught_status_id = 3`
 	query = fmt.Sprintf(query, from, to, status)
 
 	if tpiID != 0 {
@@ -54,7 +54,7 @@ func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, from string
  				WHEN weight_unit = "Kwintal" THEN weight * 100
     			WHEN weight_unit = "Kg" THEN weight * 1
  				END), 0) AS total
-			FROM caughts WHERE created_at BETWEEN "%s" AND "%s"`
+			FROM caughts WHERE created_at BETWEEN "%s" AND "%s" AND caught_status_id = 3`
 
 	query = fmt.Sprintf(query, from, to)
 

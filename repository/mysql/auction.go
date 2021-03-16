@@ -31,7 +31,7 @@ func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, from 
 	), 0) AS result
 	FROM auctions AS a
 	INNER JOIN caughts AS c ON a.caught_id = c.id
-	WHERE a.created_at BETWEEN "%s" AND "%s"`
+	WHERE a.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
 
 	query = fmt.Sprintf(query, from, to)
 
@@ -57,7 +57,7 @@ func (a *auctionRepository) GetPriceTotal(fishTypeID int, tpiID int, from string
 		SUM(a.price), 0) 
 		FROM auctions AS a
 		INNER JOIN caughts AS c ON a.caught_id = c.id
-		WHERE a.created_at BETWEEN "%s" AND "%s"`
+		WHERE a.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
 
 	query = fmt.Sprintf(query, from, to)
 

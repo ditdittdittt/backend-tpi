@@ -26,7 +26,7 @@ func (t *transactionItemRepository) GetReport(tpiID int, from string, to string)
         INNER JOIN fishers AS f ON c.fisher_id = f.id
         INNER JOIN buyers AS b ON t.buyer_id = b.id
         INNER JOIN fish_types AS ft ON c.fish_type_id = ft.id
-		WHERE t.created_at BETWEEN "%s" AND "%s"`
+		WHERE t.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
 	query = fmt.Sprintf(query, from, to)
 
 	if tpiID != 0 {
