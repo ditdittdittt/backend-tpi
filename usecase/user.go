@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -53,7 +54,12 @@ func (u *userUsecase) GetByID(id int) (entities.User, error) {
 func (u *userUsecase) Update(user *entities.User) error {
 	user.UpdatedAt = time.Now()
 
-	err := u.userRepository.Update(user)
+	_, err := u.userRepository.GetByUsername(user.Username)
+	if err != sql.ErrNoRows {
+		return stacktrace.NewError("Username already used")
+	}
+
+	err = u.userRepository.Update(user)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] User repository error")
 	}

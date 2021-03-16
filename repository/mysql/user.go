@@ -39,7 +39,7 @@ func (u *userRepository) GetWithSelectedField(selectedField []string) (users []e
 }
 
 func (u *userRepository) Update(user *entities.User) (err error) {
-	err = u.db.Save(&user).Error
+	err = u.db.Model(&user).Updates(user).Error
 	return err
 }
 
