@@ -5,14 +5,26 @@ import (
 	"strconv"
 
 	"gorm.io/gorm"
+
+	"github.com/ditdittdittt/backend-tpi/entities"
 )
 
 type TransactionItemRepository interface {
 	GetReport(tpiID int, from string, to string) ([]map[string]interface{}, error)
+	Delete(id int) error
 }
 
 type transactionItemRepository struct {
 	db gorm.DB
+}
+
+func (t *transactionItemRepository) Delete(id int) error {
+	err := t.db.Delete(&entities.TransactionItem{}, id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (t *transactionItemRepository) GetReport(tpiID int, from string, to string) ([]map[string]interface{}, error) {

@@ -78,11 +78,6 @@ func main() {
 	auctionUsecase := usecase.NewAuctionUsecase(auctionRepository, caughtRepository)
 	http.NewAuctionHandler(r, auctionUsecase)
 
-	// Transaction
-	transactionRepository := mysql.NewTransactionRepository(*database.DB)
-	transactionUsecase := usecase.NewTransactionUsecase(transactionRepository, auctionRepository, caughtRepository)
-	http.NewTransactionHandler(r, transactionUsecase)
-
 	// TPI
 	tpiRepository := mysql.NewTpiRepository(*database.DB)
 	tpiUsecase := usecase.NewTpiUsecase(tpiRepository)
@@ -103,8 +98,13 @@ func main() {
 	provinceUsecase := usecase.NewProvinceUsecase(provinceClientRepository)
 	http.NewProvinceHandler(r, provinceUsecase)
 
-	// Report
+	// Transaction
 	transactionItemRepository := mysql.NewTransactionItemRepository(*database.DB)
+	transactionRepository := mysql.NewTransactionRepository(*database.DB)
+	transactionUsecase := usecase.NewTransactionUsecase(transactionRepository, auctionRepository, caughtRepository, transactionItemRepository)
+	http.NewTransactionHandler(r, transactionUsecase)
+
+	// Report
 	reportUsecase := usecase.NewReportUsecase(caughtRepository, auctionRepository, transactionRepository, fishTypeRepository, transactionItemRepository)
 	http.NewReportHandler(r, reportUsecase)
 

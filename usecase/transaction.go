@@ -18,9 +18,10 @@ type TransactionUsecase interface {
 }
 
 type transactionUsecase struct {
-	transactionRepository mysql.TransactionRepository
-	auctionRepository     mysql.AuctionRepository
-	caughtRepository      mysql.CaughtRepository
+	transactionRepository     mysql.TransactionRepository
+	auctionRepository         mysql.AuctionRepository
+	caughtRepository          mysql.CaughtRepository
+	transactionItemRepository mysql.TransactionItemRepository
 }
 
 func (t *transactionUsecase) GetByID(id int) (entities.Transaction, error) {
@@ -55,6 +56,11 @@ func (t *transactionUsecase) Delete(id int) error {
 		err := t.caughtRepository.Update(transactionItem.Auction.Caught, data)
 		if err != nil {
 			return stacktrace.Propagate(err, "[Update] Transaction repository error")
+		}
+
+		err = t.transactionItemRepository.Delete(transactionItem.ID)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Delete] Transaction item repository error")
 		}
 	}
 
@@ -120,9 +126,11 @@ func NewTransactionUsecase(
 	transactionRepository mysql.TransactionRepository,
 	auctionRepository mysql.AuctionRepository,
 	caughtRepository mysql.CaughtRepository,
+	transactionItemRepository mysql.TransactionItemRepository,
 ) TransactionUsecase {
 	return &transactionUsecase{
-		transactionRepository: transactionRepository,
-		auctionRepository:     auctionRepository,
-		caughtRepository:      caughtRepository}
+		transactionRepository:     transactionRepository,
+		auctionRepository:         auctionRepository,
+		caughtRepository:          caughtRepository,
+		transactionItemRepository: transactionItemRepository}
 }

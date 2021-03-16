@@ -122,7 +122,7 @@ func (a *auctionRepository) Search(query map[string]interface{}) (auctions []ent
 }
 
 func (a *auctionRepository) GetByID(id int) (auction entities.Auction, err error) {
-	err = a.db.First(&auction, id).Error
+	err = a.db.Preload("Caught").First(&auction, id).Error
 	if err != nil {
 		return entities.Auction{}, err
 	}
