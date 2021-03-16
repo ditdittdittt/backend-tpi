@@ -104,7 +104,8 @@ func main() {
 	http.NewProvinceHandler(r, provinceUsecase)
 
 	// Report
-	reportUsecase := usecase.NewReportUsecase(caughtRepository, auctionRepository, transactionRepository, fishTypeRepository)
+	transactionItemRepository := mysql.NewTransactionItemRepository(*database.DB)
+	reportUsecase := usecase.NewReportUsecase(caughtRepository, auctionRepository, transactionRepository, fishTypeRepository, transactionItemRepository)
 	http.NewReportHandler(r, reportUsecase)
 
 	r.Run(":9090")

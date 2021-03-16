@@ -9,17 +9,88 @@ import (
 )
 
 type ReportUsecase interface {
-	Get(tpiID int, from string, to string) (map[string]interface{}, error)
+	GetProductionReport(tpiID int, from string, to string) (map[string]interface{}, error)
+	GetTransactionReport(tpiID int, from string, to string) (map[string]interface{}, error)
 }
 
 type reportUsecase struct {
-	caughtRepository      mysql.CaughtRepository
-	auctionRepository     mysql.AuctionRepository
-	transactionRepository mysql.TransactionRepository
-	fishTypeRepository    mysql.FishTypeRepository
+	caughtRepository          mysql.CaughtRepository
+	auctionRepository         mysql.AuctionRepository
+	transactionRepository     mysql.TransactionRepository
+	fishTypeRepository        mysql.FishTypeRepository
+	transactionItemRepository mysql.TransactionItemRepository
 }
 
-func (r *reportUsecase) Get(tpiID int, from string, to string) (map[string]interface{}, error) {
+func (r *reportUsecase) GetTransactionReport(tpiID int, from string, to string) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+
+	transactionTotal, err := r.transactionRepository.GetTransactionTotal(tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[GetTotalTransaction] Total transaction error")
+	}
+
+	data["transaction_total"] = transactionTotal
+
+	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+	}
+
+	data["production_total"] = weightTotal
+
+	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+	}
+
+	data["production_value"] = productionValue
+
+	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+	}
+
+	data["transaction_speed"] = fmt.Sprintf("%.2f", averageTransactionSpeed/3600)
+
+	permanentFisher, err := r.caughtRepository.GetFisherTotal("Tetap", tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
+	}
+
+	data["permanent_fisher"] = permanentFisher
+
+	temporaryFisher, err := r.caughtRepository.GetFisherTotal("Pendatang", tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
+	}
+
+	data["temporary_fisher"] = temporaryFisher
+
+	permanentBuyer, err := r.transactionRepository.GetBuyerTotal("Tetap", tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
+	}
+
+	data["permanent_buyer"] = permanentBuyer
+
+	temporaryBuyer, err := r.transactionRepository.GetBuyerTotal("Pendatang", tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
+	}
+
+	data["temporary_buyer"] = temporaryBuyer
+
+	transactionData, err := r.transactionItemRepository.GetReport(tpiID, from, to)
+	if err != nil {
+		return data, stacktrace.Propagate(err, "[Get] Transaction item repository error")
+	}
+
+	data["transaction_data"] = transactionData
+
+	return data, nil
+}
+
+func (r *reportUsecase) GetProductionReport(tpiID int, from string, to string) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, from, to)
@@ -81,12 +152,18 @@ func (r *reportUsecase) Get(tpiID int, from string, to string) (map[string]inter
 	return data, nil
 }
 
-func NewReportUsecase(caughtRepository mysql.CaughtRepository, auctionRepository mysql.AuctionRepository, transactionRepository mysql.TransactionRepository, fishTypeRepository mysql.FishTypeRepository) ReportUsecase {
+func NewReportUsecase(
+	caughtRepository mysql.CaughtRepository,
+	auctionRepository mysql.AuctionRepository,
+	transactionRepository mysql.TransactionRepository,
+	fishTypeRepository mysql.FishTypeRepository,
+	transactionItemRepository mysql.TransactionItemRepository) ReportUsecase {
 	return &reportUsecase{
-		caughtRepository:      caughtRepository,
-		auctionRepository:     auctionRepository,
-		transactionRepository: transactionRepository,
-		fishTypeRepository:    fishTypeRepository,
+		caughtRepository:          caughtRepository,
+		auctionRepository:         auctionRepository,
+		transactionRepository:     transactionRepository,
+		fishTypeRepository:        fishTypeRepository,
+		transactionItemRepository: transactionItemRepository,
 	}
 
 }

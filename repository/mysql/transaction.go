@@ -1,6 +1,9 @@
 package mysql
 
 import (
+	"fmt"
+	"strconv"
+
 	"gorm.io/gorm"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
@@ -8,14 +11,56 @@ import (
 
 type TransactionRepository interface {
 	Create(transaction *entities.Transaction) error
-	Get(startDate string, toDate string) (transactions []entities.Transaction, err error)
+	Get(query map[string]interface{}, startDate string, toDate string) (transactions []entities.Transaction, err error)
 	GetByID(id int) (transaction entities.Transaction, err error)
 	Update(transaction *entities.Transaction) error
 	Delete(id int) error
+	GetTransactionTotal(tpiID int, from string, to string) (int, error)
+	GetBuyerTotal(status string, tpiID int, from string, to string) (int, error)
 }
 
 type transactionRepository struct {
 	db gorm.DB
+}
+
+func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, from string, to string) (int, error) {
+	var result int
+	query := `SELECT COALESCE(COUNT(DISTINCT t.buyer_id), 0) 
+		FROM transactions AS t 
+		INNER JOIN buyers AS b ON t.buyer_id = b.id
+		WHERE t.created_at BETWEEN "%s" AND "%s" AND b.status = "%s"`
+
+	query = fmt.Sprintf(query, from, to, status)
+
+	if tpiID != 0 {
+		query = query + " AND t.tpi_id = " + strconv.Itoa(tpiID)
+	}
+
+	err := t.db.Raw(query).Scan(&result).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
+}
+
+func (t *transactionRepository) GetTransactionTotal(tpiID int, from string, to string) (int, error) {
+	var result int
+
+	query := `SELECT COALESCE(COUNT(*), 0) FROM transactions WHERE created_at BETWEEN "%s" AND "%s"`
+
+	query = fmt.Sprintf(query, from, to)
+
+	if tpiID != 0 {
+		query = query + " AND tpi_id = " + strconv.Itoa(tpiID)
+	}
+
+	err := t.db.Raw(query).Scan(&result).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
 }
 
 func (t *transactionRepository) GetByID(id int) (transaction entities.Transaction, err error) {
@@ -43,14 +88,14 @@ func (t *transactionRepository) Delete(id int) error {
 	return nil
 }
 
-func (t *transactionRepository) Get(startDate string, toDate string) (transactions []entities.Transaction, err error) {
+func (t *transactionRepository) Get(query map[string]interface{}, startDate string, toDate string) (transactions []entities.Transaction, err error) {
 	err = t.db.Where("created_at BETWEEN ? AND ?", startDate, toDate).
 		Preload("Buyer").
 		Preload("TransactionItem").
 		Preload("TransactionItem.Auction").
 		Preload("TransactionItem.Auction.Caught").
 		Preload("TransactionItem.Auction.Caught.Fisher").
-		Preload("TransactionItem.Auction.Caught.FishType").Find(&transactions).Error
+		Preload("TransactionItem.Auction.Caught.FishType").Find(&transactions, query).Error
 	if err != nil {
 		return nil, err
 	}

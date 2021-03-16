@@ -18,10 +18,31 @@ type CaughtRepository interface {
 	Search(query map[string]interface{}) (caughts []entities.Caught, err error)
 	Delete(id int) error
 	GetWeightTotal(fishTypeID int, tpiID int, from string, to string) (float64, error)
+	GetFisherTotal(status string, tpiID int, from string, to string) (int, error)
 }
 
 type caughtRepository struct {
 	db gorm.DB
+}
+
+func (c *caughtRepository) GetFisherTotal(status string, tpiID int, from string, to string) (int, error) {
+	var result int
+	query := `SELECT COALESCE(COUNT(DISTINCT c.fisher_id), 0) 
+		FROM caughts AS c 
+		INNER JOIN fishers AS f ON c.fisher_id = f.id
+		WHERE c.created_at BETWEEN "%s" AND "%s" AND f.status = "%s"`
+	query = fmt.Sprintf(query, from, to, status)
+
+	if tpiID != 0 {
+		query = query + " AND c.tpi_id = " + strconv.Itoa(tpiID)
+	}
+
+	err := c.db.Raw(query).Scan(&result).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
 }
 
 func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, from string, to string) (float64, error) {

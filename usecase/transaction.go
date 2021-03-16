@@ -11,7 +11,7 @@ import (
 
 type TransactionUsecase interface {
 	Create(transaction *entities.Transaction, auctionIDs []int) error
-	Index() ([]entities.Transaction, error)
+	Index(tpiID int) ([]entities.Transaction, error)
 	GetByID(id int) (entities.Transaction, error)
 	Update(transaction *entities.Transaction) error
 	Delete(id int) error
@@ -66,11 +66,15 @@ func (t *transactionUsecase) Delete(id int) error {
 	return nil
 }
 
-func (t *transactionUsecase) Index() ([]entities.Transaction, error) {
+func (t *transactionUsecase) Index(tpiID int) ([]entities.Transaction, error) {
+	queryMap := map[string]interface{}{
+		"tpi_id": tpiID,
+	}
+
 	startDate := time.Now().Format("2006-01-02")
 	toDate := time.Now().String()
 
-	transactions, err := t.transactionRepository.Get(startDate, toDate)
+	transactions, err := t.transactionRepository.Get(queryMap, startDate, toDate)
 	if err != nil {
 		return nil, err
 	}

@@ -64,7 +64,9 @@ func (h *transactionHandler) Create(c *gin.Context) {
 }
 
 func (h *transactionHandler) Index(c *gin.Context) {
-	transactions, err := h.transactionUsecase.Index()
+	tpiID := c.MustGet("tpiID")
+
+	transactions, err := h.transactionUsecase.Index(tpiID.(int))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
