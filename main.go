@@ -105,7 +105,7 @@ func main() {
 	http.NewTransactionHandler(r, transactionUsecase)
 
 	// Report
-	reportUsecase := usecase.NewReportUsecase(caughtRepository, auctionRepository, transactionRepository, fishTypeRepository, transactionItemRepository)
+	reportUsecase := usecase.NewReportUsecase(caughtRepository, auctionRepository, transactionRepository, fishTypeRepository, transactionItemRepository, tpiRepository)
 	http.NewReportHandler(r, reportUsecase)
 
 	r.Run(":9090")
