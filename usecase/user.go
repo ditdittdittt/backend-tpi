@@ -14,7 +14,7 @@ import (
 type UserUsecase interface {
 	Login(username string, password string) (token string, err error)
 	Logout(id int) error
-	GetUser(id int) (user entities.User, location string, err error)
+	GetUser(id int) (entities.User, map[string]interface{}, error)
 	Index() (users []entities.User, err error)
 	Update(user *entities.User) error
 	GetByID(id int) (entities.User, error)
@@ -76,31 +76,37 @@ func (u *userUsecase) Index() (users []entities.User, err error) {
 	return users, nil
 }
 
-func (u *userUsecase) GetUser(id int) (user entities.User, location string, err error) {
-	user, err = u.userRepository.GetByID(id)
+func (u *userUsecase) GetUser(id int) (entities.User, map[string]interface{}, error) {
+	user, err := u.userRepository.GetByID(id)
 	if err != nil {
-		return entities.User{}, "", stacktrace.Propagate(err, "[GetByID] User repository error")
+		return entities.User{}, nil, stacktrace.Propagate(err, "[GetByID] User repository error")
 	}
 
 	for _, permission := range user.Role.Permission {
 		user.Permissions = append(user.Permissions, permission.Name)
 	}
 
+	locationData := map[string]interface{}{}
+
 	switch user.RoleID {
 	case 2:
 		userDetail, err := u.userDistrictRepository.GetByUserID(user.ID)
 		if err != nil {
-			return entities.User{}, "", stacktrace.Propagate(err, "[GetByUserID] User district repository error")
+			return entities.User{}, nil, stacktrace.Propagate(err, "[GetByUserID] User district repository error")
 		}
-		return user, userDetail.District.Name, nil
+		locationData["location_name"] = userDetail.District.Name
+		locationData["location_id"] = userDetail.DistrictID
+		return user, locationData, nil
 	case 3, 4, 5:
 		userDetail, err := u.userTpiRepository.GetByUserID(user.ID)
 		if err != nil {
-			return entities.User{}, "", stacktrace.Propagate(err, "[GetByUserID] User district repository error")
+			return entities.User{}, nil, stacktrace.Propagate(err, "[GetByUserID] User district repository error")
 		}
-		return user, userDetail.Tpi.Name, nil
+		locationData["location_name"] = userDetail.Tpi.Name
+		locationData["location_id"] = userDetail.TpiID
+		return user, locationData, nil
 	default:
-		return user, "", nil
+		return user, nil, nil
 	}
 
 }

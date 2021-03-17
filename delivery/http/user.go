@@ -63,7 +63,7 @@ func (handler *userHandler) GetUser(c *gin.Context) {
 	curUserID := c.MustGet("userID")
 	curUserIDint := curUserID.(int)
 
-	user, location, err := handler.UserUsecase.GetUser(curUserIDint)
+	user, locationData, err := handler.UserUsecase.GetUser(curUserIDint)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -73,8 +73,8 @@ func (handler *userHandler) GetUser(c *gin.Context) {
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
 		ResponseData: map[string]interface{}{
-			"user":     user,
-			"location": location,
+			"user":          user,
+			"location_data": locationData,
 		},
 	})
 }
