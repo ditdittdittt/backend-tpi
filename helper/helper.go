@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
 )
@@ -60,18 +60,21 @@ func CallEndpoint(requestBody map[string]string, path string, method string) ([]
 	return responseByte, nil
 }
 
-func MakeExcel() {
-	xlsx := excelize.NewFile()
-	sheet1Name := "Sheet One"
-	xlsx.SetSheetName(xlsx.GetSheetName(1), sheet1Name)
-
-	xlsx.SetCellValue(sheet1Name, "A1", "Name")
-	xlsx.SetCellValue(sheet1Name, "B1", "Gender")
-	xlsx.SetCellValue(sheet1Name, "C1", "Age")
-
-	err := xlsx.AutoFilter(sheet1Name, "A1", "C1", "")
+func HashAndSaltPassword(pwd []byte) string {
+	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
 	if err != nil {
-		log.Fatal("ERROR", err.Error())
+		log.Println(err)
+	}
+	return string(hash)
+}
+
+func ComparePassword(hashedPwd string, pwd []byte) bool {
+	byteHash := []byte(hashedPwd)
+	err := bcrypt.CompareHashAndPassword(byteHash, pwd)
+	if err != nil {
+		log.Println(err)
+		return false
 	}
 
+	return true
 }

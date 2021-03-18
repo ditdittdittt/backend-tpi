@@ -6,6 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
@@ -20,7 +21,7 @@ type userTpiUsecase struct {
 func (u *userTpiUsecase) CreateTpiAccount(userTpi *entities.UserTpi) error {
 
 	userTpi.User.UserStatusID = 1
-	userTpi.User.Password = userTpi.User.Username
+	userTpi.User.Password = helper.HashAndSaltPassword([]byte(userTpi.User.Username))
 	userTpi.User.CreatedAt = time.Now()
 	userTpi.User.UpdatedAt = time.Now()
 

@@ -7,6 +7,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 	"github.com/ditdittdittt/backend-tpi/services"
 )
@@ -117,7 +118,7 @@ func (u *userUsecase) Login(username string, password string) (token string, err
 		return "", stacktrace.Propagate(err, "[GetByUsername] User repository error")
 	}
 
-	if user.Password != password {
+	if !helper.ComparePassword(user.Password, []byte(password)) {
 		return "", stacktrace.NewError("Password didn't match")
 	}
 

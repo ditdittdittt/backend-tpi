@@ -6,6 +6,7 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
@@ -20,7 +21,7 @@ type userDistrictUsecase struct {
 func (u *userDistrictUsecase) CreateDistrictAccount(userDistrict *entities.UserDistrict) error {
 
 	userDistrict.User.UserStatusID = 1
-	userDistrict.User.Password = userDistrict.User.Username
+	userDistrict.User.Password = helper.HashAndSaltPassword([]byte(userDistrict.User.Username))
 	userDistrict.User.CreatedAt = time.Now()
 	userDistrict.User.UpdatedAt = time.Now()
 
