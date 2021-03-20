@@ -6,6 +6,7 @@ import (
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/database"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/client"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
@@ -15,6 +16,9 @@ func Seed() {
 	seedFishType()
 	seedFishingGear()
 	seedProvinceAndDistrict()
+	seedUserStatus()
+	seedRoleAndPermission()
+	seedSuperadmin()
 
 	//fishingAreaRepository := mysql.NewFishingAreaRepository(*database.DB)
 	//fishingArea1 := &entities.FishingArea{
@@ -111,31 +115,54 @@ func seedUserStatus() {
 }
 
 func seedRoleAndPermission() {
-	// Role
-	roleRepository := mysql.NewRoleRepository(*database.DB)
-	roleMap := map[int]string{
-		1: "superadmin",
-		2: "district-admin",
-		3: "tpi-admin",
-		4: "tpi-officer",
-		5: "tpi-cashier",
-	}
-	for index, key := range roleMap {
-		role := &entities.Role{
-			ID:   index,
-			Name: key,
-		}
-		roleRepository.Create(role)
-	}
-
 	// Permission
 	permissionRepository := mysql.NewPermissionRepository(*database.DB)
-	permissionMap := map[int]string{
-		1: constant.CreateDistrictAdmin,
-		2: constant.CreateTpiAdmin,
-		3: constant.CreateTpiOfficer,
-		4: constant.CreateTpiCashier,
-		5: constant.GetUser,
+	permissionMap := []string{
+		1:  constant.CreateDistrictAdmin,
+		2:  constant.CreateTpiAdmin,
+		3:  constant.CreateTpiOfficer,
+		4:  constant.CreateTpiCashier,
+		5:  constant.GetUser,
+		6:  constant.GetByIDUser,
+		7:  constant.UpdateUser,
+		8:  constant.CreateTpi,
+		9:  constant.GetByIDTpi,
+		10: constant.UpdateTpi,
+		11: constant.DeleteTpi,
+		12: constant.CreateCaught,
+		13: constant.InquiryCaught,
+		14: constant.GetByIDCaught,
+		15: constant.UpdateCaught,
+		16: constant.DeleteCaught,
+		17: constant.CreateAuction,
+		18: constant.InquiryAuction,
+		19: constant.GetByIDAuction,
+		20: constant.UpdateAuction,
+		21: constant.DeleteAuction,
+		22: constant.CreateTransaction,
+		23: constant.GetByIDTransaction,
+		24: constant.UpdateTransaction,
+		25: constant.DeleteTransaction,
+		26: constant.CreateFisher,
+		27: constant.UpdateFisher,
+		28: constant.GetByIDFisher,
+		29: constant.DeleteFisher,
+		30: constant.CreateBuyer,
+		31: constant.UpdateBuyer,
+		32: constant.GetByIDBuyer,
+		33: constant.DeleteBuyer,
+		34: constant.CreateFishingGear,
+		35: constant.UpdateFishingGear,
+		36: constant.GetByIDFishingGear,
+		37: constant.DeleteFishingGear,
+		38: constant.CreateFishingArea,
+		39: constant.UpdateFishingArea,
+		40: constant.GetByIDFishingArea,
+		41: constant.DeleteFishingArea,
+		42: constant.CreateFishType,
+		43: constant.UpdateFishType,
+		44: constant.GetByIDFishType,
+		45: constant.DeleteFishType,
 	}
 	for index, key := range permissionMap {
 		permission := &entities.Permission{
@@ -144,6 +171,64 @@ func seedRoleAndPermission() {
 		}
 		permissionRepository.Create(permission)
 	}
+
+	// Role
+	roleRepository := mysql.NewRoleRepository(*database.DB)
+
+	roleSuperadmin := &entities.Role{
+		ID:   1,
+		Name: "superadmin",
+	}
+	permissionSuperadmin := []int{1, 2, 3, 4, 5, 6, 7, 42, 43, 44, 45}
+	for _, permissionID := range permissionSuperadmin {
+		permission := &entities.Permission{ID: permissionID}
+		roleSuperadmin.Permission = append(roleSuperadmin.Permission, permission)
+	}
+	roleRepository.Create(roleSuperadmin)
+
+	roleDistrictAdmin := &entities.Role{
+		ID:   2,
+		Name: "district-admin",
+	}
+	permissionDistrictAdmin := []int{2, 5, 6, 7, 8, 9, 10, 11, 14, 19, 23, 38, 39, 40, 41}
+	for _, permissionID := range permissionDistrictAdmin {
+		permission := &entities.Permission{ID: permissionID}
+		roleDistrictAdmin.Permission = append(roleDistrictAdmin.Permission, permission)
+	}
+	roleRepository.Create(roleDistrictAdmin)
+
+	roleTpiAdmin := &entities.Role{
+		ID:   3,
+		Name: "tpi-admin",
+	}
+	permissionTpiAdmin := []int{3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 44}
+	for _, permissionID := range permissionTpiAdmin {
+		permission := &entities.Permission{ID: permissionID}
+		roleTpiAdmin.Permission = append(roleTpiAdmin.Permission, permission)
+	}
+	roleRepository.Create(roleTpiAdmin)
+
+	roleTpiCashier := &entities.Role{
+		ID:   4,
+		Name: "tpi-cashier",
+	}
+	permissionTpiCashier := []int{5, 6, 7, 22, 23, 24, 25}
+	for _, permissionID := range permissionTpiCashier {
+		permission := &entities.Permission{ID: permissionID}
+		roleTpiCashier.Permission = append(roleTpiCashier.Permission, permission)
+	}
+	roleRepository.Create(roleTpiCashier)
+
+	roleTpiOfficer := &entities.Role{
+		ID:   5,
+		Name: "tpi-officer",
+	}
+	permissionTpiOfficer := []int{5, 6, 7, 12, 13, 14, 17, 18, 19, 22, 23, 26, 27, 28, 30, 31, 32, 34, 36, 40, 44}
+	for _, permissionID := range permissionTpiOfficer {
+		permission := &entities.Permission{ID: permissionID}
+		roleTpiOfficer.Permission = append(roleTpiOfficer.Permission, permission)
+	}
+	roleRepository.Create(roleTpiOfficer)
 }
 
 func seedSuperadmin() {
@@ -153,35 +238,14 @@ func seedSuperadmin() {
 		ID:     1,
 		UserID: 1,
 		User: entities.User{
-			ID:     1,
-			RoleID: 1,
-			Role: &entities.Role{
-				ID:   1,
-				Name: "superadmin",
-				Permission: []*entities.Permission{
-					{
-						ID: 1,
-					},
-					{
-						ID: 2,
-					},
-					{
-						ID: 3,
-					},
-					{
-						ID: 4,
-					},
-					{
-						ID: 5,
-					},
-				},
-			},
+			ID:           1,
+			RoleID:       1,
 			UserStatusID: 1,
 			Nik:          "1234567890",
 			Name:         "superadmin",
 			Address:      "Bekasi",
 			Username:     "superadmin",
-			Password:     "superadmin",
+			Password:     helper.HashAndSaltPassword([]byte("superadmin")),
 			CreatedAt:    time.Now(),
 			UpdatedAt:    time.Now(),
 			Token:        "",
