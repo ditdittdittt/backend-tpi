@@ -17,10 +17,37 @@ type TransactionRepository interface {
 	Delete(id int) error
 	GetTransactionTotal(tpiID int, from string, to string) (int, error)
 	GetBuyerTotal(status string, tpiID int, from string, to string) (int, error)
+
+	// Dashboard
+	GetBuyerTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error)
 }
 
 type transactionRepository struct {
 	db gorm.DB
+}
+
+func (t *transactionRepository) GetBuyerTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error) {
+	var result []map[string]interface{}
+
+	query := `SELECT b.status AS status, COALESCE(COUNT(DISTINCT t.buyer_id), 0) AS total
+		FROM transactions AS t
+		INNER JOIN buyers AS b ON t.buyer_id = b.id`
+
+	if tpiID != 0 {
+		query = query + " WHERE t.tpi_id = " + strconv.Itoa(tpiID)
+	}
+
+	if districtID != 0 {
+		query = query + " INNER JOIN tpis AS tpi ON t.tpi_id = tpi.id WHERE tpi.district_id = " + strconv.Itoa(districtID)
+	}
+	query = query + " GROUP BY b.status"
+
+	err := t.db.Raw(query).Scan(&result).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, from string, to string) (int, error) {
