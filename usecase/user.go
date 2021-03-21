@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -16,9 +15,10 @@ type UserUsecase interface {
 	Login(username string, password string) (token string, err error)
 	Logout(id int) error
 	GetUser(id int) (entities.User, map[string]interface{}, error)
-	Index() (users []entities.User, err error)
+	Index(tpiID int, districtID int) (users []entities.User, err error)
 	Update(user *entities.User) error
 	GetByID(id int) (entities.User, error)
+	ChangePassword(id int, oldPassword string, newPassword string) error
 }
 
 type userUsecase struct {
@@ -26,6 +26,26 @@ type userUsecase struct {
 	userRepository         mysql.UserRepository
 	userDistrictRepository mysql.UserDistrictRepository
 	userTpiRepository      mysql.UserTpiRepository
+	tpiRepository          mysql.TpiRepository
+}
+
+func (u *userUsecase) ChangePassword(id int, oldPassword string, newPassword string) error {
+	user, err := u.userRepository.GetByID(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] User repository error")
+	}
+
+	if !helper.ComparePassword(user.Password, []byte(oldPassword)) {
+		return stacktrace.NewError("Password didn't match")
+	}
+
+	user.Password = helper.HashAndSaltPassword([]byte(newPassword))
+	err = u.userRepository.Update(&user)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] User repository error")
+	}
+
+	return nil
 }
 
 func (u *userUsecase) Logout(id int) error {
@@ -55,12 +75,7 @@ func (u *userUsecase) GetByID(id int) (entities.User, error) {
 func (u *userUsecase) Update(user *entities.User) error {
 	user.UpdatedAt = time.Now()
 
-	_, err := u.userRepository.GetByUsername(user.Username)
-	if err != sql.ErrNoRows {
-		return stacktrace.NewError("Username already used")
-	}
-
-	err = u.userRepository.Update(user)
+	err := u.userRepository.Update(user)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] User repository error")
 	}
@@ -68,10 +83,42 @@ func (u *userUsecase) Update(user *entities.User) error {
 	return nil
 }
 
-func (u *userUsecase) Index() (users []entities.User, err error) {
-	users, err = u.userRepository.Get()
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetSelectedField] User repository error")
+func (u *userUsecase) Index(tpiID int, districtID int) (users []entities.User, err error) {
+	if tpiID != 0 {
+		usersTpi, err := u.userTpiRepository.GetByTpiIDs([]int{tpiID})
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "[GetByTpiID] User tpi repository error")
+		}
+		for _, userTpi := range usersTpi {
+			userTpi.User.Token = ""
+			users = append(users, userTpi.User)
+		}
+	}
+
+	if districtID != 0 {
+		queryMap := map[string]interface{}{
+			"district_id": districtID,
+		}
+		tpis, err := u.tpiRepository.Get(queryMap)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "[Get] Tpi repository error")
+		}
+
+		usersTpi, err := u.userTpiRepository.GetByTpiIDs(tpiToID(tpis))
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "[GetByTpiID] User tpi repository error")
+		}
+		for _, userTpi := range usersTpi {
+			userTpi.User.Token = ""
+			users = append(users, userTpi.User)
+		}
+	}
+
+	if tpiID == 0 && districtID == 0 {
+		users, err = u.userRepository.Get()
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "[Get] User repository error")
+		}
 	}
 
 	return users, nil
@@ -136,6 +183,26 @@ func (u *userUsecase) Login(username string, password string) (token string, err
 	return token, nil
 }
 
-func NewUserUsecase(jwtService services.JWTService, userRepository mysql.UserRepository, userDistrictRepository mysql.UserDistrictRepository, userTpiRepository mysql.UserTpiRepository) UserUsecase {
-	return &userUsecase{userRepository: userRepository, jwtService: jwtService, userDistrictRepository: userDistrictRepository, userTpiRepository: userTpiRepository}
+func NewUserUsecase(
+	jwtService services.JWTService,
+	userRepository mysql.UserRepository,
+	userDistrictRepository mysql.UserDistrictRepository,
+	userTpiRepository mysql.UserTpiRepository,
+	tpiRepository mysql.TpiRepository,
+) UserUsecase {
+	return &userUsecase{
+		userRepository:         userRepository,
+		jwtService:             jwtService,
+		userDistrictRepository: userDistrictRepository,
+		userTpiRepository:      userTpiRepository,
+		tpiRepository:          tpiRepository,
+	}
+}
+
+func tpiToID(tpis []entities.Tpi) []int {
+	result := make([]int, 0)
+	for _, tpi := range tpis {
+		result = append(result, tpi.ID)
+	}
+	return result
 }

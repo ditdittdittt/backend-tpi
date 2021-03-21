@@ -9,10 +9,20 @@ import (
 type UserTpiRepository interface {
 	Create(userTpi *entities.UserTpi) error
 	GetByUserID(userID int) (userTpi entities.UserTpi, err error)
+	GetByTpiIDs(tpiID []int) (usersTpi []entities.UserTpi, err error)
 }
 
 type userTpiRepository struct {
 	db gorm.DB
+}
+
+func (u *userTpiRepository) GetByTpiIDs(tpiID []int) (usersTpi []entities.UserTpi, err error) {
+	err = u.db.Preload("User").Where("tpi_id IN ?", tpiID).Find(&usersTpi).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return usersTpi, nil
 }
 
 func (u *userTpiRepository) GetByUserID(userID int) (userTpi entities.UserTpi, err error) {

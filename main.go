@@ -33,6 +33,11 @@ func main() {
 	r.Use(cors.Default())
 	jwtService := services.NewJWTAuthService()
 
+	// TPI
+	tpiRepository := mysql.NewTpiRepository(*database.DB)
+	tpiUsecase := usecase.NewTpiUsecase(tpiRepository)
+	http.NewTpiHandler(r, tpiUsecase)
+
 	// User District
 	userDistrictRepository := mysql.NewUserDistrictRepository(*database.DB)
 	userDistrictUsecase := usecase.NewUserDistrictUsecase(userDistrictRepository)
@@ -45,7 +50,7 @@ func main() {
 
 	// User
 	userRepository := mysql.NewUserRepository(*database.DB)
-	userUsecase := usecase.NewUserUsecase(jwtService, userRepository, userDistrictRepository, userTpiRepository)
+	userUsecase := usecase.NewUserUsecase(jwtService, userRepository, userDistrictRepository, userTpiRepository, tpiRepository)
 	http.NewUserHandler(r, userUsecase)
 
 	// Fisher
@@ -77,11 +82,6 @@ func main() {
 	auctionRepository := mysql.NewAuctionRepository(*database.DB)
 	auctionUsecase := usecase.NewAuctionUsecase(auctionRepository, caughtRepository)
 	http.NewAuctionHandler(r, auctionUsecase)
-
-	// TPI
-	tpiRepository := mysql.NewTpiRepository(*database.DB)
-	tpiUsecase := usecase.NewTpiUsecase(tpiRepository)
-	http.NewTpiHandler(r, tpiUsecase)
 
 	// Fishing area
 	fishingAreaRepository := mysql.NewFishingAreaRepository(*database.DB)

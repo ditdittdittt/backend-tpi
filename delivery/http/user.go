@@ -31,8 +31,9 @@ func NewUserHandler(server *gin.Engine, userUsecase usecase.UserUsecase) {
 		user.POST("/get-user", middleware.AuthorizeJWT(constant.GetUser), handler.GetUser)
 		user.POST("/login", handler.Login)
 		user.POST("/logout", middleware.AuthorizeJWT(constant.Pass), handler.Logout)
+		user.POST("/change-password", middleware.AuthorizeJWT(constant.Pass), handler.ChangePassword)
 	}
-	server.GET("/users", handler.Index)
+	server.GET("/users", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 	server.GET("/user/:id", middleware.AuthorizeJWT(constant.GetByIDUser), handler.GetByID)
 	server.PUT("/user/:id", middleware.AuthorizeJWT(constant.UpdateUser), handler.Update)
 }
@@ -80,7 +81,20 @@ func (handler *userHandler) GetUser(c *gin.Context) {
 }
 
 func (handler *userHandler) Index(c *gin.Context) {
-	users, err := handler.UserUsecase.Index()
+	var intTpiID int
+	var intDistrictID int
+
+	tpiID, ok := c.Get("tpiID")
+	if ok {
+		intTpiID = tpiID.(int)
+	}
+
+	districtID, ok := c.Get("districtID")
+	if ok {
+		intDistrictID = districtID.(int)
+	}
+
+	users, err := handler.UserUsecase.Index(intTpiID, intDistrictID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -90,6 +104,27 @@ func (handler *userHandler) Index(c *gin.Context) {
 		ResponseCode: constant.SuccessResponseCode,
 		ResponseDesc: constant.Success,
 		ResponseData: users,
+	})
+}
+
+func (handler *userHandler) ChangePassword(c *gin.Context) {
+	var request ChangePasswordRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	userID := c.MustGet("userID")
+
+	err := handler.UserUsecase.ChangePassword(userID.(int), request.OldPassword, request.NewPassword)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
 	})
 }
 
@@ -113,8 +148,6 @@ func (handler *userHandler) Update(c *gin.Context) {
 		Nik:          request.Nik,
 		Name:         request.Name,
 		Address:      request.Address,
-		Username:     request.Username,
-		Password:     request.Password,
 	}
 
 	err = handler.UserUsecase.Update(user)

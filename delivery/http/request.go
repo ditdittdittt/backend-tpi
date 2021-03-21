@@ -164,10 +164,14 @@ type UpdateTransactionRequest struct {
 }
 
 type UpdateUserRequest struct {
+	UserRoleID   int    `json:"user_role_id"`
 	UserStatusID int    `json:"user_status_id"`
 	Nik          string `json:"nik"`
 	Name         string `json:"name"`
 	Address      string `json:"address"`
-	Username     string `json:"username"`
-	Password     string `json:"password"`
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }

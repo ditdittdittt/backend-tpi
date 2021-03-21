@@ -35,7 +35,7 @@ func (a *auctionRepository) GetTransactionSpeedGraphDashboard(tpiID int, distric
 
 	query := ` COALESCE(AVG(
 		UNIX_TIMESTAMP(a.created_at)-UNIX_TIMESTAMP(c.created_at)
-	), 0) AS speed
+	), 0) / 3600 AS speed
 		FROM auctions AS a
 		INNER JOIN caughts AS c ON a.caught_id = c.id
 		INNER JOIN tpis AS t ON c.tpi_id = t.id
