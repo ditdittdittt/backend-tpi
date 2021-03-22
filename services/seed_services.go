@@ -66,9 +66,9 @@ func seedProvinceAndDistrict() {
 func seedCaughtStatus() {
 	caughtStatusRepository := mysql.NewCaughtStatusRepository(*database.DB)
 	caughtStatusMap := map[int]string{
-		1: "Proses lelang",
-		2: "Menunggu pembayaran",
-		3: "Transaksi selesai",
+		1: "Belum Terjual",
+		2: "Menunggu Pembayaran",
+		3: "Selesai",
 	}
 	for index, key := range caughtStatusMap {
 		caughtStatus := &entities.CaughtStatus{
@@ -102,8 +102,8 @@ func seedFishingGear() {
 func seedUserStatus() {
 	userStatusRepository := mysql.NewUserStatusRepository(*database.DB)
 	userStatusMap := map[int]string{
-		1: "Active",
-		2: "Inactive",
+		1: "Aktif",
+		2: "Tidak Aktif",
 	}
 	for index, key := range userStatusMap {
 		userStatus := &entities.UserStatus{
