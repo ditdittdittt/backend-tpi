@@ -27,19 +27,33 @@ var queryTypeMap = map[string]bool{
 }
 
 func (d *dashboardUsecase) GetFisherAndBuyerTotal(tpiID int, districtID int) (map[string]interface{}, error) {
-	fisherTotal, err := d.caughtRepository.GetFisherTotalDashboard(tpiID, districtID)
+	fisherTotalPerStatus, err := d.caughtRepository.GetFisherTotalDashboard(tpiID, districtID)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[GetFisherTotalDashboard] Caught repository error")
 	}
 
-	buyerTotal, err := d.transactionRepository.GetBuyerTotalDashboard(tpiID, districtID)
+	fisherTotal := 0
+	for _, fisherStatus := range fisherTotalPerStatus {
+		count := fisherStatus["total"].(int64)
+		fisherTotal += int(count)
+	}
+
+	buyerTotalPerStatus, err := d.transactionRepository.GetBuyerTotalDashboard(tpiID, districtID)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[GetBuyerTotalDashboard] Transaction repository error")
 	}
 
+	buyerTotal := 0
+	for _, buyerStatus := range buyerTotalPerStatus {
+		count := buyerStatus["total"].(int64)
+		buyerTotal += int(count)
+	}
+
 	result := map[string]interface{}{
-		"fisher_total": fisherTotal,
-		"buyer_total":  buyerTotal,
+		"fisher_total":        fisherTotal,
+		"buyer_total":         buyerTotal,
+		"fisher_total_status": fisherTotalPerStatus,
+		"buyer_total_status":  buyerTotalPerStatus,
 	}
 
 	return result, nil
