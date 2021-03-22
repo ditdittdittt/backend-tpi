@@ -144,6 +144,7 @@ func (handler *userHandler) Update(c *gin.Context) {
 
 	user := &entities.User{
 		ID:           intUserID,
+		RoleID:       request.UserRoleID,
 		UserStatusID: request.UserStatusID,
 		Nik:          request.Nik,
 		Name:         request.Name,
