@@ -18,6 +18,9 @@ type UserHandler interface {
 	Index(c *gin.Context)
 	Update(c *gin.Context)
 	Logout(c *gin.Context)
+	GetByID(c *gin.Context)
+	ChangePassword(c *gin.Context)
+	ResetPassword(c *gin.Context)
 }
 
 type userHandler struct {
@@ -36,6 +39,7 @@ func NewUserHandler(server *gin.Engine, userUsecase usecase.UserUsecase) {
 	server.GET("/users", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 	server.GET("/user/:id", middleware.AuthorizeJWT(constant.GetByIDUser), handler.GetByID)
 	server.PUT("/user/:id", middleware.AuthorizeJWT(constant.UpdateUser), handler.Update)
+	server.POST("/user/reset-password/:id", middleware.AuthorizeJWT(constant.ResetPassword), handler.ResetPassword)
 }
 
 func (handler *userHandler) Login(c *gin.Context) {
@@ -189,6 +193,26 @@ func (handler *userHandler) Logout(c *gin.Context) {
 	curUserIDint := curUserID.(int)
 
 	err := handler.UserUsecase.Logout(curUserIDint)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+	})
+}
+
+func (handler *userHandler) ResetPassword(c *gin.Context) {
+	userID := c.Param("id")
+	intUserID, err := strconv.Atoi(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	err = handler.UserUsecase.ResetPassword(intUserID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

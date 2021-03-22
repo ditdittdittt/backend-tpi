@@ -64,4 +64,6 @@ const (
 	DeleteFishType  = "delete-fish-type"
 
 	Pass = "pass"
+
+	ResetPassword = "reset-password"
 )

@@ -19,6 +19,7 @@ type UserUsecase interface {
 	Update(user *entities.User) error
 	GetByID(id int) (entities.User, error)
 	ChangePassword(id int, oldPassword string, newPassword string) error
+	ResetPassword(id int) error
 }
 
 type userUsecase struct {
@@ -27,6 +28,22 @@ type userUsecase struct {
 	userDistrictRepository mysql.UserDistrictRepository
 	userTpiRepository      mysql.UserTpiRepository
 	tpiRepository          mysql.TpiRepository
+}
+
+func (u *userUsecase) ResetPassword(id int) error {
+	user, err := u.userRepository.GetByID(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] User repository error")
+	}
+
+	user.Password = helper.HashAndSaltPassword([]byte(user.Username))
+
+	err = u.userRepository.Update(&user)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] User repository error")
+	}
+
+	return nil
 }
 
 func (u *userUsecase) ChangePassword(id int, oldPassword string, newPassword string) error {
