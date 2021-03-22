@@ -54,7 +54,11 @@ func (h *fishingAreaHandler) Create(c *gin.Context) {
 		Name:                request.Name,
 	}
 
-	tpiID, _ := c.Get("tpiID")
+	intTpiID := 0
+	tpiID, ok := c.Get("tpiID")
+	if ok {
+		intTpiID = tpiID.(int)
+	}
 
 	districtID, ok := c.Get("districtID")
 	if ok {
@@ -63,7 +67,7 @@ func (h *fishingAreaHandler) Create(c *gin.Context) {
 		fishingArea.DistrictID = 0
 	}
 
-	err := h.fishingAreaUsecase.Create(fishingArea, tpiID.(int))
+	err := h.fishingAreaUsecase.Create(fishingArea, intTpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
