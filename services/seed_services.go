@@ -208,19 +208,8 @@ func seedRoleAndPermission() {
 	}
 	roleRepository.Create(roleTpiAdmin)
 
-	roleTpiCashier := &entities.Role{
-		ID:   4,
-		Name: "tpi-cashier",
-	}
-	permissionTpiCashier := []int{5, 6, 7, 22, 23, 24, 25}
-	for _, permissionID := range permissionTpiCashier {
-		permission := &entities.Permission{ID: permissionID}
-		roleTpiCashier.Permission = append(roleTpiCashier.Permission, permission)
-	}
-	roleRepository.Create(roleTpiCashier)
-
 	roleTpiOfficer := &entities.Role{
-		ID:   5,
+		ID:   4,
 		Name: "tpi-officer",
 	}
 	permissionTpiOfficer := []int{5, 6, 7, 12, 13, 14, 17, 18, 19, 22, 23, 26, 27, 28, 30, 31, 32, 34, 36, 40, 44}
@@ -229,6 +218,17 @@ func seedRoleAndPermission() {
 		roleTpiOfficer.Permission = append(roleTpiOfficer.Permission, permission)
 	}
 	roleRepository.Create(roleTpiOfficer)
+
+	roleTpiCashier := &entities.Role{
+		ID:   5,
+		Name: "tpi-cashier",
+	}
+	permissionTpiCashier := []int{5, 6, 7, 18, 22, 23, 24, 25}
+	for _, permissionID := range permissionTpiCashier {
+		permission := &entities.Permission{ID: permissionID}
+		roleTpiCashier.Permission = append(roleTpiCashier.Permission, permission)
+	}
+	roleRepository.Create(roleTpiCashier)
 }
 
 func seedSuperadmin() {
