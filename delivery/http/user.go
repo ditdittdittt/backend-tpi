@@ -87,6 +87,7 @@ func (handler *userHandler) GetUser(c *gin.Context) {
 func (handler *userHandler) Index(c *gin.Context) {
 	var intTpiID int
 	var intDistrictID int
+	var intUserID int
 
 	tpiID, ok := c.Get("tpiID")
 	if ok {
@@ -98,7 +99,12 @@ func (handler *userHandler) Index(c *gin.Context) {
 		intDistrictID = districtID.(int)
 	}
 
-	users, err := handler.UserUsecase.Index(intTpiID, intDistrictID)
+	userID, ok := c.Get("userID")
+	if ok {
+		intUserID = userID.(int)
+	}
+
+	users, err := handler.UserUsecase.Index(intUserID, intTpiID, intDistrictID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

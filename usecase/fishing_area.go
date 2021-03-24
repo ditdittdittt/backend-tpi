@@ -12,7 +12,7 @@ type FishingAreaUsecase interface {
 	Delete(id int) error
 	Update(fishingArea *entities.FishingArea) error
 	GetByID(id int) (entities.FishingArea, error)
-	Index() (fishingAreas []entities.FishingArea, err error)
+	Index(tpiID int, districtID int) (fishingAreas []entities.FishingArea, err error)
 }
 
 type fishingAreaUsecase struct {
@@ -47,7 +47,7 @@ func (f *fishingAreaUsecase) GetByID(id int) (entities.FishingArea, error) {
 	return fishingArea, nil
 }
 
-func (f *fishingAreaUsecase) Index() (fishingAreas []entities.FishingArea, err error) {
+func (f *fishingAreaUsecase) Index(tpiID int, districtID int) (fishingAreas []entities.FishingArea, err error) {
 	selectedField := []string{
 		"fishing_areas.id",
 		"fishing_areas.name",
@@ -57,9 +57,22 @@ func (f *fishingAreaUsecase) Index() (fishingAreas []entities.FishingArea, err e
 		"fishing_areas.east_longitude_degree",
 		"fishing_areas.east_longitude_minute",
 		"fishing_areas.east_longitude_second",
+		"fishing_areas.district_id",
 	}
 
-	fishingAreas, err = f.fishingAreaRepository.GetWithSelectedField(selectedField)
+	if districtID == 0 {
+		tpi, err := f.tpiRepository.GetByID(tpiID)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "[GetByID] Tpi repository error")
+		}
+		districtID = tpi.DistrictID
+	}
+
+	queryMap := map[string]interface{}{
+		"district_id": districtID,
+	}
+
+	fishingAreas, err = f.fishingAreaRepository.GetWithSelectedField(selectedField, queryMap)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fishing area repository error")
 	}

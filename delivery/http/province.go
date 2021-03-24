@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
+	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
 
@@ -19,7 +20,7 @@ type provinceHandler struct {
 
 func NewProvinceHandler(server *gin.Engine, provinceUsecase usecase.ProvinceUsecase) {
 	handler := provinceHandler{provinceUsecase: provinceUsecase}
-	server.GET("/provinces", handler.Index)
+	server.GET("/provinces", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 }
 
 func (h *provinceHandler) Index(c *gin.Context) {

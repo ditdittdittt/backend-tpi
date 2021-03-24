@@ -17,8 +17,8 @@ type CaughtRepository interface {
 	Get(query map[string]interface{}, startDate string, toDate string) (caughts []entities.Caught, err error)
 	Search(query map[string]interface{}) (caughts []entities.Caught, err error)
 	Delete(id int) error
-	GetWeightTotal(fishTypeID int, tpiID int, from string, to string) (float64, error)
-	GetFisherTotal(status string, tpiID int, from string, to string) (int, error)
+	GetWeightTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
+	GetFisherTotal(status string, tpiID int, districtID int, from string, to string) (int, error)
 
 	// Dashboard
 	GetFisherTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error)
@@ -138,17 +138,22 @@ func (c *caughtRepository) GetFisherTotalDashboard(tpiID int, districtID int) ([
 	return result, nil
 }
 
-func (c *caughtRepository) GetFisherTotal(status string, tpiID int, from string, to string) (int, error) {
+func (c *caughtRepository) GetFisherTotal(status string, tpiID int, districtID int, from string, to string) (int, error) {
 	var result int
 	query := `SELECT COALESCE(COUNT(DISTINCT c.fisher_id), 0) 
 		FROM caughts AS c 
-		INNER JOIN fishers AS f ON c.fisher_id = f.id
-		WHERE c.created_at BETWEEN "%s" AND "%s" AND f.status = "%s" AND c.caught_status_id = 3`
-	query = fmt.Sprintf(query, from, to, status)
+		INNER JOIN fishers AS f ON c.fisher_id = f.id`
 
 	if tpiID != 0 {
-		query = query + " AND c.tpi_id = " + strconv.Itoa(tpiID)
+		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
 	}
+
+	if districtID != 0 {
+		query = query + " INNER JOIN tpis AS t ON c.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
+	}
+
+	query = query + ` AND c.created_at BETWEEN "%s" AND "%s" AND f.status = "%s" AND c.caught_status_id = 3`
+	query = fmt.Sprintf(query, from, to, status)
 
 	err := c.db.Raw(query).Scan(&result).Error
 	if err != nil {
@@ -158,26 +163,31 @@ func (c *caughtRepository) GetFisherTotal(status string, tpiID int, from string,
 	return result, nil
 }
 
-func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, from string, to string) (float64, error) {
+func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error) {
 	var result float64
 	query := `SELECT COALESCE(	
 				SUM(
     			CASE
- 				WHEN weight_unit = "Ton" THEN weight * 1000
- 				WHEN weight_unit = "Kwintal" THEN weight * 100
-    			WHEN weight_unit = "Kg" THEN weight * 1
+ 				WHEN c.weight_unit = "Ton" THEN c.weight * 1000
+ 				WHEN c.weight_unit = "Kwintal" THEN c.weight * 100
+    			WHEN c.weight_unit = "Kg" THEN c.weight * 1
  				END), 0) AS total
-			FROM caughts WHERE created_at BETWEEN "%s" AND "%s" AND caught_status_id = 3`
-
-	query = fmt.Sprintf(query, from, to)
-
-	if fishTypeID != 0 {
-		query = query + ` AND fish_type_id = ` + strconv.Itoa(fishTypeID)
-	}
+			FROM caughts AS c`
 
 	if tpiID != 0 {
-		query = query + " AND tpi_id = " + strconv.Itoa(tpiID)
+		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
 	}
+
+	if districtID != 0 {
+		query = query + " INNER JOIN tpis AS t ON c.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
+	}
+
+	if fishTypeID != 0 {
+		query = query + ` AND c.fish_type_id = ` + strconv.Itoa(fishTypeID)
+	}
+
+	query = query + ` AND c.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
+	query = fmt.Sprintf(query, from, to)
 
 	err := c.db.Raw(query).Scan(&result).Error
 	if err != nil {

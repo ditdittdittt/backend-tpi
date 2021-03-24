@@ -65,7 +65,7 @@ func main() {
 
 	// Fishing gear
 	fishingGearRepository := mysql.NewFishingGearRepository(*database.DB)
-	fishingGearUsecase := usecase.NewFishingGearUsecase(fishingGearRepository)
+	fishingGearUsecase := usecase.NewFishingGearUsecase(fishingGearRepository, tpiRepository)
 	http.NewFishingGearHandler(r, fishingGearUsecase)
 
 	// Fish type

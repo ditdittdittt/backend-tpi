@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
+	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
 
@@ -20,7 +21,7 @@ type districtHandler struct {
 
 func NewDistrictHandler(server *gin.Engine, districtUsecase usecase.DistrictUsecase) {
 	handler := districtHandler{districtUsecase: districtUsecase}
-	server.GET("/districts", handler.Index)
+	server.GET("/districts", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 }
 
 func (h *districtHandler) Index(c *gin.Context) {

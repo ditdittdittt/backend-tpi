@@ -8,7 +8,7 @@ import (
 
 type FishingGearRepository interface {
 	Create(fishingGear *entities.FishingGear) error
-	GetWithSelectedField(selectedField []string) (fishingGears []entities.FishingGear, err error)
+	GetWithSelectedField(selectedField []string, queryMap map[string]interface{}) (fishingGears []entities.FishingGear, err error)
 	GetByID(id int) (fishingGear entities.FishingGear, err error)
 	Update(fishingGear *entities.FishingGear) error
 	Delete(id int) error
@@ -43,8 +43,8 @@ func (f *fishingGearRepository) Delete(id int) error {
 	return nil
 }
 
-func (f *fishingGearRepository) GetWithSelectedField(selectedField []string) (fishingGears []entities.FishingGear, err error) {
-	err = f.db.Select(selectedField).Find(&fishingGears).Error
+func (f *fishingGearRepository) GetWithSelectedField(selectedField []string, queryMap map[string]interface{}) (fishingGears []entities.FishingGear, err error) {
+	err = f.db.Joins("District").Select(selectedField).Find(&fishingGears, queryMap).Error
 	if err != nil {
 		return nil, err
 	}

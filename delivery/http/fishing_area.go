@@ -27,7 +27,7 @@ type fishingAreaHandler struct {
 func NewFishingAreaHandler(server *gin.Engine, fishingAreaUsecase usecase.FishingAreaUsecase) {
 	handler := &fishingAreaHandler{fishingAreaUsecase: fishingAreaUsecase}
 	server.POST("/fishing-area", middleware.AuthorizeJWT(constant.CreateFishingArea), handler.Create)
-	server.GET("/fishing-areas", handler.Index)
+	server.GET("/fishing-areas", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 	server.GET("/fishing-area/:id", middleware.AuthorizeJWT(constant.GetByIDFishingArea), handler.GetByID)
 	server.PUT("/fishing-area/:id", middleware.AuthorizeJWT(constant.UpdateFishingArea), handler.Update)
 	server.DELETE("/fishing-area/:id", middleware.AuthorizeJWT(constant.DeleteFishingArea), handler.Delete)
@@ -84,7 +84,20 @@ func (h *fishingAreaHandler) Create(c *gin.Context) {
 }
 
 func (h *fishingAreaHandler) Index(c *gin.Context) {
-	fishingAreas, err := h.fishingAreaUsecase.Index()
+	intTpiID := 0
+	intDistrictID := 0
+
+	tpiID, ok := c.Get("tpiID")
+	if ok {
+		intTpiID = tpiID.(int)
+	}
+
+	districtID, ok := c.Get("districtID")
+	if ok {
+		intDistrictID = districtID.(int)
+	}
+
+	fishingAreas, err := h.fishingAreaUsecase.Index(intTpiID, intDistrictID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,

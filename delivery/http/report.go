@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
+	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
 
@@ -25,19 +27,21 @@ type reportHandler struct {
 
 func NewReportHandler(server *gin.Engine, reportUsecase usecase.ReportUsecase) {
 	handler := &reportHandler{reportUsecase: reportUsecase}
-	server.GET("/report/production", handler.Production)
-	server.GET("/report/transaction", handler.Transaction)
-	server.GET("/report/production/excel", handler.ExportExcelProduction)
-	server.GET("/report/transaction/excel", handler.ExportExcelTransaction)
+	server.GET("/report/production", middleware.AuthorizeJWT(constant.Pass), handler.Production)
+	server.GET("/report/transaction", middleware.AuthorizeJWT(constant.Pass), handler.Transaction)
+	server.GET("/report/production/excel", middleware.AuthorizeJWT(constant.Pass), handler.ExportExcelProduction)
+	server.GET("/report/transaction/excel", middleware.AuthorizeJWT(constant.Pass), handler.ExportExcelTransaction)
 }
 
 func (h *reportHandler) Production(c *gin.Context) {
-	tpiID := c.DefaultQuery("tpi_id", "0")
-	intTpiID, _ := strconv.Atoi(tpiID)
+	tpiID, districtID := h.getTpiAndDistrict(c)
+	if tpiID == 0 && districtID == 0 {
+		return
+	}
 
 	stringFrom, stringTo := h.getDate(c)
 
-	productionReport, err := h.reportUsecase.GetProductionReport(intTpiID, stringFrom, stringTo)
+	productionReport, err := h.reportUsecase.GetProductionReport(tpiID, districtID, stringFrom, stringTo)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -51,12 +55,14 @@ func (h *reportHandler) Production(c *gin.Context) {
 }
 
 func (h *reportHandler) Transaction(c *gin.Context) {
-	tpiID := c.DefaultQuery("tpi_id", "0")
-	intTpiID, _ := strconv.Atoi(tpiID)
+	tpiID, districtID := h.getTpiAndDistrict(c)
+	if tpiID == 0 && districtID == 0 {
+		return
+	}
 
 	stringFrom, stringTo := h.getDate(c)
 
-	transactionReport, err := h.reportUsecase.GetTransactionReport(intTpiID, stringFrom, stringTo)
+	transactionReport, err := h.reportUsecase.GetTransactionReport(tpiID, districtID, stringFrom, stringTo)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -70,12 +76,15 @@ func (h *reportHandler) Transaction(c *gin.Context) {
 }
 
 func (h *reportHandler) ExportExcelProduction(c *gin.Context) {
-	tpiID := c.DefaultQuery("tpi_id", "0")
-	intTpiID, _ := strconv.Atoi(tpiID)
+	tpiID, districtID := h.getTpiAndDistrict(c)
+
+	if tpiID == 0 && districtID == 0 {
+		return
+	}
 
 	stringFrom, stringTo := h.getDate(c)
 
-	xlsx, err := h.reportUsecase.ExportExcelProductionReport(intTpiID, stringFrom, stringTo)
+	xlsx, err := h.reportUsecase.ExportExcelProductionReport(tpiID, districtID, stringFrom, stringTo)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -88,12 +97,14 @@ func (h *reportHandler) ExportExcelProduction(c *gin.Context) {
 }
 
 func (h *reportHandler) ExportExcelTransaction(c *gin.Context) {
-	tpiID := c.DefaultQuery("tpi_id", "0")
-	intTpiID, _ := strconv.Atoi(tpiID)
+	tpiID, districtID := h.getTpiAndDistrict(c)
+	if tpiID == 0 && districtID == 0 {
+		return
+	}
 
 	stringFrom, stringTo := h.getDate(c)
 
-	xlsx, err := h.reportUsecase.ExportExcelTransactionReport(intTpiID, stringFrom, stringTo)
+	xlsx, err := h.reportUsecase.ExportExcelTransactionReport(tpiID, districtID, stringFrom, stringTo)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -143,4 +154,21 @@ func (h *reportHandler) getDate(c *gin.Context) (string, string) {
 	stringTo := to.Format("2006-01-02 15:04:05")
 
 	return stringFrom, stringTo
+}
+
+func (h *reportHandler) getTpiAndDistrict(c *gin.Context) (int, int) {
+	tpiID := c.DefaultQuery("tpi_id", "0")
+	intTpiID, _ := strconv.Atoi(tpiID)
+
+	intDistrictID := 0
+	if intTpiID == 0 {
+		districtID, ok := c.Get("districtID")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(stacktrace.NewError("Missing request")))
+			return 0, 0
+		}
+		intDistrictID = districtID.(int)
+	}
+
+	return intTpiID, intDistrictID
 }

@@ -16,8 +16,8 @@ type AuctionRepository interface {
 	Get(query map[string]interface{}, startDate string, toDate string) (auctions []entities.Auction, err error)
 	Delete(id int) error
 	Update(auction *entities.Auction) error
-	GetPriceTotal(fishTypeID int, tpiID int, from string, to string) (float64, error)
-	GetTransactionSpeed(fishTypeID int, tpiID int, from string, to string) (float64, error)
+	GetPriceTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
+	GetTransactionSpeed(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
 
 	// Dashboard
 	GetTransactionTotalDashboard(tpiID int, districtID int, queryType string, date string) (float64, error)
@@ -182,24 +182,28 @@ func (a *auctionRepository) GetTransactionTotalDashboard(tpiID int, districtID i
 	return result, nil
 }
 
-func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, from string, to string) (float64, error) {
+func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error) {
 	var result float64
 	query := `SELECT COALESCE(AVG(
 		UNIX_TIMESTAMP(a.created_at)-UNIX_TIMESTAMP(c.created_at)
 	), 0) AS result
 	FROM auctions AS a
-	INNER JOIN caughts AS c ON a.caught_id = c.id
-	WHERE a.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
+	INNER JOIN caughts AS c ON a.caught_id = c.id`
 
-	query = fmt.Sprintf(query, from, to)
+	if tpiID != 0 {
+		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
+	}
+
+	if districtID != 0 {
+		query = query + " INNER JOIN tpis AS t ON a.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
+	}
 
 	if fishTypeID != 0 {
 		query = query + " AND c.fish_type_id = " + strconv.Itoa(fishTypeID)
 	}
 
-	if tpiID != 0 {
-		query = query + " AND c.tpi_id = " + strconv.Itoa(tpiID)
-	}
+	query = query + ` AND a.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
+	query = fmt.Sprintf(query, from, to)
 
 	err := a.db.Raw(query).Scan(&result).Error
 	if err != nil {
@@ -209,23 +213,27 @@ func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, from 
 	return result, nil
 }
 
-func (a *auctionRepository) GetPriceTotal(fishTypeID int, tpiID int, from string, to string) (float64, error) {
+func (a *auctionRepository) GetPriceTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error) {
 	var result float64
 	query := `SELECT COALESCE(
 		SUM(a.price), 0) 
 		FROM auctions AS a
-		INNER JOIN caughts AS c ON a.caught_id = c.id
-		WHERE a.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
+		INNER JOIN caughts AS c ON a.caught_id = c.id`
 
-	query = fmt.Sprintf(query, from, to)
+	if tpiID != 0 {
+		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
+	}
+
+	if districtID != 0 {
+		query = query + " INNER JOIN tpis AS t ON a.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
+	}
 
 	if fishTypeID != 0 {
 		query = query + " AND c.fish_type_id = " + strconv.Itoa(fishTypeID)
 	}
 
-	if tpiID != 0 {
-		query = query + " AND c.tpi_id = " + strconv.Itoa(tpiID)
-	}
+	query = query + ` AND a.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
+	query = fmt.Sprintf(query, from, to)
 
 	err := a.db.Raw(query).Scan(&result).Error
 	if err != nil {

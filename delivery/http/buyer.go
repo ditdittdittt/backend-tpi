@@ -28,7 +28,7 @@ type buyerHandler struct {
 func NewBuyerHandler(server *gin.Engine, buyerUsecase usecase.BuyerUsecase) {
 	handler := &buyerHandler{BuyerUsecase: buyerUsecase}
 	server.POST("/buyer", middleware.AuthorizeJWT(constant.CreateBuyer), handler.Create)
-	server.GET("/buyers", handler.Index)
+	server.GET("/buyers", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 	server.PUT("/buyer/:id", middleware.AuthorizeJWT(constant.UpdateBuyer), handler.Update)
 	server.GET("/buyer/:id", middleware.AuthorizeJWT(constant.GetByIDBuyer), handler.GetByID)
 	server.DELETE("/buyer/:id", middleware.AuthorizeJWT(constant.DeleteBuyer), handler.Delete)

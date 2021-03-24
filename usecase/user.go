@@ -15,7 +15,7 @@ type UserUsecase interface {
 	Login(username string, password string) (token string, err error)
 	Logout(id int) error
 	GetUser(id int) (entities.User, map[string]interface{}, error)
-	Index(tpiID int, districtID int) (users []entities.User, err error)
+	Index(userID int, tpiID int, districtID int) (users []entities.User, err error)
 	Update(user *entities.User) error
 	GetByID(id int) (entities.User, error)
 	ChangePassword(id int, oldPassword string, newPassword string) error
@@ -100,7 +100,7 @@ func (u *userUsecase) Update(user *entities.User) error {
 	return nil
 }
 
-func (u *userUsecase) Index(tpiID int, districtID int) (users []entities.User, err error) {
+func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []entities.User, err error) {
 	if tpiID != 0 {
 		usersTpi, err := u.userTpiRepository.GetByTpiIDs([]int{tpiID})
 		if err != nil {
@@ -108,6 +108,9 @@ func (u *userUsecase) Index(tpiID int, districtID int) (users []entities.User, e
 		}
 		for _, userTpi := range usersTpi {
 			userTpi.User.Token = ""
+			if userTpi.User.ID == userID {
+				continue
+			}
 			users = append(users, userTpi.User)
 		}
 	}
@@ -127,6 +130,9 @@ func (u *userUsecase) Index(tpiID int, districtID int) (users []entities.User, e
 		}
 		for _, userTpi := range usersTpi {
 			userTpi.User.Token = ""
+			if userTpi.User.ID == userID {
+				continue
+			}
 			users = append(users, userTpi.User)
 		}
 	}

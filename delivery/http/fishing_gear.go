@@ -27,7 +27,7 @@ type fishingGearHandler struct {
 func NewFishingGearHandler(server *gin.Engine, fishingGearusecase usecase.FishingGearUsecase) {
 	handler := &fishingGearHandler{FishingGearUsecase: fishingGearusecase}
 	server.POST("/fishing-gear", middleware.AuthorizeJWT(constant.CreateFishingGear), handler.Create)
-	server.GET("/fishing-gears", handler.Index)
+	server.GET("/fishing-gears", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 	server.GET("/fishing-gear/:id", middleware.AuthorizeJWT(constant.GetByIDFishingGear), handler.GetByID)
 	server.PUT("/fishing-gear/:id", middleware.AuthorizeJWT(constant.UpdateFishingGear), handler.Update)
 	server.DELETE("/fishing-gear/:id", middleware.AuthorizeJWT(constant.DeleteFishingGear), handler.Delete)
@@ -49,7 +49,20 @@ func (h *fishingGearHandler) Create(c *gin.Context) {
 		Code: request.Code,
 	}
 
-	err := h.FishingGearUsecase.Create(fishingGear)
+	intTpiID := 0
+	tpiID, ok := c.Get("tpiID")
+	if ok {
+		intTpiID = tpiID.(int)
+	}
+
+	districtID, ok := c.Get("districtID")
+	if ok {
+		fishingGear.DistrictID = districtID.(int)
+	} else {
+		fishingGear.DistrictID = 0
+	}
+
+	err := h.FishingGearUsecase.Create(fishingGear, intTpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
@@ -66,7 +79,20 @@ func (h *fishingGearHandler) Create(c *gin.Context) {
 }
 
 func (h *fishingGearHandler) Index(c *gin.Context) {
-	fishingGears, err := h.FishingGearUsecase.Index()
+	intTpiID := 0
+	intDistrictID := 0
+
+	tpiID, ok := c.Get("tpiID")
+	if ok {
+		intTpiID = tpiID.(int)
+	}
+
+	districtID, ok := c.Get("districtID")
+	if ok {
+		intDistrictID = districtID.(int)
+	}
+
+	fishingGears, err := h.FishingGearUsecase.Index(intTpiID, intDistrictID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
