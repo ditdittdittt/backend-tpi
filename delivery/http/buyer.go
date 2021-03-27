@@ -9,6 +9,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -45,18 +46,21 @@ func (h *buyerHandler) Create(c *gin.Context) {
 		return
 	}
 
-	curUserID := c.MustGet("userID")
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
 	buyer := &entities.Buyer{
-		UserID:      curUserID.(int),
+		UserID:      userID,
 		Nik:         request.Nik,
 		Name:        request.Name,
 		Address:     request.Address,
 		PhoneNumber: request.PhoneNumber,
-		Status:      request.Status,
 	}
 
-	err := h.BuyerUsecase.Create(buyer)
+	err = h.BuyerUsecase.Create(buyer, tpiID, request.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
@@ -73,7 +77,13 @@ func (h *buyerHandler) Create(c *gin.Context) {
 }
 
 func (h *buyerHandler) Index(c *gin.Context) {
-	buyers, err := h.BuyerUsecase.Index()
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	buyers, err := h.BuyerUsecase.Index(tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
@@ -117,7 +127,6 @@ func (h *buyerHandler) Update(c *gin.Context) {
 		Name:        request.Name,
 		Address:     request.Address,
 		PhoneNumber: request.PhoneNumber,
-		Status:      request.Status,
 	}
 
 	err = h.BuyerUsecase.Update(buyer)

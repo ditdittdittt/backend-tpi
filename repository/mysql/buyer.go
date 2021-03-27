@@ -12,10 +12,34 @@ type BuyerRepository interface {
 	GetByID(id int) (buyer entities.Buyer, err error)
 	Update(buyer *entities.Buyer) error
 	Delete(id int) error
+	Get(query map[string]interface{}) (entities.Buyer, error)
+	Index(query map[string]interface{}) ([]entities.Buyer, error)
 }
 
 type buyerRepository struct {
 	db gorm.DB
+}
+
+func (b *buyerRepository) Get(query map[string]interface{}) (entities.Buyer, error) {
+	var result entities.Buyer
+
+	err := b.db.Where(query).First(&result).Error
+	if err != nil {
+		return entities.Buyer{}, err
+	}
+
+	return result, nil
+}
+
+func (b *buyerRepository) Index(query map[string]interface{}) ([]entities.Buyer, error) {
+	var result []entities.Buyer
+
+	err := b.db.Where(query).Find(&result).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (b *buyerRepository) GetByID(id int) (buyer entities.Buyer, err error) {
@@ -52,6 +76,10 @@ func (b *buyerRepository) GetWithSelectedField(selectedField []string) (buyers [
 }
 
 func (b *buyerRepository) Create(buyer *entities.Buyer) error {
+	if buyer.TpiID == 0 {
+		err := b.db.Omit("tpi_id").Create(&buyer).Error
+		return err
+	}
 	err := b.db.Create(&buyer).Error
 	return err
 }

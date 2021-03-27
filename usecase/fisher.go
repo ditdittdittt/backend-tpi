@@ -4,21 +4,23 @@ import (
 	"time"
 
 	"github.com/palantir/stacktrace"
+	"gorm.io/gorm"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type FisherUsecase interface {
-	Create(fisher *entities.Fisher) error
+	Create(fisher *entities.Fisher, tpiID int, status string) error
 	Delete(id int) error
 	Update(fisher *entities.Fisher) error
 	GetByID(id int) (entities.Fisher, error)
-	Index() (fishers []entities.Fisher, err error)
+	Index(tpiID int) (fishers []entities.Fisher, err error)
 }
 
 type fisherUsecase struct {
-	fisherRepository mysql.FisherRepository
+	fisherRepository    mysql.FisherRepository
+	fisherTpiRepository mysql.FisherTpiRepository
 }
 
 func (f *fisherUsecase) Delete(id int) error {
@@ -50,29 +52,78 @@ func (f *fisherUsecase) Update(fisher *entities.Fisher) error {
 	return nil
 }
 
-func (f *fisherUsecase) Index() (fishers []entities.Fisher, err error) {
-	selectedField := []string{"id", "nik", "name", "status", "address", "phone_number", "ship_type", "abk_total", "created_at", "updated_at"}
+func (f *fisherUsecase) Index(tpiID int) (fishers []entities.Fisher, err error) {
+	result := make([]entities.Fisher, 0)
 
-	fishers, err = f.fisherRepository.GetWithSelectedField(selectedField)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fisher repository error")
+	query := map[string]interface{}{
+		"tpi_id": tpiID,
 	}
 
-	return fishers, nil
+	fishers, err = f.fisherRepository.Index(query)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[Index] Fisher repository error")
+	}
+	for _, fisher := range fishers {
+		fisher.Status = "Tetap"
+		result = append(result, fisher)
+	}
+
+	fisherTpis, err := f.fisherTpiRepository.Index(query)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "[Index] Fisher tpi repository error")
+	}
+	for _, fisherTpi := range fisherTpis {
+		fisherTpi.Fisher.Status = "Pendatang"
+		result = append(result, *fisherTpi.Fisher)
+	}
+
+	return result, nil
 }
 
-func (f *fisherUsecase) Create(fisher *entities.Fisher) error {
+func (f *fisherUsecase) Create(fisher *entities.Fisher, tpiID int, status string) error {
 	fisher.CreatedAt = time.Now()
 	fisher.UpdatedAt = time.Now()
 
-	err := f.fisherRepository.Create(fisher)
-	if err != nil {
-		return stacktrace.Propagate(err, "[Create] Fisher repository err")
+	switch status {
+	case "Tetap":
+		fisher.TpiID = tpiID
+
+		err := f.fisherRepository.Create(fisher)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Create] Fisher repository err")
+		}
+
+	case "Pendatang":
+		existedFisher, err := f.fisherRepository.Get(map[string]interface{}{"nik": fisher.Nik})
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				err = f.fisherRepository.Create(fisher)
+				if err != nil {
+					return stacktrace.Propagate(err, "[Create] Fisher repository err")
+				}
+			} else {
+				return stacktrace.Propagate(err, "[Get] Fisher repository error")
+			}
+		}
+
+		if existedFisher.Nik == fisher.Nik {
+			fisher.ID = existedFisher.ID
+		}
+
+		fisherTpi := &entities.FisherTpi{
+			FisherID: fisher.ID,
+			TpiID:    tpiID,
+		}
+
+		err = f.fisherTpiRepository.Create(fisherTpi)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Create] Fisher tpi repository")
+		}
 	}
 
 	return nil
 }
 
-func NewFisherUsecase(fisherRepository mysql.FisherRepository) FisherUsecase {
-	return &fisherUsecase{fisherRepository: fisherRepository}
+func NewFisherUsecase(fisherRepository mysql.FisherRepository, fisherTpiRepository mysql.FisherTpiRepository) FisherUsecase {
+	return &fisherUsecase{fisherRepository: fisherRepository, fisherTpiRepository: fisherTpiRepository}
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -45,20 +46,24 @@ func (h *fisherHandler) Create(c *gin.Context) {
 		return
 	}
 
-	curUserID := c.MustGet("userID")
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
 	fisher := &entities.Fisher{
-		UserID:      curUserID.(int),
+		UserID:      userID,
 		Nik:         request.Nik,
 		Name:        request.Name,
+		NickName:    request.NickName,
 		Address:     request.Address,
 		ShipType:    request.ShipType,
 		AbkTotal:    request.AbkTotal,
 		PhoneNumber: request.PhoneNumber,
-		Status:      request.Status,
 	}
 
-	err := h.FisherUsecase.Create(fisher)
+	err = h.FisherUsecase.Create(fisher, tpiID, request.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
@@ -75,7 +80,13 @@ func (h *fisherHandler) Create(c *gin.Context) {
 }
 
 func (h *fisherHandler) Index(c *gin.Context) {
-	fishers, err := h.FisherUsecase.Index()
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	fishers, err := h.FisherUsecase.Index(tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
@@ -121,7 +132,7 @@ func (h *fisherHandler) Update(c *gin.Context) {
 		ShipType:    request.ShipType,
 		AbkTotal:    request.AbkTotal,
 		PhoneNumber: request.PhoneNumber,
-		Status:      request.Status,
+		//Status:      request.Status,
 	}
 
 	err = h.FisherUsecase.Update(fisher)

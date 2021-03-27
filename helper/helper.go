@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/palantir/stacktrace"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
@@ -77,4 +79,28 @@ func ComparePassword(hashedPwd string, pwd []byte) bool {
 	}
 
 	return true
+}
+
+func GetCurrentUserID(c *gin.Context) (int, int, int, error) {
+	userID := 0
+	tpiID := 0
+	districtID := 0
+
+	curUserID, ok := c.Get("userID")
+	if !ok {
+		return userID, tpiID, districtID, stacktrace.NewError("Invalid user")
+	}
+	userID = curUserID.(int)
+
+	curTpiID, ok := c.Get("tpiID")
+	if ok {
+		tpiID = curTpiID.(int)
+	}
+
+	curDistrictID, ok := c.Get("districtID")
+	if ok {
+		districtID = curDistrictID.(int)
+	}
+
+	return userID, tpiID, districtID, nil
 }

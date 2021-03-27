@@ -17,6 +17,7 @@ type TransactionRepository interface {
 	Delete(id int) error
 	GetTransactionTotal(tpiID int, districtID int, from string, to string) (int, error)
 	GetBuyerTotal(status string, tpiID int, districtID int, from string, to string) (int, error)
+	Index(query map[string]interface{}, date string) ([]entities.Transaction, error)
 
 	// Dashboard
 	GetBuyerTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error)
@@ -24,6 +25,24 @@ type TransactionRepository interface {
 
 type transactionRepository struct {
 	db gorm.DB
+}
+
+func (t *transactionRepository) Index(query map[string]interface{}, date string) ([]entities.Transaction, error) {
+	var result []entities.Transaction
+
+	err := t.db.Table("transactions").
+		Where("DATE(transactions.created_at) = DATE(?)", date).
+		Where(query).
+		Preload("Buyer").
+		Preload("TransactionItem.Auction.CaughtItem.Caught.Fisher").
+		Preload("TransactionItem.Auction.CaughtItem.FishType").
+		Find(&result).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, err
 }
 
 func (t *transactionRepository) GetBuyerTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error) {

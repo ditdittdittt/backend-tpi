@@ -8,6 +8,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -84,20 +85,13 @@ func (h *fishingAreaHandler) Create(c *gin.Context) {
 }
 
 func (h *fishingAreaHandler) Index(c *gin.Context) {
-	intTpiID := 0
-	intDistrictID := 0
-
-	tpiID, ok := c.Get("tpiID")
-	if ok {
-		intTpiID = tpiID.(int)
+	_, tpiID, districtID, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
 	}
 
-	districtID, ok := c.Get("districtID")
-	if ok {
-		intDistrictID = districtID.(int)
-	}
-
-	fishingAreas, err := h.fishingAreaUsecase.Index(intTpiID, intDistrictID)
+	fishingAreas, err := h.fishingAreaUsecase.Index(tpiID, districtID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,

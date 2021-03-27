@@ -8,6 +8,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -40,15 +41,23 @@ func (h *tpiHandler) Create(c *gin.Context) {
 		return
 	}
 
-	districtID := c.MustGet("districtID")
-
-	tpi := &entities.Tpi{
-		DistrictID: districtID.(int),
-		Name:       request.Name,
-		Code:       request.Code,
+	userID, _, districtID, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
 	}
 
-	err := h.TpiUsecase.Create(tpi)
+	tpi := &entities.Tpi{
+		DistrictID:  districtID,
+		UserID:      userID,
+		Name:        request.Name,
+		Code:        request.Code,
+		Address:     request.Address,
+		PhoneNumber: request.PhoneNumber,
+		Pic:         request.Pic,
+	}
+
+	err = h.TpiUsecase.Create(tpi)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

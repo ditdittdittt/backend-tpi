@@ -10,7 +10,10 @@ type Buyer struct {
 	Name        string    `json:"name,omitempty"`
 	Address     string    `json:"address,omitempty"`
 	PhoneNumber string    `json:"phone_number,omitempty"`
-	Status      string    `json:"status,omitempty"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`
 	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	TpiID       int       `json:"tpi_id,omitempty"`
+	Tpi         *Tpi      `json:"tpi,omitempty"`
+
+	Status string `gorm:"-" json:"status,omitempty"`
 }

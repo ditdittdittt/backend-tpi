@@ -55,12 +55,14 @@ func main() {
 
 	// Fisher
 	fisherRepository := mysql.NewFisherRepository(*database.DB)
-	fisherUsecase := usecase.NewFisherUsecase(fisherRepository)
+	fisherTpiRepository := mysql.NewFisherTpiRepository(*database.DB)
+	fisherUsecase := usecase.NewFisherUsecase(fisherRepository, fisherTpiRepository)
 	http.NewFisherHandler(r, fisherUsecase)
 
 	// Buyer
 	buyerRepository := mysql.NewBuyerRepository(*database.DB)
-	buyerUsecase := usecase.NewBuyerUsecase(buyerRepository)
+	buyerTpiRepository := mysql.NewBuyerTpiRepository(*database.DB)
+	buyerUsecase := usecase.NewBuyerUsecase(buyerRepository, buyerTpiRepository)
 	http.NewBuyerHandler(r, buyerUsecase)
 
 	// Fishing gear
@@ -75,12 +77,13 @@ func main() {
 
 	// Caught
 	caughtRepository := mysql.NewCaughtRepository(*database.DB)
-	caughtUsecase := usecase.NewCaughtUsecase(caughtRepository)
+	caughtItemRepository := mysql.NewCaughtItemRepository(*database.DB)
+	caughtUsecase := usecase.NewCaughtUsecase(caughtRepository, caughtItemRepository)
 	http.NewCaughtHandler(r, caughtUsecase)
 
 	// Auction
 	auctionRepository := mysql.NewAuctionRepository(*database.DB)
-	auctionUsecase := usecase.NewAuctionUsecase(auctionRepository, caughtRepository)
+	auctionUsecase := usecase.NewAuctionUsecase(auctionRepository, caughtRepository, caughtItemRepository)
 	http.NewAuctionHandler(r, auctionUsecase)
 
 	// Fishing area
@@ -101,7 +104,7 @@ func main() {
 	// Transaction
 	transactionItemRepository := mysql.NewTransactionItemRepository(*database.DB)
 	transactionRepository := mysql.NewTransactionRepository(*database.DB)
-	transactionUsecase := usecase.NewTransactionUsecase(transactionRepository, auctionRepository, caughtRepository, transactionItemRepository)
+	transactionUsecase := usecase.NewTransactionUsecase(transactionRepository, auctionRepository, caughtRepository, transactionItemRepository, caughtItemRepository)
 	http.NewTransactionHandler(r, transactionUsecase)
 
 	// Report

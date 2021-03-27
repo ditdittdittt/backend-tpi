@@ -18,6 +18,7 @@ type AuctionRepository interface {
 	Update(auction *entities.Auction) error
 	GetPriceTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
 	GetTransactionSpeed(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
+	Index(query map[string]interface{}, date string) ([]entities.Auction, error)
 
 	// Dashboard
 	GetTransactionTotalDashboard(tpiID int, districtID int, queryType string, date string) (float64, error)
@@ -28,6 +29,28 @@ type AuctionRepository interface {
 
 type auctionRepository struct {
 	db gorm.DB
+}
+
+func (a *auctionRepository) Index(query map[string]interface{}, date string) ([]entities.Auction, error) {
+	var result []entities.Auction
+
+	err := a.db.Table("auctions").
+		Joins("INNER JOIN caught_items ON auctions.caught_item_id = caught_items.id").
+		Joins("INNER JOIN caughts ON caughts.id = caught_items.caught_id").
+		Where(query).
+		Where("DATE(auctions.created_at) = DATE(?)", date).
+		Preload("CaughtItem.Caught.Fisher").
+		Preload("CaughtItem.Caught.FishingGear").
+		Preload("CaughtItem.FishType").
+		Preload("CaughtItem.CaughtStatus").
+		Find(&result).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+
 }
 
 func (a *auctionRepository) GetTransactionSpeedGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error) {
@@ -276,10 +299,15 @@ func (a *auctionRepository) Get(query map[string]interface{}, startDate string, 
 }
 
 func (a *auctionRepository) Search(query map[string]interface{}) (auctions []entities.Auction, err error) {
-	err = a.db.Where("caught_id IN (?)", a.db.Table("caughts").Select("id").Where(query)).
-		Preload("Caught").
-		Preload("Caught.Fisher").
-		Preload("Caught.FishType").
+	var (
+		db = a.db.Table("auctions")
+	)
+
+	err = db.Joins("INNER JOIN caught_items ON auctions.caught_item_id = caught_items.id").
+		Joins("INNER JOIN caughts ON caught_items.caught_id = caughts.id").
+		Where(query).
+		Preload("CaughtItem.Caught.Fisher").
+		Preload("CaughtItem.FishType").
 		Find(&auctions).Error
 	if err != nil {
 		return nil, err
@@ -288,7 +316,7 @@ func (a *auctionRepository) Search(query map[string]interface{}) (auctions []ent
 }
 
 func (a *auctionRepository) GetByID(id int) (auction entities.Auction, err error) {
-	err = a.db.Preload("Caught").First(&auction, id).Error
+	err = a.db.Table("auctions").Joins("INNER JOIN caught_items ON auctions.caught_item_id = caught_items.id").First(&auction, id).Error
 	if err != nil {
 		return entities.Auction{}, err
 	}

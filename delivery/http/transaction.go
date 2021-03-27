@@ -8,6 +8,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -40,18 +41,20 @@ func (h *transactionHandler) Create(c *gin.Context) {
 		return
 	}
 
-	curUserID := c.MustGet("userID")
-	curTpiID := c.MustGet("tpiID")
-
-	transaction := &entities.Transaction{
-		UserID:           curUserID.(int),
-		TpiID:            curTpiID.(int),
-		BuyerID:          request.BuyerID,
-		DistributionArea: request.DistributionArea,
-		TotalPrice:       request.TotalPrice,
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
 	}
 
-	err := h.transactionUsecase.Create(transaction, request.AuctionsIDs)
+	transaction := &entities.Transaction{
+		UserID:           userID,
+		TpiID:            tpiID,
+		BuyerID:          request.BuyerID,
+		DistributionArea: request.DistributionArea,
+	}
+
+	err = h.transactionUsecase.Create(transaction, request.AuctionsIDs)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -64,9 +67,13 @@ func (h *transactionHandler) Create(c *gin.Context) {
 }
 
 func (h *transactionHandler) Index(c *gin.Context) {
-	tpiID := c.MustGet("tpiID")
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
-	transactions, err := h.transactionUsecase.Index(tpiID.(int))
+	transactions, err := h.transactionUsecase.Index(tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

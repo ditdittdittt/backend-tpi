@@ -14,7 +14,7 @@ type CaughtRepository interface {
 	Create(caught *entities.Caught) error
 	Update(caught *entities.Caught, data map[string]interface{}) error
 	BulkUpdate(id []int, data map[string]interface{}) error
-	Get(query map[string]interface{}, startDate string, toDate string) (caughts []entities.Caught, err error)
+	Get(query map[string]interface{}, date string) (caughts []entities.Caught, err error)
 	Search(query map[string]interface{}) (caughts []entities.Caught, err error)
 	Delete(id int) error
 	GetWeightTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
@@ -214,8 +214,8 @@ func (c *caughtRepository) Search(query map[string]interface{}) (caughts []entit
 	return caughts, nil
 }
 
-func (c *caughtRepository) Get(query map[string]interface{}, startDate string, toDate string) (caughts []entities.Caught, err error) {
-	err = c.db.Where("created_at BETWEEN ? AND ?", startDate, toDate).
+func (c *caughtRepository) Get(query map[string]interface{}, date string) (caughts []entities.Caught, err error) {
+	err = c.db.Where("created_at BETWEEN ? AND ?", date).
 		Preload("Fisher").
 		Preload("FishType").
 		Preload("FishingGear").
