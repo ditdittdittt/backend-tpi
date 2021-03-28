@@ -16,9 +16,11 @@ type AuctionRepository interface {
 	Get(query map[string]interface{}, startDate string, toDate string) (auctions []entities.Auction, err error)
 	Delete(id int) error
 	Update(auction *entities.Auction) error
-	GetPriceTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
-	GetTransactionSpeed(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
 	Index(query map[string]interface{}, date string) ([]entities.Auction, error)
+
+	// Report
+	GetPriceTotal(fishTypeID int, tpiID int, from string, to string) (float64, error)
+	GetTransactionSpeed(fishTypeID int, tpiID int, from string, to string) (float64, error)
 
 	// Dashboard
 	GetTransactionTotalDashboard(tpiID int, districtID int, queryType string, date string) (float64, error)
@@ -205,7 +207,7 @@ func (a *auctionRepository) GetTransactionTotalDashboard(tpiID int, districtID i
 	return result, nil
 }
 
-func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error) {
+func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, from string, to string) (float64, error) {
 	var result float64
 	query := `SELECT COALESCE(AVG(
 		UNIX_TIMESTAMP(a.created_at)-UNIX_TIMESTAMP(c.created_at)
@@ -216,10 +218,6 @@ func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, distr
 
 	if tpiID != 0 {
 		query = query + " WHERE a.tpi_id = " + strconv.Itoa(tpiID)
-	}
-
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS t ON a.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
 	}
 
 	if fishTypeID != 0 {
@@ -237,7 +235,7 @@ func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, distr
 	return result, nil
 }
 
-func (a *auctionRepository) GetPriceTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error) {
+func (a *auctionRepository) GetPriceTotal(fishTypeID int, tpiID int, from string, to string) (float64, error) {
 	var result float64
 	query := `SELECT COALESCE(
 		SUM(a.price), 0) 
@@ -247,10 +245,6 @@ func (a *auctionRepository) GetPriceTotal(fishTypeID int, tpiID int, districtID 
 
 	if tpiID != 0 {
 		query = query + " WHERE a.tpi_id = " + strconv.Itoa(tpiID)
-	}
-
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS t ON a.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
 	}
 
 	if fishTypeID != 0 {

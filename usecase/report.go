@@ -183,21 +183,61 @@ func (r *reportUsecase) exportExcelProductionReport(header map[string]interface{
 func (r *reportUsecase) productionReport(tpiID int, districtID int, from string, to string) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, districtID, from, to)
+	if districtID != 0 {
+		tpis, err := r.tpiRepository.Get(map[string]interface{}{"district_id": districtID})
+		if err != nil {
+			return data, stacktrace.Propagate(err, "[Get] Tpi repository error")
+		}
+
+		productionTotal := 0.0
+		productionValue := 0.0
+		avgTransactionSpeed := 0.0
+
+		for _, tpi := range tpis {
+			weightTotalPerTpi, err := r.caughtRepository.GetWeightTotal(0, tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+			}
+
+			productionTotal += weightTotalPerTpi
+
+			productionValuePerTpi, err := r.auctionRepository.GetPriceTotal(0, tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+			}
+
+			productionValue += productionValuePerTpi
+
+			averageTransactionSpeedPerTpi, err := r.auctionRepository.GetTransactionSpeed(0, tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+			}
+
+			avgTransactionSpeed += averageTransactionSpeedPerTpi / 3600
+		}
+
+		data["production_total"] = productionTotal
+		data["production_value"] = productionValue
+		data["transaction_speed"] = fmt.Sprintf("%.2f", avgTransactionSpeed/float64(len(tpis)))
+
+		return data, nil
+	}
+
+	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
 	}
 
 	data["production_total"] = weightTotal
 
-	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, districtID, from, to)
+	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
 	}
 
 	data["production_value"] = productionValue
 
-	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, districtID, from, to)
+	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
 	}
@@ -209,24 +249,71 @@ func (r *reportUsecase) productionReport(tpiID int, districtID int, from string,
 
 func (r *reportUsecase) getProductionTable(tpiID int, districtID int, from string, to string) ([]map[string]interface{}, error) {
 	productionTable := make([]map[string]interface{}, 0)
+
 	queryMap := []string{"id", "name", "code"}
 	fishTypes, err := r.fishTypeRepository.GetWithSelectedField(queryMap)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[GetWithSelectedField] Fish type repository error")
 	}
 
+	if districtID != 0 {
+		tpis, err := r.tpiRepository.Get(map[string]interface{}{"district_id": districtID})
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "[Get] Tpi repository error")
+		}
+
+		for _, fishType := range fishTypes {
+			productionTotal := 0.0
+			productionValue := 0.0
+			avgTransactionSpeed := 0.0
+
+			for _, tpi := range tpis {
+				fishWeightTotal, err := r.caughtRepository.GetWeightTotal(fishType.ID, tpi.ID, from, to)
+				if err != nil {
+					return nil, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+				}
+
+				fishProductionValue, err := r.auctionRepository.GetPriceTotal(fishType.ID, tpi.ID, from, to)
+				if err != nil {
+					return nil, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+				}
+
+				fishAverageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(fishType.ID, tpi.ID, from, to)
+				if err != nil {
+					return nil, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+				}
+
+				productionTotal += fishWeightTotal
+				productionValue += fishProductionValue
+				avgTransactionSpeed += fishAverageTransactionSpeed / 3600
+			}
+
+			data := map[string]interface{}{
+				"id":                fishType.ID,
+				"code":              fishType.Code,
+				"name":              fishType.Name,
+				"production_total":  productionTotal,
+				"production_value":  productionValue,
+				"transaction_speed": fmt.Sprintf("%.2f", avgTransactionSpeed/float64(len(tpis))),
+			}
+			productionTable = append(productionTable, data)
+		}
+
+		return productionTable, nil
+	}
+
 	for _, fishType := range fishTypes {
-		fishWeightTotal, err := r.caughtRepository.GetWeightTotal(fishType.ID, tpiID, districtID, from, to)
+		fishWeightTotal, err := r.caughtRepository.GetWeightTotal(fishType.ID, tpiID, from, to)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
 		}
 
-		fishProductionValue, err := r.auctionRepository.GetPriceTotal(fishType.ID, tpiID, districtID, from, to)
+		fishProductionValue, err := r.auctionRepository.GetPriceTotal(fishType.ID, tpiID, from, to)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
 		}
 
-		fishAverageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(fishType.ID, tpiID, districtID, from, to)
+		fishAverageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(fishType.ID, tpiID, from, to)
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
 		}
@@ -316,56 +403,134 @@ func (r *reportUsecase) exportExcelTransactionReport(header map[string]interface
 func (r *reportUsecase) transactionReport(tpiID int, districtID int, from string, to string) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	transactionTotal, err := r.transactionRepository.GetTransactionTotal(tpiID, districtID, from, to)
+	if districtID != 0 {
+		tpis, err := r.tpiRepository.Get(map[string]interface{}{"district_id": districtID})
+		if err != nil {
+			return data, stacktrace.Propagate(err, "[Get] Tpi repository error")
+		}
+
+		transactionTotal := 0
+		productionTotal := 0.0
+		productionValue := 0.0
+		avgTransactionSpeed := 0.0
+		permanentFisher := 0
+		temporaryFisher := 0
+		permanentBuyer := 0
+		temporaryBuyer := 0
+
+		for _, tpi := range tpis {
+			transactionTotalPerTpi, err := r.transactionRepository.GetTransactionTotal(tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetTotalTransaction] Total transaction error")
+			}
+
+			weightTotalPerTpi, err := r.caughtRepository.GetWeightTotal(0, tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+			}
+
+			productionValuePerTpi, err := r.auctionRepository.GetPriceTotal(0, tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+			}
+
+			averageTransactionSpeedPerTpi, err := r.auctionRepository.GetTransactionSpeed(0, tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+			}
+
+			permanentFisherPerTpi, err := r.caughtRepository.GetFisherTotal("Tetap", tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
+			}
+
+			temporaryFisherPerTpi, err := r.caughtRepository.GetFisherTotal("Pendatang", tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
+			}
+
+			permanentBuyerPerTpi, err := r.transactionRepository.GetBuyerTotal("Tetap", tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
+			}
+
+			temporaryBuyerPerTpi, err := r.transactionRepository.GetBuyerTotal("Pendatang", tpi.ID, from, to)
+			if err != nil {
+				return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
+			}
+
+			transactionTotal += transactionTotalPerTpi
+			productionTotal += weightTotalPerTpi
+			productionValue += productionValuePerTpi
+			avgTransactionSpeed += averageTransactionSpeedPerTpi / 3600
+			permanentFisher += permanentFisherPerTpi
+			temporaryFisher += temporaryFisherPerTpi
+			permanentBuyer += permanentBuyerPerTpi
+			temporaryBuyer += temporaryBuyerPerTpi
+		}
+
+		data["transaction_total"] = transactionTotal
+		data["production_total"] = productionTotal
+		data["production_value"] = productionValue
+		data["transaction_speed"] = fmt.Sprintf("%.2f", avgTransactionSpeed/float64(len(tpis)))
+		data["permanent_fisher"] = permanentFisher
+		data["temporary_fisher"] = temporaryFisher
+		data["permanent_buyer"] = permanentBuyer
+		data["temporary_buyer"] = temporaryBuyer
+
+		return data, nil
+	}
+
+	transactionTotal, err := r.transactionRepository.GetTransactionTotal(tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTotalTransaction] Total transaction error")
 	}
 
 	data["transaction_total"] = transactionTotal
 
-	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, districtID, from, to)
+	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
 	}
 
 	data["production_total"] = weightTotal
 
-	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, districtID, from, to)
+	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
 	}
 
 	data["production_value"] = productionValue
 
-	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, districtID, from, to)
+	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
 	}
 
 	data["transaction_speed"] = fmt.Sprintf("%.2f", averageTransactionSpeed/3600)
 
-	permanentFisher, err := r.caughtRepository.GetFisherTotal("Tetap", tpiID, districtID, from, to)
+	permanentFisher, err := r.caughtRepository.GetFisherTotal("Tetap", tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
 	}
 
 	data["permanent_fisher"] = permanentFisher
 
-	temporaryFisher, err := r.caughtRepository.GetFisherTotal("Pendatang", tpiID, districtID, from, to)
+	temporaryFisher, err := r.caughtRepository.GetFisherTotal("Pendatang", tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
 	}
 
 	data["temporary_fisher"] = temporaryFisher
 
-	permanentBuyer, err := r.transactionRepository.GetBuyerTotal("Tetap", tpiID, districtID, from, to)
+	permanentBuyer, err := r.transactionRepository.GetBuyerTotal("Tetap", tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
 	}
 
 	data["permanent_buyer"] = permanentBuyer
 
-	temporaryBuyer, err := r.transactionRepository.GetBuyerTotal("Pendatang", tpiID, districtID, from, to)
+	temporaryBuyer, err := r.transactionRepository.GetBuyerTotal("Pendatang", tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
 	}

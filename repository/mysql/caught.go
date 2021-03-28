@@ -17,8 +17,10 @@ type CaughtRepository interface {
 	Get(query map[string]interface{}, date string) (caughts []entities.Caught, err error)
 	Search(query map[string]interface{}) (caughts []entities.Caught, err error)
 	Delete(id int) error
-	GetWeightTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error)
-	GetFisherTotal(status string, tpiID int, districtID int, from string, to string) (int, error)
+
+	// Report
+	GetWeightTotal(fishTypeID int, tpiID int, from string, to string) (float64, error)
+	GetFisherTotal(status string, tpiID int, from string, to string) (int, error)
 
 	// Dashboard
 	GetFisherTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error)
@@ -138,7 +140,7 @@ func (c *caughtRepository) GetFisherTotalDashboard(tpiID int, districtID int) ([
 	return result, nil
 }
 
-func (c *caughtRepository) GetFisherTotal(status string, tpiID int, districtID int, from string, to string) (int, error) {
+func (c *caughtRepository) GetFisherTotal(status string, tpiID int, from string, to string) (int, error) {
 	var result int
 	query := `SELECT COALESCE(COUNT(DISTINCT c.fisher_id), 0) 
 		FROM caughts AS c
@@ -155,10 +157,6 @@ func (c *caughtRepository) GetFisherTotal(status string, tpiID int, districtID i
 		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS t ON c.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
-	}
-
 	query = query + ` AND c.created_at BETWEEN "%s" AND "%s" AND ci.caught_status_id = 3`
 	query = fmt.Sprintf(query, from, to)
 
@@ -170,7 +168,7 @@ func (c *caughtRepository) GetFisherTotal(status string, tpiID int, districtID i
 	return result, nil
 }
 
-func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, districtID int, from string, to string) (float64, error) {
+func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, from string, to string) (float64, error) {
 	var result float64
 	query := `SELECT COALESCE(	
 				SUM(
@@ -184,10 +182,6 @@ func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, districtID 
 
 	if tpiID != 0 {
 		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
-	}
-
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS t ON c.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
 	}
 
 	if fishTypeID != 0 {

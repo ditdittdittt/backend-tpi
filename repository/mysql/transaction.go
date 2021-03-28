@@ -15,9 +15,11 @@ type TransactionRepository interface {
 	GetByID(id int) (transaction entities.Transaction, err error)
 	Update(transaction *entities.Transaction) error
 	Delete(id int) error
-	GetTransactionTotal(tpiID int, districtID int, from string, to string) (int, error)
-	GetBuyerTotal(status string, tpiID int, districtID int, from string, to string) (int, error)
 	Index(query map[string]interface{}, date string) ([]entities.Transaction, error)
+
+	// Report
+	GetTransactionTotal(tpiID int, from string, to string) (int, error)
+	GetBuyerTotal(status string, tpiID int, from string, to string) (int, error)
 
 	// Dashboard
 	GetBuyerTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error)
@@ -69,7 +71,7 @@ func (t *transactionRepository) GetBuyerTotalDashboard(tpiID int, districtID int
 	return result, nil
 }
 
-func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, districtID int, from string, to string) (int, error) {
+func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, from string, to string) (int, error) {
 	var result int
 	query := `SELECT COALESCE(COUNT(DISTINCT t.buyer_id), 0) 
 		FROM transactions AS t`
@@ -85,10 +87,6 @@ func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, district
 		query = query + " WHERE t.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS tpi ON t.tpi_id = tpi.id WHERE tpi.district_id = " + strconv.Itoa(districtID)
-	}
-
 	query = query + ` AND t.created_at BETWEEN "%s" AND "%s"`
 	query = fmt.Sprintf(query, from, to)
 
@@ -100,17 +98,13 @@ func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, district
 	return result, nil
 }
 
-func (t *transactionRepository) GetTransactionTotal(tpiID int, districtID int, from string, to string) (int, error) {
+func (t *transactionRepository) GetTransactionTotal(tpiID int, from string, to string) (int, error) {
 	var result int
 
 	query := `SELECT COALESCE(COUNT(*), 0) FROM transactions AS t`
 
 	if tpiID != 0 {
 		query = query + " WHERE t.tpi_id = " + strconv.Itoa(tpiID)
-	}
-
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS tpi ON t.tpi_id = tpi.id WHERE tpi.district_id = " + strconv.Itoa(districtID)
 	}
 
 	query = query + ` AND t.created_at BETWEEN "%s" AND "%s"`
