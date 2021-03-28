@@ -72,8 +72,14 @@ func (t *transactionRepository) GetBuyerTotalDashboard(tpiID int, districtID int
 func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, districtID int, from string, to string) (int, error) {
 	var result int
 	query := `SELECT COALESCE(COUNT(DISTINCT t.buyer_id), 0) 
-		FROM transactions AS t 
-		INNER JOIN buyers AS b ON t.buyer_id = b.id`
+		FROM transactions AS t`
+
+	switch status {
+	case "Tetap":
+		query = query + " INNER JOIN buyers AS b ON t.buyer_id = b.id AND b.tpi_id = " + strconv.Itoa(tpiID)
+	case "Pendatang":
+		query = query + " INNER JOIN buyer_tpis AS bt ON t.buyer_id = bt.buyer_id AND bt.tpi_id = " + strconv.Itoa(tpiID)
+	}
 
 	if tpiID != 0 {
 		query = query + " WHERE t.tpi_id = " + strconv.Itoa(tpiID)
@@ -83,10 +89,10 @@ func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, district
 		query = query + " INNER JOIN tpis AS tpi ON t.tpi_id = tpi.id WHERE tpi.district_id = " + strconv.Itoa(districtID)
 	}
 
-	query = query + ` AND t.created_at BETWEEN "%s" AND "%s" AND b.status = "%s"`
-	query = fmt.Sprintf(query, from, to, status)
+	query = query + ` AND t.created_at BETWEEN "%s" AND "%s"`
+	query = fmt.Sprintf(query, from, to)
 
-	err := t.db.Raw(query).Scan(&result).Error
+	err := t.db.Debug().Raw(query).Scan(&result).Error
 	if err != nil {
 		return 0, err
 	}

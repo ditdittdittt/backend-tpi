@@ -211,10 +211,11 @@ func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, distr
 		UNIX_TIMESTAMP(a.created_at)-UNIX_TIMESTAMP(c.created_at)
 	), 0) AS result
 	FROM auctions AS a
-	INNER JOIN caughts AS c ON a.caught_id = c.id`
+	INNER JOIN caught_items AS ci ON a.caught_item_id = ci.id
+	INNER JOIN caughts AS c ON ci.caught_id = c.id`
 
 	if tpiID != 0 {
-		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
+		query = query + " WHERE a.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
 	if districtID != 0 {
@@ -222,10 +223,10 @@ func (a *auctionRepository) GetTransactionSpeed(fishTypeID int, tpiID int, distr
 	}
 
 	if fishTypeID != 0 {
-		query = query + " AND c.fish_type_id = " + strconv.Itoa(fishTypeID)
+		query = query + " AND ci.fish_type_id = " + strconv.Itoa(fishTypeID)
 	}
 
-	query = query + ` AND a.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
+	query = query + ` AND a.created_at BETWEEN "%s" AND "%s" AND ci.caught_status_id = 3`
 	query = fmt.Sprintf(query, from, to)
 
 	err := a.db.Raw(query).Scan(&result).Error
@@ -241,10 +242,11 @@ func (a *auctionRepository) GetPriceTotal(fishTypeID int, tpiID int, districtID 
 	query := `SELECT COALESCE(
 		SUM(a.price), 0) 
 		FROM auctions AS a
-		INNER JOIN caughts AS c ON a.caught_id = c.id`
+		INNER JOIN caught_items AS ci ON a.caught_item_id = ci.id
+		INNER JOIN caughts AS c ON ci.caught_id = c.id`
 
 	if tpiID != 0 {
-		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
+		query = query + " WHERE a.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
 	if districtID != 0 {
@@ -252,10 +254,10 @@ func (a *auctionRepository) GetPriceTotal(fishTypeID int, tpiID int, districtID 
 	}
 
 	if fishTypeID != 0 {
-		query = query + " AND c.fish_type_id = " + strconv.Itoa(fishTypeID)
+		query = query + " AND ci.fish_type_id = " + strconv.Itoa(fishTypeID)
 	}
 
-	query = query + ` AND a.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
+	query = query + ` AND a.created_at BETWEEN "%s" AND "%s" AND ci.caught_status_id = 3`
 	query = fmt.Sprintf(query, from, to)
 
 	err := a.db.Raw(query).Scan(&result).Error

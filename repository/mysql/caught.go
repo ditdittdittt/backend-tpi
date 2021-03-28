@@ -141,8 +141,15 @@ func (c *caughtRepository) GetFisherTotalDashboard(tpiID int, districtID int) ([
 func (c *caughtRepository) GetFisherTotal(status string, tpiID int, districtID int, from string, to string) (int, error) {
 	var result int
 	query := `SELECT COALESCE(COUNT(DISTINCT c.fisher_id), 0) 
-		FROM caughts AS c 
-		INNER JOIN fishers AS f ON c.fisher_id = f.id`
+		FROM caughts AS c
+		INNER JOIN caught_items AS ci ON ci.caught_id = c.id`
+
+	switch status {
+	case "Tetap":
+		query = query + " INNER JOIN fishers AS f ON c.fisher_id = f.id AND f.tpi_id = " + strconv.Itoa(tpiID)
+	case "Pendatang":
+		query = query + " INNER JOIN fisher_tpis AS ft ON c.fisher_id = ft.fisher_id = " + strconv.Itoa(tpiID)
+	}
 
 	if tpiID != 0 {
 		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
@@ -152,10 +159,10 @@ func (c *caughtRepository) GetFisherTotal(status string, tpiID int, districtID i
 		query = query + " INNER JOIN tpis AS t ON c.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
 	}
 
-	query = query + ` AND c.created_at BETWEEN "%s" AND "%s" AND f.status = "%s" AND c.caught_status_id = 3`
-	query = fmt.Sprintf(query, from, to, status)
+	query = query + ` AND c.created_at BETWEEN "%s" AND "%s" AND ci.caught_status_id = 3`
+	query = fmt.Sprintf(query, from, to)
 
-	err := c.db.Raw(query).Scan(&result).Error
+	err := c.db.Debug().Raw(query).Scan(&result).Error
 	if err != nil {
 		return 0, err
 	}
@@ -168,11 +175,12 @@ func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, districtID 
 	query := `SELECT COALESCE(	
 				SUM(
     			CASE
- 				WHEN c.weight_unit = "Ton" THEN c.weight * 1000
- 				WHEN c.weight_unit = "Kwintal" THEN c.weight * 100
-    			WHEN c.weight_unit = "Kg" THEN c.weight * 1
+ 				WHEN ci.weight_unit = "Ton" THEN ci.weight * 1000
+ 				WHEN ci.weight_unit = "Kwintal" THEN ci.weight * 100
+    			WHEN ci.weight_unit = "Kg" THEN ci.weight * 1
  				END), 0) AS total
-			FROM caughts AS c`
+			FROM caught_items AS ci
+			INNER JOIN caughts AS c ON ci.caught_id = c.id`
 
 	if tpiID != 0 {
 		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
@@ -183,10 +191,10 @@ func (c *caughtRepository) GetWeightTotal(fishTypeID int, tpiID int, districtID 
 	}
 
 	if fishTypeID != 0 {
-		query = query + ` AND c.fish_type_id = ` + strconv.Itoa(fishTypeID)
+		query = query + ` AND ci.fish_type_id = ` + strconv.Itoa(fishTypeID)
 	}
 
-	query = query + ` AND c.created_at BETWEEN "%s" AND "%s" AND c.caught_status_id = 3`
+	query = query + ` AND c.created_at BETWEEN "%s" AND "%s" AND ci.caught_status_id = 3`
 	query = fmt.Sprintf(query, from, to)
 
 	err := c.db.Raw(query).Scan(&result).Error
