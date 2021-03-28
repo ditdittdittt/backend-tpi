@@ -70,9 +70,13 @@ func (h *tpiHandler) Create(c *gin.Context) {
 }
 
 func (h *tpiHandler) Index(c *gin.Context) {
-	districtID := c.MustGet("districtID")
+	_, _, districtID, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
-	tpis, err := h.TpiUsecase.Index(districtID.(int))
+	tpis, err := h.TpiUsecase.Index(districtID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

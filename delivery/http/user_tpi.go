@@ -72,8 +72,6 @@ func (h *usertTpiHandler) CreateTpiOfficer(c *gin.Context) {
 		return
 	}
 
-	tpiID := c.MustGet("tpiID")
-
 	tpiUser := &entities.UserTpi{
 		User: entities.User{
 			RoleID:   4,
@@ -82,7 +80,7 @@ func (h *usertTpiHandler) CreateTpiOfficer(c *gin.Context) {
 			Address:  request.Address,
 			Username: request.Username,
 		},
-		TpiID: tpiID.(int),
+		TpiID: request.TpiID,
 	}
 
 	err := h.UserTpiUsecase.CreateTpiAccount(tpiUser)
@@ -108,8 +106,6 @@ func (h *usertTpiHandler) CreateTpiCashier(c *gin.Context) {
 		return
 	}
 
-	tpiID := c.MustGet("tpiID")
-
 	tpiUser := &entities.UserTpi{
 		User: entities.User{
 			RoleID:   5,
@@ -118,7 +114,7 @@ func (h *usertTpiHandler) CreateTpiCashier(c *gin.Context) {
 			Address:  request.Address,
 			Username: request.Username,
 		},
-		TpiID: tpiID.(int),
+		TpiID: request.TpiID,
 	}
 
 	err := h.UserTpiUsecase.CreateTpiAccount(tpiUser)

@@ -22,8 +22,10 @@ type tpiUsecase struct {
 }
 
 func (t *tpiUsecase) Index(districtID int) ([]entities.Tpi, error) {
-	queryMap := map[string]interface{}{
-		"district_id": districtID,
+	queryMap := map[string]interface{}{}
+
+	if districtID != 0 {
+		queryMap["district_id"] = districtID
 	}
 
 	tpis, err := t.tpiRepository.Get(queryMap)

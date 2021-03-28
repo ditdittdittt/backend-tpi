@@ -14,6 +14,7 @@ type CreateTpiAdminRequest struct {
 }
 
 type CreateTpiOfficerRequest struct {
+	TpiID    int    `json:"tpi_id" binding:"required"`
 	Nik      string `json:"nik" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Address  string `json:"address" binding:"required"`
@@ -21,6 +22,7 @@ type CreateTpiOfficerRequest struct {
 }
 
 type CreateTpiCashierRequest struct {
+	TpiID    int    `json:"tpi_id" binding:"required"`
 	Nik      string `json:"nik" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Address  string `json:"address" binding:"required"`
