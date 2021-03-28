@@ -188,6 +188,10 @@ func (u *userUsecase) Login(username string, password string) (token string, err
 		return "", stacktrace.Propagate(err, "[GetByUsername] User repository error")
 	}
 
+	if user.UserStatusID == 2 {
+		return "", stacktrace.NewError("Not active account")
+	}
+
 	if !helper.ComparePassword(user.Password, []byte(password)) {
 		return "", stacktrace.NewError("Password didn't match")
 	}
