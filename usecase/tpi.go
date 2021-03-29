@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -67,7 +69,21 @@ func (t *tpiUsecase) Create(tpi *entities.Tpi) error {
 	tpi.CreatedAt = time.Now()
 	tpi.UpdatedAt = time.Now()
 
-	err := t.tpiRepository.Create(tpi)
+	existingCode, err := t.tpiRepository.GetLatestCode(tpi.DistrictID)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetLatestCode] Tpi repository error")
+	}
+
+	if existingCode != "" {
+		latestID := existingCode[len(existingCode)-2:]
+		intLatestID, _ := strconv.Atoi(latestID)
+		intLatestID++
+		tpi.Code = strconv.Itoa(tpi.DistrictID) + fmt.Sprintf("%02d", intLatestID)
+	} else {
+		tpi.Code = strconv.Itoa(tpi.DistrictID) + "01"
+	}
+
+	err = t.tpiRepository.Create(tpi)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Create] Tpi repository error")
 	}

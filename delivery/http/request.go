@@ -39,7 +39,6 @@ type CreateDistrictAdminRequest struct {
 
 type CreateTpiRequest struct {
 	Name        string `json:"name" binding:"required"`
-	Code        string `json:"code" binding:"required"`
 	Address     string `json:"address"`
 	PhoneNumber string `json:"phone_number"`
 	Pic         string `json:"pic"`

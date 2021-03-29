@@ -51,7 +51,6 @@ func (h *tpiHandler) Create(c *gin.Context) {
 		DistrictID:  districtID,
 		UserID:      userID,
 		Name:        request.Name,
-		Code:        request.Code,
 		Address:     request.Address,
 		PhoneNumber: request.PhoneNumber,
 		Pic:         request.Pic,

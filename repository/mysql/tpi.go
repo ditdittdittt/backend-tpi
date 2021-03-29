@@ -1,6 +1,8 @@
 package mysql
 
 import (
+	"strconv"
+
 	"gorm.io/gorm"
 
 	"github.com/ditdittdittt/backend-tpi/entities"
@@ -12,10 +14,25 @@ type TpiRepository interface {
 	Update(tpi *entities.Tpi) error
 	Delete(id int) error
 	Get(query map[string]interface{}) (tpis []entities.Tpi, err error)
+
+	GetLatestCode(districtID int) (string, error)
 }
 
 type tpiRepository struct {
 	db gorm.DB
+}
+
+func (t *tpiRepository) GetLatestCode(districtID int) (string, error) {
+	var result string
+
+	query := `SELECT code FROM tpis WHERE district_id = ` + strconv.Itoa(districtID) + ` ORDER BY code DESC LIMIT 1`
+
+	err := t.db.Raw(query).Scan(&result).Error
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
 func (t *tpiRepository) Update(tpi *entities.Tpi) error {
