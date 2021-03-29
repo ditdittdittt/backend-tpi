@@ -68,12 +68,28 @@ func (d *dashboardUsecase) GetFisherAndBuyerTotal(tpiID int, districtID int) (ma
 		}
 
 		result := map[string]interface{}{
-			"fisher_total":           permanentFisherTotal + temporaryFisherTotal,
-			"buyer_total":            permanentBuyerTotal + temporaryBuyerTotal,
-			"permanent_fisher_total": permanentFisherTotal,
-			"permanent_buyer_total":  permanentBuyerTotal,
-			"temporary_fisher_total": temporaryFisherTotal,
-			"temporary_buyer_total":  temporaryBuyerTotal,
+			"fisher_total": permanentFisherTotal + temporaryFisherTotal,
+			"buyer_total":  permanentBuyerTotal + temporaryBuyerTotal,
+			"fisher_total_status": []map[string]interface{}{
+				{
+					"status": constant.PermanentStatus,
+					"total":  permanentFisherTotal,
+				},
+				{
+					"status": constant.TemporaryStatus,
+					"total":  temporaryFisherTotal,
+				},
+			},
+			"buyer_total_status": []map[string]interface{}{
+				{
+					"status": constant.PermanentStatus,
+					"total":  permanentBuyerTotal,
+				},
+				{
+					"status": constant.TemporaryStatus,
+					"total":  temporaryBuyerTotal,
+				},
+			},
 		}
 
 		return result, nil
@@ -100,12 +116,28 @@ func (d *dashboardUsecase) GetFisherAndBuyerTotal(tpiID int, districtID int) (ma
 	}
 
 	result := map[string]interface{}{
-		"fisher_total":           permanentFisherTotal + temporaryFisherTotal,
-		"buyer_total":            permanentBuyerTotal + temporaryBuyerTotal,
-		"permanent_fisher_total": permanentFisherTotal,
-		"permanent_buyer_total":  permanentBuyerTotal,
-		"temporary_fisher_total": temporaryFisherTotal,
-		"temporary_buyer_total":  temporaryBuyerTotal,
+		"fisher_total": permanentFisherTotal + temporaryFisherTotal,
+		"buyer_total":  permanentBuyerTotal + temporaryBuyerTotal,
+		"fisher_total_status": []map[string]interface{}{
+			{
+				"status": constant.PermanentStatus,
+				"total":  permanentFisherTotal,
+			},
+			{
+				"status": constant.TemporaryStatus,
+				"total":  temporaryFisherTotal,
+			},
+		},
+		"buyer_total_status": []map[string]interface{}{
+			{
+				"status": constant.PermanentStatus,
+				"total":  permanentBuyerTotal,
+			},
+			{
+				"status": constant.TemporaryStatus,
+				"total":  temporaryBuyerTotal,
+			},
+		},
 	}
 
 	return result, nil
