@@ -27,10 +27,26 @@ type CaughtRepository interface {
 	GetFisherTotalDashboard(tpiID int, status string) (int, error)
 	GetProductionTotalDashboard(tpiID int, queryType string, date string) (float64, error)
 	GetProductionTotalGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error)
+
+	GetLatestCode(date string) (string, error)
 }
 
 type caughtRepository struct {
 	db gorm.DB
+}
+
+func (c *caughtRepository) GetLatestCode(date string) (string, error) {
+	var result string
+
+	query := `SELECT code FROM caughts WHERE DATE(created_at) = DATE("%s") ORDER BY code DESC LIMIT 1`
+	query = fmt.Sprintf(query, date)
+
+	err := c.db.Raw(query).Scan(&result).Error
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
 func (c *caughtRepository) GetProductionTotalGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error) {

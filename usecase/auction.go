@@ -119,7 +119,14 @@ func (a *auctionUsecase) Create(auction *entities.Auction) error {
 	auction.CreatedAt = time.Now()
 	auction.UpdatedAt = time.Now()
 
-	err := a.auctionRepository.Create(auction)
+	caughtItem, err := a.caughtItemRepository.GetByID(auction.CaughtItemID)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] Caught item repository error")
+	}
+
+	auction.Code = caughtItem.Code
+
+	err = a.auctionRepository.Create(auction)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Create] Auction repository error")
 	}

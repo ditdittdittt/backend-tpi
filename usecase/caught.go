@@ -1,6 +1,9 @@
 package usecase
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -110,11 +113,30 @@ func (c *caughtUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int, 
 }
 
 func (c *caughtUsecase) Create(caught *entities.Caught) error {
-
 	caught.CreatedAt = time.Now()
 	caught.UpdatedAt = time.Now()
 
-	err := c.caughtRepository.Create(caught)
+	currentDate := time.Now().Format("2006-01-02")
+
+	existingCode, err := c.caughtRepository.GetLatestCode(currentDate)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetLatestCode] Caught repository error")
+	}
+
+	if existingCode != "" {
+		latestID := existingCode[len(existingCode)-3:]
+		intLatestID, _ := strconv.Atoi(latestID)
+		intLatestID++
+		caught.Code = formatDate(currentDate) + fmt.Sprintf("%03d", intLatestID)
+	} else {
+		caught.Code = formatDate(currentDate) + "001"
+	}
+
+	for index, caughtItem := range caught.CaughtItem {
+		caughtItem.Code = caught.Code + fmt.Sprintf("%02d", index+1)
+	}
+
+	err = c.caughtRepository.Create(caught)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Create] Caught repository error")
 	}
@@ -124,4 +146,9 @@ func (c *caughtUsecase) Create(caught *entities.Caught) error {
 
 func NewCaughtUsecase(caughtRepository mysql.CaughtRepository, caughtItemRepository mysql.CaughtItemRepository) CaughtUsecase {
 	return &caughtUsecase{caughtRepository: caughtRepository, caughtItemRepository: caughtItemRepository}
+}
+
+func formatDate(date string) string {
+	result := strings.ReplaceAll(date, "-", "")
+	return result[2:]
 }

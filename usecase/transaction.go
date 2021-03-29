@@ -1,6 +1,9 @@
 package usecase
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -23,6 +26,7 @@ type transactionUsecase struct {
 	caughtRepository          mysql.CaughtRepository
 	caughtItemRepository      mysql.CaughtItemRepository
 	transactionItemRepository mysql.TransactionItemRepository
+	tpiRepository             mysql.TpiRepository
 }
 
 func (t *transactionUsecase) GetByID(id int) (entities.Transaction, error) {
@@ -94,6 +98,26 @@ func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionID
 	transaction.CreatedAt = time.Now()
 	transaction.UpdatedAt = time.Now()
 
+	currentDate := time.Now().Format("2006-01-02")
+	existingCode, err := t.transactionRepository.GetLatestCode(currentDate)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetLatestCode] Transaction repository error")
+	}
+
+	tpi, err := t.tpiRepository.GetByID(transaction.TpiID)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] TPI repository error")
+	}
+
+	if existingCode != "" {
+		latestID := existingCode[len(existingCode)-3:]
+		intLatestID, _ := strconv.Atoi(latestID)
+		intLatestID++
+		transaction.Code = t.formatCode(currentDate) + tpi.Code + fmt.Sprintf("/%03d", intLatestID)
+	} else {
+		transaction.Code = t.formatCode(currentDate) + tpi.Code + "/001"
+	}
+
 	for _, auctionID := range auctionIDs {
 		transaction.TransactionItem = append(transaction.TransactionItem, &entities.TransactionItem{
 			AuctionID: auctionID,
@@ -106,7 +130,7 @@ func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionID
 		caughtItemsID = append(caughtItemsID, auction.CaughtItemID)
 	}
 
-	err := t.transactionRepository.Create(transaction)
+	err = t.transactionRepository.Create(transaction)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Create] Transaction repository error")
 	}
@@ -129,11 +153,18 @@ func NewTransactionUsecase(
 	caughtRepository mysql.CaughtRepository,
 	transactionItemRepository mysql.TransactionItemRepository,
 	caughtItemRepository mysql.CaughtItemRepository,
+	tpiRepository mysql.TpiRepository,
 ) TransactionUsecase {
 	return &transactionUsecase{
 		transactionRepository:     transactionRepository,
 		auctionRepository:         auctionRepository,
 		caughtRepository:          caughtRepository,
 		transactionItemRepository: transactionItemRepository,
-		caughtItemRepository:      caughtItemRepository}
+		caughtItemRepository:      caughtItemRepository,
+		tpiRepository:             tpiRepository}
+}
+
+func (t *transactionUsecase) formatCode(date string) string {
+	result := strings.ReplaceAll(date, "-", "")
+	return "INV/" + result[2:] + "/"
 }

@@ -10,4 +10,5 @@ type CaughtItem struct {
 	CaughtStatus   *CaughtStatus `json:"caught_status,omitempty"`
 	Weight         float64       `json:"weight"`
 	WeightUnit     string        `json:"weight_unit"`
+	Code           string        `json:"code"`
 }

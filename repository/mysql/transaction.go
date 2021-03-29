@@ -24,10 +24,26 @@ type TransactionRepository interface {
 
 	// Dashboard
 	GetBuyerTotalDashboard(tpiID int, status string) (int, error)
+
+	GetLatestCode(date string) (string, error)
 }
 
 type transactionRepository struct {
 	db gorm.DB
+}
+
+func (t *transactionRepository) GetLatestCode(date string) (string, error) {
+	var result string
+
+	query := `SELECT code FROM transactions WHERE DATE(created_at) = DATE("%s") ORDER BY code DESC LIMIT 1`
+	query = fmt.Sprintf(query, date)
+
+	err := t.db.Raw(query).Scan(&result).Error
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
 func (t *transactionRepository) Index(query map[string]interface{}, date string) ([]entities.Transaction, error) {

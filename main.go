@@ -104,7 +104,7 @@ func main() {
 	// Transaction
 	transactionItemRepository := mysql.NewTransactionItemRepository(*database.DB)
 	transactionRepository := mysql.NewTransactionRepository(*database.DB)
-	transactionUsecase := usecase.NewTransactionUsecase(transactionRepository, auctionRepository, caughtRepository, transactionItemRepository, caughtItemRepository)
+	transactionUsecase := usecase.NewTransactionUsecase(transactionRepository, auctionRepository, caughtRepository, transactionItemRepository, caughtItemRepository, tpiRepository)
 	http.NewTransactionHandler(r, transactionUsecase)
 
 	// Report
