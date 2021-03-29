@@ -6,6 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
 )
 
@@ -23,8 +24,8 @@ type CaughtRepository interface {
 	GetFisherTotal(status string, tpiID int, from string, to string) (int, error)
 
 	// Dashboard
-	GetFisherTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error)
-	GetProductionTotalDashboard(tpiID int, districtID int, queryType string, date string) (float64, error)
+	GetFisherTotalDashboard(tpiID int, status string) (int, error)
+	GetProductionTotalDashboard(tpiID int, queryType string, date string) (float64, error)
 	GetProductionTotalGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error)
 }
 
@@ -35,16 +36,17 @@ type caughtRepository struct {
 func (c *caughtRepository) GetProductionTotalGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error) {
 	var result []map[string]interface{}
 
-	query := ` COALESCE( 
+	query := ` SELECT ft.name AS name, COALESCE( 
        SUM(
            CASE
-          	WHEN c.weight_unit = "Ton" THEN c.weight * 1000
-          	WHEN c.weight_unit = "Kwintal" THEN c.weight * 100
-			WHEN c.weight_unit = "Kg" THEN c.weight * 1
+          	WHEN ci.weight_unit = "Ton" THEN ci.weight * 1000
+          	WHEN ci.weight_unit = "Kwintal" THEN ci.weight * 100
+			WHEN ci.weight_unit = "Kg" THEN ci.weight * 1
     	END), 0) AS total
-		FROM caughts AS c
+		FROM caught_items AS ci
+		INNER JOIN caughts AS c ON ci.caught_id = c.id
 		INNER JOIN tpis AS t ON c.tpi_id = t.id
-		INNER JOIN fish_types AS ft ON c.fish_type_id = ft.id`
+		INNER JOIN fish_types AS ft ON ci.fish_type_id = ft.id`
 
 	if tpiID != 0 {
 		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
@@ -56,13 +58,13 @@ func (c *caughtRepository) GetProductionTotalGraphDashboard(tpiID int, districtI
 
 	switch queryType {
 	case "daily":
-		query = `SELECT ft.name AS name,` + query + ` AND DATE(c.created_at) = DATE("%s") AND c.caught_status_id = 3 GROUP BY (ft.name) ORDER BY total DESC LIMIT 10`
+		query = query + ` AND DATE(c.created_at) = DATE("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY total DESC LIMIT 10`
 		query = fmt.Sprintf(query, date)
 	case "monthly":
-		query = `SELECT DAY(c.created_at) AS date,` + query + ` AND MONTH(c.created_at) = MONTH("%s") AND YEAR(c.created_at) = YEAR("%s") AND c.caught_status_id = 3 GROUP BY (DAY(c.created_at))`
+		query = query + ` AND MONTH(c.created_at) = MONTH("%s") AND YEAR(c.created_at) = YEAR("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY total DESC LIMIT 10`
 		query = fmt.Sprintf(query, date, date)
 	case "yearly":
-		query = `SELECT MONTH(c.created_at) AS month,` + query + ` AND YEAR(c.created_at) = YEAR("%s") AND c.caught_status_id = 3 GROUP BY (MONTH(c.created_at))`
+		query = query + ` AND YEAR(c.created_at) = YEAR("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY total DESC LIMIT 10`
 		query = fmt.Sprintf(query, date)
 	}
 
@@ -74,24 +76,21 @@ func (c *caughtRepository) GetProductionTotalGraphDashboard(tpiID int, districtI
 	return result, nil
 }
 
-func (c *caughtRepository) GetProductionTotalDashboard(tpiID int, districtID int, queryType string, date string) (float64, error) {
+func (c *caughtRepository) GetProductionTotalDashboard(tpiID int, queryType string, date string) (float64, error) {
 	var result float64
 
 	query := `SELECT COALESCE( 
     			SUM(
        				CASE
-     					WHEN c.weight_unit = "Ton" THEN c.weight * 1000
-     					WHEN c.weight_unit = "Kwintal" THEN c.weight * 100
-       					WHEN c.weight_unit = "Kg" THEN c.weight * 1
+     					WHEN ci.weight_unit = "Ton" THEN ci.weight * 1000
+     					WHEN ci.weight_unit = "Kwintal" THEN ci.weight * 100
+       					WHEN ci.weight_unit = "Kg" THEN ci.weight * 1
 				END), 0) AS total
-                FROM caughts AS c`
+                FROM caught_items AS ci
+				INNER JOIN caughts AS c ON ci.caught_id = c.id`
 
 	if tpiID != 0 {
 		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
-	}
-
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS t ON c.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
 	}
 
 	switch queryType {
@@ -106,7 +105,7 @@ func (c *caughtRepository) GetProductionTotalDashboard(tpiID int, districtID int
 		query = fmt.Sprintf(query, date)
 	}
 
-	query = query + " AND c.caught_status_id = 3"
+	query = query + " AND ci.caught_status_id = 3"
 
 	err := c.db.Raw(query).Scan(&result).Error
 	if err != nil {
@@ -116,25 +115,27 @@ func (c *caughtRepository) GetProductionTotalDashboard(tpiID int, districtID int
 	return result, nil
 }
 
-func (c *caughtRepository) GetFisherTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error) {
-	var result []map[string]interface{}
+func (c *caughtRepository) GetFisherTotalDashboard(tpiID int, status string) (int, error) {
+	var result int
 
-	query := `SELECT f.status AS status, COALESCE(COUNT(DISTINCT c.fisher_id), 0) AS total
+	query := `SELECT COALESCE(COUNT(DISTINCT c.fisher_id), 0) AS total
 		FROM caughts AS c
-		INNER JOIN fishers AS f ON c.fisher_id = f.id`
+		INNER JOIN caught_items AS ci ON ci.caught_id = c.id`
+
+	switch status {
+	case constant.PermanentStatus:
+		query = query + " INNER JOIN fishers AS f ON c.fisher_id = f.id AND f.tpi_id = " + strconv.Itoa(tpiID)
+	case constant.TemporaryStatus:
+		query = query + " INNER JOIN fisher_tpis AS ft ON c.fisher_id = ft.fisher_id AND ft.tpi_id = " + strconv.Itoa(tpiID)
+	}
 
 	if tpiID != 0 {
 		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS t ON c.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
-	}
-	query = query + " GROUP BY f.status"
-
 	err := c.db.Raw(query).Scan(&result).Error
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	return result, nil
@@ -147,10 +148,10 @@ func (c *caughtRepository) GetFisherTotal(status string, tpiID int, from string,
 		INNER JOIN caught_items AS ci ON ci.caught_id = c.id`
 
 	switch status {
-	case "Tetap":
+	case constant.PermanentStatus:
 		query = query + " INNER JOIN fishers AS f ON c.fisher_id = f.id AND f.tpi_id = " + strconv.Itoa(tpiID)
-	case "Pendatang":
-		query = query + " INNER JOIN fisher_tpis AS ft ON c.fisher_id = ft.fisher_id = " + strconv.Itoa(tpiID)
+	case constant.TemporaryStatus:
+		query = query + " INNER JOIN fisher_tpis AS ft ON c.fisher_id = ft.fisher_id AND ft.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
 	if tpiID != 0 {
@@ -160,7 +161,7 @@ func (c *caughtRepository) GetFisherTotal(status string, tpiID int, from string,
 	query = query + ` AND c.created_at BETWEEN "%s" AND "%s" AND ci.caught_status_id = 3`
 	query = fmt.Sprintf(query, from, to)
 
-	err := c.db.Debug().Raw(query).Scan(&result).Error
+	err := c.db.Raw(query).Scan(&result).Error
 	if err != nil {
 		return 0, err
 	}

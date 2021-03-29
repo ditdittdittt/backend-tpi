@@ -23,8 +23,8 @@ type AuctionRepository interface {
 	GetTransactionSpeed(fishTypeID int, tpiID int, from string, to string) (float64, error)
 
 	// Dashboard
-	GetTransactionTotalDashboard(tpiID int, districtID int, queryType string, date string) (float64, error)
-	GetTransactionSpeedDashboard(tpiID int, districtID int, queryType string, date string) (float64, error)
+	GetTransactionValueDashboard(tpiID int, queryType string, date string) (float64, error)
+	GetTransactionSpeedDashboard(tpiID int, queryType string, date string) (float64, error)
 	GetTransactionTotalGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error)
 	GetTransactionSpeedGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error)
 }
@@ -58,16 +58,17 @@ func (a *auctionRepository) Index(query map[string]interface{}, date string) ([]
 func (a *auctionRepository) GetTransactionSpeedGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error) {
 	var result []map[string]interface{}
 
-	query := ` COALESCE(AVG(
+	query := `SELECT ft.name AS name, COALESCE(AVG(
 		UNIX_TIMESTAMP(a.created_at)-UNIX_TIMESTAMP(c.created_at)
 	), 0) / 3600 AS speed
 		FROM auctions AS a
-		INNER JOIN caughts AS c ON a.caught_id = c.id
-		INNER JOIN tpis AS t ON c.tpi_id = t.id
-		INNER JOIN fish_types AS ft ON c.fish_type_id = ft.id`
+		INNER JOIN caught_items AS ci ON a.caught_item_id = ci.id
+		INNER JOIN caughts AS c ON ci.caught_id = c.id
+		INNER JOIN tpis AS t ON a.tpi_id = t.id
+		INNER JOIN fish_types AS ft ON ci.fish_type_id = ft.id`
 
 	if tpiID != 0 {
-		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
+		query = query + " WHERE a.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
 	if districtID != 0 {
@@ -76,13 +77,13 @@ func (a *auctionRepository) GetTransactionSpeedGraphDashboard(tpiID int, distric
 
 	switch queryType {
 	case "daily":
-		query = `SELECT ft.name AS name,` + query + ` AND DATE(a.created_at) = DATE("%s") AND c.caught_status_id = 3 GROUP BY (ft.name) ORDER BY speed DESC LIMIT 10`
+		query = query + ` AND DATE(a.created_at) = DATE("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY speed DESC LIMIT 10`
 		query = fmt.Sprintf(query, date)
 	case "monthly":
-		query = `SELECT DAY(a.created_at) AS date,` + query + ` AND MONTH(a.created_at) = MONTH("%s") AND YEAR(a.created_at) = YEAR("%s") AND c.caught_status_id = 3 GROUP BY (DAY(a.created_at))`
+		query = query + ` AND MONTH(a.created_at) = MONTH("%s") AND YEAR(a.created_at) = YEAR("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY speed DESC LIMIT 10`
 		query = fmt.Sprintf(query, date, date)
 	case "yearly":
-		query = `SELECT MONTH(a.created_at) AS month,` + query + ` AND YEAR(a.created_at) = YEAR("%s") AND c.caught_status_id = 3 GROUP BY (MONTH(a.created_at))`
+		query = query + ` AND YEAR(a.created_at) = YEAR("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY speed DESC LIMIT 10`
 		query = fmt.Sprintf(query, date)
 	}
 
@@ -97,15 +98,16 @@ func (a *auctionRepository) GetTransactionSpeedGraphDashboard(tpiID int, distric
 func (a *auctionRepository) GetTransactionTotalGraphDashboard(tpiID int, districtID int, queryType string, date string) ([]map[string]interface{}, error) {
 	var result []map[string]interface{}
 
-	query := ` COALESCE(
+	query := `SELECT ft.name AS name, COALESCE(
 		SUM(a.price), 0) AS total
 		FROM auctions AS a
-		INNER JOIN caughts AS c ON a.caught_id = c.id
-		INNER JOIN tpis AS t ON c.tpi_id = t.id
-		INNER JOIN fish_types AS ft ON c.fish_type_id = ft.id`
+		INNER JOIN caught_items AS ci ON a.caught_item_id = ci.id
+		INNER JOIN caughts AS c ON ci.caught_id = c.id
+		INNER JOIN tpis AS t ON a.tpi_id = t.id
+		INNER JOIN fish_types AS ft ON ci.fish_type_id = ft.id`
 
 	if tpiID != 0 {
-		query = query + " WHERE c.tpi_id = " + strconv.Itoa(tpiID)
+		query = query + " WHERE a.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
 	if districtID != 0 {
@@ -114,13 +116,13 @@ func (a *auctionRepository) GetTransactionTotalGraphDashboard(tpiID int, distric
 
 	switch queryType {
 	case "daily":
-		query = `SELECT ft.name AS name,` + query + ` AND DATE(a.created_at) = DATE("%s") AND c.caught_status_id = 3 GROUP BY (ft.name) ORDER BY total DESC LIMIT 10`
+		query = query + ` AND DATE(a.created_at) = DATE("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY total DESC LIMIT 10`
 		query = fmt.Sprintf(query, date)
 	case "monthly":
-		query = `SELECT DAY(a.created_at) AS date,` + query + ` AND MONTH(a.created_at) = MONTH("%s") AND YEAR(a.created_at) = YEAR("%s") AND c.caught_status_id = 3 GROUP BY (DAY(a.created_at))`
+		query = query + ` AND MONTH(a.created_at) = MONTH("%s") AND YEAR(a.created_at) = YEAR("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY total DESC LIMIT 10`
 		query = fmt.Sprintf(query, date, date)
 	case "yearly":
-		query = `SELECT MONTH(a.created_at) AS month,` + query + ` AND YEAR(a.created_at) = YEAR("%s") AND c.caught_status_id = 3 GROUP BY (MONTH(a.created_at))`
+		query = query + ` AND YEAR(a.created_at) = YEAR("%s") AND ci.caught_status_id = 3 GROUP BY (ft.name) ORDER BY total DESC LIMIT 10`
 		query = fmt.Sprintf(query, date)
 	}
 
@@ -132,20 +134,17 @@ func (a *auctionRepository) GetTransactionTotalGraphDashboard(tpiID int, distric
 	return result, nil
 }
 
-func (a *auctionRepository) GetTransactionSpeedDashboard(tpiID int, districtID int, queryType string, date string) (float64, error) {
+func (a *auctionRepository) GetTransactionSpeedDashboard(tpiID int, queryType string, date string) (float64, error) {
 	var result float64
 	query := `SELECT COALESCE(AVG(
 		UNIX_TIMESTAMP(a.created_at)-UNIX_TIMESTAMP(c.created_at)
 	), 0) AS result
 	FROM auctions AS a
-	INNER JOIN caughts AS c ON a.caught_id = c.id`
+	INNER JOIN caught_items AS ci ON a.caught_item_id = ci.id
+	INNER JOIN caughts AS c ON ci.caught_id = c.id`
 
 	if tpiID != 0 {
 		query = query + " WHERE a.tpi_id = " + strconv.Itoa(tpiID)
-	}
-
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS t ON a.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
 	}
 
 	switch queryType {
@@ -160,7 +159,7 @@ func (a *auctionRepository) GetTransactionSpeedDashboard(tpiID int, districtID i
 		query = fmt.Sprintf(query, date)
 	}
 
-	query = query + " AND c.caught_status_id = 3"
+	query = query + " AND ci.caught_status_id = 3"
 
 	err := a.db.Raw(query).Scan(&result).Error
 	if err != nil {
@@ -170,19 +169,16 @@ func (a *auctionRepository) GetTransactionSpeedDashboard(tpiID int, districtID i
 	return result, nil
 }
 
-func (a *auctionRepository) GetTransactionTotalDashboard(tpiID int, districtID int, queryType string, date string) (float64, error) {
+func (a *auctionRepository) GetTransactionValueDashboard(tpiID int, queryType string, date string) (float64, error) {
 	var result float64
 	query := `SELECT COALESCE(
 		SUM(a.price), 0)
 		FROM auctions AS a
-		INNER JOIN caughts AS c ON a.caught_id = c.id`
+		INNER JOIN caught_items AS ci ON a.caught_item_id = ci.id
+		INNER JOIN caughts AS c ON ci.caught_id = c.id`
 
 	if tpiID != 0 {
 		query = query + " WHERE a.tpi_id = " + strconv.Itoa(tpiID)
-	}
-
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS t ON a.tpi_id = t.id WHERE t.district_id = " + strconv.Itoa(districtID)
 	}
 
 	switch queryType {
@@ -197,7 +193,7 @@ func (a *auctionRepository) GetTransactionTotalDashboard(tpiID int, districtID i
 		query = fmt.Sprintf(query, date)
 	}
 
-	query = query + " AND c.caught_status_id = 3"
+	query = query + " AND ci.caught_status_id = 3"
 
 	err := a.db.Raw(query).Scan(&result).Error
 	if err != nil {

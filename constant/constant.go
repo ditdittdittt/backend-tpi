@@ -66,4 +66,7 @@ const (
 	Pass = "pass"
 
 	ResetPassword = "reset-password"
+
+	PermanentStatus = "Tetap"
+	TemporaryStatus = "Pendatang"
 )

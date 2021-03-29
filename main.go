@@ -112,7 +112,7 @@ func main() {
 	http.NewReportHandler(r, reportUsecase)
 
 	// Dashboard
-	dashboardUsecase := usecase.NewDashboardUsecase(caughtRepository, auctionRepository, transactionRepository)
+	dashboardUsecase := usecase.NewDashboardUsecase(caughtRepository, auctionRepository, transactionRepository, tpiRepository)
 	http.NewDashboardHandler(r, dashboardUsecase)
 
 	r.Run(":9090")

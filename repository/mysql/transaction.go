@@ -6,6 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
 )
 
@@ -22,7 +23,7 @@ type TransactionRepository interface {
 	GetBuyerTotal(status string, tpiID int, from string, to string) (int, error)
 
 	// Dashboard
-	GetBuyerTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error)
+	GetBuyerTotalDashboard(tpiID int, status string) (int, error)
 }
 
 type transactionRepository struct {
@@ -47,25 +48,26 @@ func (t *transactionRepository) Index(query map[string]interface{}, date string)
 	return result, err
 }
 
-func (t *transactionRepository) GetBuyerTotalDashboard(tpiID int, districtID int) ([]map[string]interface{}, error) {
-	var result []map[string]interface{}
+func (t *transactionRepository) GetBuyerTotalDashboard(tpiID int, status string) (int, error) {
+	var result int
 
-	query := `SELECT b.status AS status, COALESCE(COUNT(DISTINCT t.buyer_id), 0) AS total
-		FROM transactions AS t
-		INNER JOIN buyers AS b ON t.buyer_id = b.id`
+	query := `SELECT COALESCE(COUNT(DISTINCT t.buyer_id), 0) AS total
+		FROM transactions AS t`
+
+	switch status {
+	case constant.PermanentStatus:
+		query = query + " INNER JOIN buyers AS b ON t.buyer_id = b.id AND b.tpi_id = " + strconv.Itoa(tpiID)
+	case constant.TemporaryStatus:
+		query = query + " INNER JOIN buyer_tpis AS bt ON t.buyer_id = bt.buyer_id AND bt.tpi_id = " + strconv.Itoa(tpiID)
+	}
 
 	if tpiID != 0 {
 		query = query + " WHERE t.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
-	if districtID != 0 {
-		query = query + " INNER JOIN tpis AS tpi ON t.tpi_id = tpi.id WHERE tpi.district_id = " + strconv.Itoa(districtID)
-	}
-	query = query + " GROUP BY b.status"
-
 	err := t.db.Raw(query).Scan(&result).Error
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	return result, nil
@@ -77,9 +79,9 @@ func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, from str
 		FROM transactions AS t`
 
 	switch status {
-	case "Tetap":
+	case constant.PermanentStatus:
 		query = query + " INNER JOIN buyers AS b ON t.buyer_id = b.id AND b.tpi_id = " + strconv.Itoa(tpiID)
-	case "Pendatang":
+	case constant.TemporaryStatus:
 		query = query + " INNER JOIN buyer_tpis AS bt ON t.buyer_id = bt.buyer_id AND bt.tpi_id = " + strconv.Itoa(tpiID)
 	}
 
@@ -90,7 +92,7 @@ func (t *transactionRepository) GetBuyerTotal(status string, tpiID int, from str
 	query = query + ` AND t.created_at BETWEEN "%s" AND "%s"`
 	query = fmt.Sprintf(query, from, to)
 
-	err := t.db.Debug().Raw(query).Scan(&result).Error
+	err := t.db.Raw(query).Scan(&result).Error
 	if err != nil {
 		return 0, err
 	}
