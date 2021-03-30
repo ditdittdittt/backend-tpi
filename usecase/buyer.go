@@ -176,7 +176,7 @@ func (b *buyerUsecase) Create(buyer *entities.Buyer, tpiID int, status string) e
 	}
 
 	if err == nil {
-		err = helper.InsertLog(existingBuyer.ID, constant.Fisher)
+		err = helper.InsertLog(existingBuyer.ID, constant.Buyer)
 		if err != nil {
 			return err
 		}
