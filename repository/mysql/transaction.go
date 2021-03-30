@@ -137,7 +137,7 @@ func (t *transactionRepository) GetTransactionTotal(tpiID int, from string, to s
 }
 
 func (t *transactionRepository) GetByID(id int) (transaction entities.Transaction, err error) {
-	err = t.db.Preload("TransactionItem").Preload("TransactionItem.Auction").Preload("TransactionItem.Auction.Caught").First(&transaction, id).Error
+	err = t.db.Preload("TransactionItem.Auction.CaughtItem").First(&transaction, id).Error
 	if err != nil {
 		return entities.Transaction{}, err
 	}

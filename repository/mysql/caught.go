@@ -13,7 +13,7 @@ import (
 type CaughtRepository interface {
 	GetByID(id int) (caught entities.Caught, err error)
 	Create(caught *entities.Caught) error
-	Update(caught *entities.Caught, data map[string]interface{}) error
+	Update(id int, data map[string]interface{}) error
 	BulkUpdate(id []int, data map[string]interface{}) error
 	Get(query map[string]interface{}, date string) (caughts []entities.Caught, err error)
 	Search(query map[string]interface{}) (caughts []entities.Caught, err error)
@@ -257,15 +257,19 @@ func (c *caughtRepository) BulkUpdate(id []int, data map[string]interface{}) err
 }
 
 func (c *caughtRepository) GetByID(id int) (caught entities.Caught, err error) {
-	err = c.db.First(&caught, id).Error
+	err = c.db.Preload("User").Preload("Tpi").Preload("Fisher").Preload("FishingGear").
+		Preload("FishingArea").
+		Preload("CaughtItem.FishType").
+		Preload("CaughtItem.CaughtStatus").
+		First(&caught, id).Error
 	if err != nil {
 		return entities.Caught{}, err
 	}
 	return caught, nil
 }
 
-func (c *caughtRepository) Update(caught *entities.Caught, data map[string]interface{}) error {
-	err := c.db.Model(&caught).Updates(data).Error
+func (c *caughtRepository) Update(id int, data map[string]interface{}) error {
+	err := c.db.Model(&entities.Caught{}).Where("id = ? ", id).Updates(data).Error
 	if err != nil {
 		return err
 	}

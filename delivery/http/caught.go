@@ -30,7 +30,7 @@ func NewCaughtHandler(server *gin.Engine, caughtUsecase usecase.CaughtUsecase) {
 	handler := &caughtHandler{CaughtUsecase: caughtUsecase}
 	server.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
 	server.GET("/caught/getbyid/:id", middleware.AuthorizeJWT(constant.GetByIDCaught), handler.GetByID)
-	//server.PUT("/caught/update/:id", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
+	server.PUT("/caught/update/:id", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
 	server.DELETE("/caught/delete/:id", middleware.AuthorizeJWT(constant.DeleteCaught), handler.Delete)
 	server.GET("/caughts", middleware.AuthorizeJWT(constant.Pass), handler.Index)
 	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.InquiryCaught), handler.Inquiry)
@@ -156,48 +156,53 @@ func (h *caughtHandler) GetByID(c *gin.Context) {
 	})
 }
 
-//func (h *caughtHandler) Update(c *gin.Context) {
-//	var request UpdateCaughtRequest
-//	if err := c.ShouldBindJSON(&request); err != nil {
-//		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
-//		return
-//	}
-//
-//	caughtID := c.Param("id")
-//	intCaughtID, err := strconv.Atoi(caughtID)
-//	if err != nil {
-//		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
-//		return
-//	}
-//
-//	curUserID := c.MustGet("userID")
-//	curTpiID := c.MustGet("tpiID")
-//
-//	caught := &entities.Caught{
-//		ID:            intCaughtID,
-//		UserID:        curUserID.(int),
-//		TpiID:         curTpiID.(int),
-//		FisherID:      request.FisherID,
-//		FishingGearID: request.FishingGearID,
-//		FishingAreaID: request.FishingAreaID,
-//		TripDay:       request.TripDay,
-//	}
-//
-//	caught.FishTypeID = request.FishTypeID
-//	caught.Weight = request.Weight
-//	caught.WeightUnit = request.WeightUnit
-//
-//	err = h.CaughtUsecase.Update(caught)
-//	if err != nil {
-//		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
-//		return
-//	}
-//
-//	c.JSON(http.StatusOK, Response{
-//		ResponseCode: constant.SuccessResponseCode,
-//		ResponseDesc: constant.Success,
-//	})
-//}
+func (h *caughtHandler) Update(c *gin.Context) {
+	var request UpdateCaughtRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	caughtID := c.Param("id")
+	intCaughtID, err := strconv.Atoi(caughtID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	caught := &entities.CaughtItem{
+		ID:       intCaughtID,
+		CaughtID: request.CaughtID,
+		Caught: &entities.Caught{
+			UserID:        userID,
+			TpiID:         tpiID,
+			FisherID:      request.FisherID,
+			FishingGearID: request.FishingGearID,
+			FishingAreaID: request.FishingAreaID,
+			TripDay:       request.TripDay,
+		},
+		FishTypeID: request.FishTypeID,
+		Weight:     request.Weight,
+		WeightUnit: request.WeightUnit,
+	}
+
+	err = h.CaughtUsecase.Update(caught)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		ResponseCode: constant.SuccessResponseCode,
+		ResponseDesc: constant.Success,
+	})
+}
 
 func (h *caughtHandler) Delete(c *gin.Context) {
 	caughtID := c.Param("id")

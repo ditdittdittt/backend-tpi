@@ -30,6 +30,7 @@ func Migrate() {
 		&entities.UserStatus{},
 		&entities.UserSuperadmin{},
 		&entities.UserTpi{},
+		&entities.Log{},
 	)
 
 	if err != nil {

@@ -12,7 +12,10 @@ import (
 	"github.com/palantir/stacktrace"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
+	"github.com/ditdittdittt/backend-tpi/database"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 func ValidatePermission(permissionList []*entities.Permission, permissionNeeded string) bool {
@@ -103,4 +106,37 @@ func GetCurrentUserID(c *gin.Context) (int, int, int, error) {
 	}
 
 	return userID, tpiID, districtID, nil
+}
+
+func InsertLog(refID int, entityName string) error {
+	var payload interface{}
+	logRepository := mysql.NewLogRepository(*database.DB)
+
+	switch entityName {
+	case constant.User:
+		userRepository := mysql.NewUserRepository(*database.DB)
+		payload, _ = userRepository.GetByID(refID)
+	case constant.Caught:
+		caughtRepository := mysql.NewCaughtRepository(*database.DB)
+		payload, _ = caughtRepository.GetByID(refID)
+	}
+
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	archiveLog := &entities.Log{
+		ReferenceID: refID,
+		Entity:      entityName,
+		Payload:     string(b),
+		CreatedAt:   time.Now(),
+	}
+
+	err = logRepository.Create(archiveLog)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

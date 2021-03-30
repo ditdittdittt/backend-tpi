@@ -5,6 +5,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
@@ -90,9 +91,15 @@ func (u *userUsecase) GetByID(id int) (entities.User, error) {
 }
 
 func (u *userUsecase) Update(user *entities.User) error {
+	// insert log
+	err := helper.InsertLog(user.ID, constant.User)
+	if err != nil {
+		return err
+	}
+
 	user.UpdatedAt = time.Now()
 
-	err := u.userRepository.Update(user)
+	err = u.userRepository.Update(user)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] User repository error")
 	}

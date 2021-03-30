@@ -1,6 +1,6 @@
 package entities
 
 type UserStatus struct {
-	ID		int
-	Status	string
+	ID     int    `json:"id"`
+	Status string `json:"status"`
 }

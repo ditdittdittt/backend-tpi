@@ -69,4 +69,9 @@ const (
 
 	PermanentStatus = "Tetap"
 	TemporaryStatus = "Pendatang"
+
+	User        = "user"
+	Caught      = "caught"
+	Auction     = "auction"
+	Transaction = "transactions"
 )

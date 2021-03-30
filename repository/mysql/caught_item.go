@@ -12,10 +12,20 @@ type CaughtItemRepository interface {
 	Search(query map[string]interface{}) ([]entities.CaughtItem, error)
 	BulkUpdate(ids []int, data map[string]interface{}) error
 	Index(query map[string]interface{}, date string) ([]entities.CaughtItem, error)
+	Delete(id int) error
 }
 
 type caughtItemRepository struct {
 	db gorm.DB
+}
+
+func (c *caughtItemRepository) Delete(id int) error {
+	err := c.db.Delete(&entities.CaughtItem{}, id).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *caughtItemRepository) Index(query map[string]interface{}, date string) ([]entities.CaughtItem, error) {
@@ -68,7 +78,7 @@ func (c *caughtItemRepository) Search(query map[string]interface{}) ([]entities.
 func (c *caughtItemRepository) GetByID(id int) (entities.CaughtItem, error) {
 	var caughtItem entities.CaughtItem
 
-	err := c.db.Find(&caughtItem, id).Error
+	err := c.db.Preload("Caught").Preload("FishType").Find(&caughtItem, id).Error
 	if err != nil {
 		return entities.CaughtItem{}, err
 	}

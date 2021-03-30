@@ -122,13 +122,16 @@ func (h *transactionHandler) Update(c *gin.Context) {
 		return
 	}
 
-	curUserID := c.MustGet("userID")
-	curTpiID := c.MustGet("tpiID")
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
 	transaction := &entities.Transaction{
 		ID:               intTransactionID,
-		UserID:           curUserID.(int),
-		TpiID:            curTpiID.(int),
+		UserID:           userID,
+		TpiID:            tpiID,
 		BuyerID:          request.BuyerID,
 		DistributionArea: request.DistributionArea,
 	}

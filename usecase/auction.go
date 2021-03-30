@@ -5,7 +5,9 @@ import (
 
 	"github.com/palantir/stacktrace"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
@@ -25,7 +27,13 @@ type auctionUsecase struct {
 }
 
 func (a *auctionUsecase) Update(auction *entities.Auction) error {
-	err := a.auctionRepository.Update(auction)
+	// insert log
+	err := helper.InsertLog(auction.ID, constant.Auction)
+	if err != nil {
+		return err
+	}
+
+	err = a.auctionRepository.Update(auction)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] Auction repository error")
 	}
@@ -34,24 +42,24 @@ func (a *auctionUsecase) Update(auction *entities.Auction) error {
 }
 
 func (a *auctionUsecase) Delete(id int) error {
-	//auction, err := a.auctionRepository.GetByID(id)
-	//if err != nil {
-	//	return stacktrace.Propagate(err, "[GetByID] Auction repository error for auction id %d", id)
-	//}
-	//
-	//data := map[string]interface{}{
-	//	"caught_status_id": 1,
-	//}
-	//
-	//err = a.caughtRepository.Update(auction.Caught, data)
-	//if err != nil {
-	//	return stacktrace.Propagate(err, "[Update] Caught repository error for caught id")
-	//}
-	//
-	//err = a.auctionRepository.Delete(id)
-	//if err != nil {
-	//	return stacktrace.Propagate(err, "[Delete] Auction repository error")
-	//}
+	auction, err := a.auctionRepository.GetByID(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] Auction repository error for auction id %d", id)
+	}
+
+	data := map[string]interface{}{
+		"caught_status_id": 1,
+	}
+
+	err = a.caughtItemRepository.Update(auction.CaughtItemID, data)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Caught repository error for caught id")
+	}
+
+	err = a.auctionRepository.Delete(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Delete] Auction repository error")
+	}
 
 	return nil
 }

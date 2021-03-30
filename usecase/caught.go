@@ -8,7 +8,9 @@ import (
 
 	"github.com/palantir/stacktrace"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
@@ -16,9 +18,9 @@ type CaughtUsecase interface {
 	Create(caught *entities.Caught) error
 	Index(fisherID int, fishTypeID int, caughtStatusID int, tpiID int) ([]entities.CaughtItem, error)
 	Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.CaughtItem, error)
-	GetByID(id int) (entities.Caught, error)
+	GetByID(id int) (entities.CaughtItem, error)
 	Delete(id int) error
-	//Update(caught *entities.Caught) error
+	Update(caught *entities.CaughtItem) error
 }
 
 type caughtUsecase struct {
@@ -26,38 +28,73 @@ type caughtUsecase struct {
 	caughtItemRepository mysql.CaughtItemRepository
 }
 
-//func (c *caughtUsecase) Update(caught *entities.Caught) error {
-//	data := map[string]interface{}{
-//		"fisher_id":       caught.FisherID,
-//		"fishing_gear_id": caught.FishingGearID,
-//		"fishing_area_id": caught.FishingAreaID,
-//		"trip_day":        caught.TripDay,
-//		"fish_type_id":    caught.FishTypeID,
-//		"weight":          caught.Weight,
-//		"weight_unit":     caught.WeightUnit,
-//	}
-//
-//	err := c.caughtRepository.Update(caught, data)
-//	if err != nil {
-//		return stacktrace.Propagate(err, "[Update] Caught repository error")
-//	}
-//
-//	return nil
-//}
-
-func (c *caughtUsecase) Delete(id int) error {
-	err := c.caughtRepository.Delete(id)
+func (c *caughtUsecase) Update(caught *entities.CaughtItem) error {
+	// insert log
+	err := helper.InsertLog(caught.CaughtID, constant.Caught)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Delete] Caught repository error")
+		return err
+	}
+
+	updateDateCaughtItem := map[string]interface{}{
+		"fish_type_id": caught.FishTypeID,
+		"weight":       caught.Weight,
+		"weight_unit":  caught.WeightUnit,
+	}
+
+	updateDateCaught := map[string]interface{}{
+		"user_id":         caught.Caught.UserID,
+		"tpi_id":          caught.Caught.TpiID,
+		"fisher_id":       caught.Caught.FisherID,
+		"fishing_gear_id": caught.Caught.FishingGearID,
+		"fishing_area_id": caught.Caught.FishingAreaID,
+		"trip_day":        caught.Caught.TripDay,
+	}
+
+	err = c.caughtRepository.Update(caught.CaughtID, updateDateCaught)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Caught repository error")
+	}
+
+	err = c.caughtItemRepository.Update(caught.ID, updateDateCaughtItem)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Caught item repository error")
 	}
 
 	return nil
 }
 
-func (c *caughtUsecase) GetByID(id int) (entities.Caught, error) {
-	caught, err := c.caughtRepository.GetByID(id)
+func (c *caughtUsecase) Delete(id int) error {
+	caughtItem, err := c.caughtItemRepository.GetByID(id)
 	if err != nil {
-		return entities.Caught{}, stacktrace.Propagate(err, "[GetByID] Caught repository error")
+		return stacktrace.Propagate(err, "[GetByID] Caught item repository error")
+	}
+
+	caughtID := caughtItem.CaughtID
+
+	err = c.caughtItemRepository.Delete(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Delete] Caught item repository error")
+	}
+
+	caught, err := c.caughtRepository.GetByID(caughtID)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] Caught repository error")
+	}
+
+	if len(caught.CaughtItem) == 0 {
+		err = c.caughtRepository.Delete(caughtID)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Delete] Caught repository error")
+		}
+	}
+
+	return nil
+}
+
+func (c *caughtUsecase) GetByID(id int) (entities.CaughtItem, error) {
+	caught, err := c.caughtItemRepository.GetByID(id)
+	if err != nil {
+		return entities.CaughtItem{}, stacktrace.Propagate(err, "[GetByID] Caught item repository error")
 	}
 
 	return caught, nil

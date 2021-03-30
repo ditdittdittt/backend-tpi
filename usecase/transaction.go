@@ -8,7 +8,9 @@ import (
 
 	"github.com/palantir/stacktrace"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
@@ -39,7 +41,13 @@ func (t *transactionUsecase) GetByID(id int) (entities.Transaction, error) {
 }
 
 func (t *transactionUsecase) Update(transaction *entities.Transaction) error {
-	err := t.transactionRepository.Update(transaction)
+	// insert log
+	err := helper.InsertLog(transaction.ID, constant.Transaction)
+	if err != nil {
+		return err
+	}
+
+	err = t.transactionRepository.Update(transaction)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] Transaction repository error")
 	}
@@ -48,31 +56,31 @@ func (t *transactionUsecase) Update(transaction *entities.Transaction) error {
 }
 
 func (t *transactionUsecase) Delete(id int) error {
-	//transaction, err := t.transactionRepository.GetByID(id)
-	//if err != nil {
-	//	return stacktrace.Propagate(err, "[GetByID] Transaction repository error")
-	//}
-	//
-	//data := map[string]interface{}{
-	//	"caught_status_id": 2,
-	//}
-	//
-	//for _, transactionItem := range transaction.TransactionItem {
-	//	err := t.caughtRepository.Update(transactionItem.Auction.Caught, data)
-	//	if err != nil {
-	//		return stacktrace.Propagate(err, "[Update] Transaction repository error")
-	//	}
-	//
-	//	err = t.transactionItemRepository.Delete(transactionItem.ID)
-	//	if err != nil {
-	//		return stacktrace.Propagate(err, "[Delete] Transaction item repository error")
-	//	}
-	//}
-	//
-	//err = t.transactionRepository.Delete(id)
-	//if err != nil {
-	//	return stacktrace.Propagate(err, "[Delete] Transaction repository error")
-	//}
+	transaction, err := t.transactionRepository.GetByID(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetByID] Transaction repository error")
+	}
+
+	data := map[string]interface{}{
+		"caught_status_id": 2,
+	}
+
+	for _, transactionItem := range transaction.TransactionItem {
+		err := t.caughtItemRepository.Update(transactionItem.Auction.CaughtItemID, data)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Update] Transaction repository error")
+		}
+
+		err = t.transactionItemRepository.Delete(transactionItem.ID)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Delete] Transaction item repository error")
+		}
+	}
+
+	err = t.transactionRepository.Delete(id)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Delete] Transaction repository error")
+	}
 
 	return nil
 }

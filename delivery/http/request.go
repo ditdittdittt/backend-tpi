@@ -163,6 +163,7 @@ type UpdateCaughtRequest struct {
 	FishTypeID    int     `json:"fish_type_id"`
 	Weight        float64 `json:"weight"`
 	WeightUnit    string  `json:"weight_unit"`
+	CaughtID      int     `json:"caught_id"`
 }
 
 type UpdateTransactionRequest struct {
