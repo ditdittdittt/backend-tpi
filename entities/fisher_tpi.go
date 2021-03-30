@@ -1,9 +1,9 @@
 package entities
 
 type FisherTpi struct {
-	ID       int     `json:"id"`
-	FisherID int     `json:"fisher_id"`
-	Fisher   *Fisher `json:"fisher"`
-	TpiID    int     `json:"tpi_id"`
-	Tpi      *Tpi    `json:"tpi"`
+	ID       int     `json:"id,omitempty"`
+	FisherID int     `json:"fisher_id,omitempty"`
+	Fisher   *Fisher `json:"fisher,omitempty"`
+	TpiID    int     `json:"tpi_id,omitempty"`
+	Tpi      *Tpi    `json:"tpi,omitempty"`
 }

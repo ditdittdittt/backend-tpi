@@ -1,9 +1,9 @@
 package entities
 
 type BuyerTpi struct {
-	ID      int    `json:"id"`
-	BuyerID int    `json:"buyer_id"`
-	Buyer   *Buyer `json:"buyer"`
-	TpiID   int    `json:"tpi_id"`
-	Tpi     *Tpi   `json:"tpi"`
+	ID      int    `json:"id,omitempty"`
+	BuyerID int    `json:"buyer_id,omitempty"`
+	Buyer   *Buyer `json:"buyer,omitempty"`
+	TpiID   int    `json:"tpi_id,omitempty"`
+	Tpi     *Tpi   `json:"tpi,omitempty"`
 }
