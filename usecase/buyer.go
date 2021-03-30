@@ -121,7 +121,7 @@ func (b *buyerUsecase) Index(tpiID int) (buyers []entities.Buyer, err error) {
 		return nil, stacktrace.Propagate(err, "[Index] Buyer repository error")
 	}
 	for _, buyer := range buyers {
-		buyer.Status = "Tetap"
+		buyer.Status = constant.PermanentStatus
 		result = append(result, buyer)
 	}
 
@@ -130,7 +130,7 @@ func (b *buyerUsecase) Index(tpiID int) (buyers []entities.Buyer, err error) {
 		return nil, stacktrace.Propagate(err, "[Index] Buyer tpi repository error")
 	}
 	for _, buyerTpi := range buyerTpis {
-		buyerTpi.Buyer.Status = "Pendatang"
+		buyerTpi.Buyer.Status = constant.TemporaryStatus
 		result = append(result, *buyerTpi.Buyer)
 	}
 
@@ -138,45 +138,110 @@ func (b *buyerUsecase) Index(tpiID int) (buyers []entities.Buyer, err error) {
 }
 
 func (b *buyerUsecase) Create(buyer *entities.Buyer, tpiID int, status string) error {
-
 	buyer.CreatedAt = time.Now()
 	buyer.UpdatedAt = time.Now()
 
-	switch status {
-	case "Tetap":
-		buyer.TpiID = tpiID
+	existingBuyer, err := b.buyerRepository.Get(map[string]interface{}{"nik": buyer.Nik})
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return stacktrace.Propagate(err, "[Get] Buyer repository error")
+	}
 
-		err := b.buyerRepository.Create(buyer)
-		if err != nil {
-			return stacktrace.Propagate(err, "[Create] Buyer repository error")
-		}
+	if err == gorm.ErrRecordNotFound {
+		switch status {
+		case constant.PermanentStatus:
+			buyer.TpiID = tpiID
+			err := b.buyerRepository.Create(buyer)
+			if err != nil {
+				return stacktrace.Propagate(err, "[Create] Buyer repository err")
+			}
 
-	case "Pendatang":
-		existedBuyer, err := b.buyerRepository.Get(map[string]interface{}{"nik": buyer.Nik})
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				err = b.buyerRepository.Create(buyer)
-				if err != nil {
-					return stacktrace.Propagate(err, "[Create] Buyer repository error")
-				}
-			} else {
-				return stacktrace.Propagate(err, "[Get] Buyer repository error")
+		case constant.TemporaryStatus:
+			err = b.buyerRepository.Create(buyer)
+			if err != nil {
+				return stacktrace.Propagate(err, "[Create] Buyer repository err")
+			}
+
+			buyerTpi := &entities.BuyerTpi{
+				BuyerID: buyer.ID,
+				TpiID:   tpiID,
+			}
+
+			err = b.buyerTpiRepository.Create(buyerTpi)
+			if err != nil {
+				return stacktrace.Propagate(err, "[Create] Buyer tpi repository")
 			}
 		}
 
-		if existedBuyer.Nik == buyer.Nik {
-			buyer.ID = existedBuyer.ID
-		}
+		return nil
+	}
 
-		buyerTpi := &entities.BuyerTpi{
-			BuyerID: buyer.ID,
-			TpiID:   tpiID,
-		}
-
-		err = b.buyerTpiRepository.Create(buyerTpi)
+	if err == nil {
+		err = helper.InsertLog(existingBuyer.ID, constant.Fisher)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Create] Buyer tpi repository error")
+			return err
 		}
+
+		updateData := map[string]interface{}{
+			"user_id":      buyer.User,
+			"nik":          buyer.Nik,
+			"name":         buyer.Name,
+			"address":      buyer.Address,
+			"phone_number": buyer.PhoneNumber,
+		}
+
+		switch status {
+		case constant.PermanentStatus:
+			if existingBuyer.TpiID == tpiID {
+				err = b.buyerRepository.Update(existingBuyer.ID, updateData)
+				if err != nil {
+					return err
+				}
+			}
+
+			if existingBuyer.TpiID != tpiID {
+				updateData["tpi_id"] = tpiID
+
+				err = b.buyerRepository.Update(existingBuyer.ID, updateData)
+				if err != nil {
+					return err
+				}
+
+				err = b.buyerTpiRepository.Delete(map[string]interface{}{"fisher_id": existingBuyer.ID, "tpi_id": tpiID})
+				if err != nil {
+					return err
+				}
+			}
+		case constant.TemporaryStatus:
+			if existingBuyer.TpiID == tpiID {
+				updateData["tpi_id"] = nil
+				err = b.buyerRepository.Update(existingBuyer.ID, updateData)
+				if err != nil {
+					return err
+				}
+
+				buyerTpi := &entities.BuyerTpi{
+					BuyerID: existingBuyer.ID,
+					TpiID:   tpiID,
+				}
+				err = b.buyerTpiRepository.Create(buyerTpi)
+				if err != nil {
+					return err
+				}
+			}
+
+			if existingBuyer.TpiID != tpiID {
+				buyerTpi := &entities.BuyerTpi{
+					BuyerID: existingBuyer.ID,
+					TpiID:   tpiID,
+				}
+				err = b.buyerTpiRepository.Create(buyerTpi)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
 	}
 
 	return nil

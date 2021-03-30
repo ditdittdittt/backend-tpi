@@ -124,7 +124,7 @@ func (f *fisherUsecase) Index(tpiID int) (fishers []entities.Fisher, err error) 
 		return nil, stacktrace.Propagate(err, "[Index] Fisher repository error")
 	}
 	for _, fisher := range fishers {
-		fisher.Status = "Tetap"
+		fisher.Status = constant.PermanentStatus
 		result = append(result, fisher)
 	}
 
@@ -133,7 +133,7 @@ func (f *fisherUsecase) Index(tpiID int) (fishers []entities.Fisher, err error) 
 		return nil, stacktrace.Propagate(err, "[Index] Fisher tpi repository error")
 	}
 	for _, fisherTpi := range fisherTpis {
-		fisherTpi.Fisher.Status = "Pendatang"
+		fisherTpi.Fisher.Status = constant.TemporaryStatus
 		result = append(result, *fisherTpi.Fisher)
 	}
 
@@ -144,41 +144,110 @@ func (f *fisherUsecase) Create(fisher *entities.Fisher, tpiID int, status string
 	fisher.CreatedAt = time.Now()
 	fisher.UpdatedAt = time.Now()
 
-	switch status {
-	case "Tetap":
-		fisher.TpiID = tpiID
+	existingFisher, err := f.fisherRepository.Get(map[string]interface{}{"nik": fisher.Nik})
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return stacktrace.Propagate(err, "[Get] Fisher repository error")
+	}
 
-		err := f.fisherRepository.Create(fisher)
-		if err != nil {
-			return stacktrace.Propagate(err, "[Create] Fisher repository err")
-		}
+	if err == gorm.ErrRecordNotFound {
+		switch status {
+		case constant.PermanentStatus:
+			fisher.TpiID = tpiID
+			err := f.fisherRepository.Create(fisher)
+			if err != nil {
+				return stacktrace.Propagate(err, "[Create] Fisher repository err")
+			}
 
-	case "Pendatang":
-		existedFisher, err := f.fisherRepository.Get(map[string]interface{}{"nik": fisher.Nik})
-		if err != nil {
-			if err == gorm.ErrRecordNotFound {
-				err = f.fisherRepository.Create(fisher)
-				if err != nil {
-					return stacktrace.Propagate(err, "[Create] Fisher repository err")
-				}
-			} else {
-				return stacktrace.Propagate(err, "[Get] Fisher repository error")
+		case constant.TemporaryStatus:
+			err = f.fisherRepository.Create(fisher)
+			if err != nil {
+				return stacktrace.Propagate(err, "[Create] Fisher repository err")
+			}
+
+			fisherTpi := &entities.FisherTpi{
+				FisherID: fisher.ID,
+				TpiID:    tpiID,
+			}
+
+			err = f.fisherTpiRepository.Create(fisherTpi)
+			if err != nil {
+				return stacktrace.Propagate(err, "[Create] Fisher tpi repository")
 			}
 		}
 
-		if existedFisher.Nik == fisher.Nik {
-			fisher.ID = existedFisher.ID
-		}
+		return nil
+	}
 
-		fisherTpi := &entities.FisherTpi{
-			FisherID: fisher.ID,
-			TpiID:    tpiID,
-		}
-
-		err = f.fisherTpiRepository.Create(fisherTpi)
+	if err == nil {
+		err = helper.InsertLog(existingFisher.ID, constant.Fisher)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Create] Fisher tpi repository")
+			return err
 		}
+
+		updateData := map[string]interface{}{
+			"user_id":      fisher.User,
+			"nik":          fisher.Nik,
+			"name":         fisher.Name,
+			"nick_name":    fisher.NickName,
+			"address":      fisher.Address,
+			"ship_type":    fisher.ShipType,
+			"abk_total":    fisher.AbkTotal,
+			"phone_number": fisher.PhoneNumber,
+		}
+
+		switch status {
+		case constant.PermanentStatus:
+			if existingFisher.TpiID == tpiID {
+				err = f.fisherRepository.Update(existingFisher.ID, updateData)
+				if err != nil {
+					return err
+				}
+			}
+
+			if existingFisher.TpiID != tpiID {
+				updateData["tpi_id"] = tpiID
+
+				err = f.fisherRepository.Update(existingFisher.ID, updateData)
+				if err != nil {
+					return err
+				}
+
+				err = f.fisherTpiRepository.Delete(map[string]interface{}{"fisher_id": existingFisher.ID, "tpi_id": tpiID})
+				if err != nil {
+					return err
+				}
+			}
+		case constant.TemporaryStatus:
+			if existingFisher.TpiID == tpiID {
+				updateData["tpi_id"] = nil
+				err = f.fisherRepository.Update(existingFisher.ID, updateData)
+				if err != nil {
+					return err
+				}
+
+				fisherTpi := &entities.FisherTpi{
+					FisherID: existingFisher.ID,
+					TpiID:    tpiID,
+				}
+				err = f.fisherTpiRepository.Create(fisherTpi)
+				if err != nil {
+					return err
+				}
+			}
+
+			if existingFisher.TpiID != tpiID {
+				fisherTpi := &entities.FisherTpi{
+					FisherID: existingFisher.ID,
+					TpiID:    tpiID,
+				}
+				err = f.fisherTpiRepository.Create(fisherTpi)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
 	}
 
 	return nil
