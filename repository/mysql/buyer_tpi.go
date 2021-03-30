@@ -9,10 +9,32 @@ import (
 type BuyerTpiRepository interface {
 	Create(buyerTpi *entities.BuyerTpi) error
 	Index(query map[string]interface{}) ([]entities.BuyerTpi, error)
+	Get(query map[string]interface{}) (entities.BuyerTpi, error)
+	Delete(query map[string]interface{}) error
 }
 
 type buyerTpiRepository struct {
 	db gorm.DB
+}
+
+func (b *buyerTpiRepository) Get(query map[string]interface{}) (entities.BuyerTpi, error) {
+	var result entities.BuyerTpi
+
+	err := b.db.Where(query).Preload("Buyer").First(&result).Error
+	if err != nil {
+		return entities.BuyerTpi{}, err
+	}
+
+	return result, nil
+}
+
+func (b *buyerTpiRepository) Delete(query map[string]interface{}) error {
+	err := b.db.Where(query).Delete(&entities.BuyerTpi{}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (b *buyerTpiRepository) Create(buyerTpi *entities.BuyerTpi) error {

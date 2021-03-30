@@ -10,7 +10,7 @@ type BuyerRepository interface {
 	Create(buyer *entities.Buyer) error
 	GetWithSelectedField(selectedField []string) (buyers []entities.Buyer, err error)
 	GetByID(id int) (buyer entities.Buyer, err error)
-	Update(buyer *entities.Buyer) error
+	Update(id int, data map[string]interface{}) error
 	Delete(id int) error
 	Get(query map[string]interface{}) (entities.Buyer, error)
 	Index(query map[string]interface{}) ([]entities.Buyer, error)
@@ -43,15 +43,15 @@ func (b *buyerRepository) Index(query map[string]interface{}) ([]entities.Buyer,
 }
 
 func (b *buyerRepository) GetByID(id int) (buyer entities.Buyer, err error) {
-	err = b.db.First(&buyer, id).Error
+	err = b.db.Preload("BuyerTpi").First(&buyer, id).Error
 	if err != nil {
 		return entities.Buyer{}, err
 	}
 	return buyer, err
 }
 
-func (b *buyerRepository) Update(buyer *entities.Buyer) error {
-	err := b.db.Model(&buyer).Updates(buyer).Error
+func (b *buyerRepository) Update(id int, data map[string]interface{}) error {
+	err := b.db.Model(&entities.Buyer{}).Where("id = ? ", id).Updates(data).Error
 	if err != nil {
 		return err
 	}

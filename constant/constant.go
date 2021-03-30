@@ -74,4 +74,6 @@ const (
 	Caught      = "caught"
 	Auction     = "auction"
 	Transaction = "transactions"
+	Fisher      = "fisher"
+	Buyer       = "buyer"
 )

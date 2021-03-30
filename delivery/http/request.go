@@ -110,6 +110,7 @@ type CreateTransactionRequest struct {
 type UpdateFisherRequest struct {
 	Nik         string `json:"nik"`
 	Name        string `json:"name"`
+	NickName    string `json:"nick_name"`
 	Address     string `json:"address"`
 	ShipType    string `json:"ship_type"`
 	AbkTotal    int    `json:"abk_total"`

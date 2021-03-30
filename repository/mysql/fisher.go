@@ -10,7 +10,7 @@ type FisherRepository interface {
 	Create(fisher *entities.Fisher) error
 	GetWithSelectedField(selectedField []string) (fishers []entities.Fisher, err error)
 	GetByID(id int) (fisher entities.Fisher, err error)
-	Update(fisher *entities.Fisher) error
+	Update(id int, data map[string]interface{}) error
 	Delete(id int) error
 	Get(query map[string]interface{}) (entities.Fisher, error)
 	Index(query map[string]interface{}) ([]entities.Fisher, error)
@@ -52,15 +52,15 @@ func (f *fisherRepository) Delete(id int) error {
 }
 
 func (f *fisherRepository) GetByID(id int) (fisher entities.Fisher, err error) {
-	err = f.db.First(&fisher, id).Error
+	err = f.db.Preload("FisherTpi").First(&fisher, id).Error
 	if err != nil {
 		return entities.Fisher{}, err
 	}
 	return fisher, nil
 }
 
-func (f *fisherRepository) Update(fisher *entities.Fisher) error {
-	err := f.db.Model(&fisher).Updates(fisher).Error
+func (f *fisherRepository) Update(id int, data map[string]interface{}) error {
+	err := f.db.Model(&entities.Fisher{}).Where("id = ? ", id).Updates(data).Error
 	if err != nil {
 		return err
 	}

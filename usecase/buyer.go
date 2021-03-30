@@ -6,15 +6,17 @@ import (
 	"github.com/palantir/stacktrace"
 	"gorm.io/gorm"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 type BuyerUsecase interface {
 	Create(buyer *entities.Buyer, tpiID int, status string) error
 	Delete(id int) error
-	Update(buyer *entities.Buyer) error
-	GetByID(id int) (entities.Buyer, error)
+	Update(buyer *entities.Buyer, status string) error
+	GetByID(id int, tpiID int) (entities.Buyer, error)
 	Index(tpiID int) (buyers []entities.Buyer, err error)
 }
 
@@ -32,21 +34,76 @@ func (b *buyerUsecase) Delete(id int) error {
 	return nil
 }
 
-func (b *buyerUsecase) Update(buyer *entities.Buyer) error {
+func (b *buyerUsecase) Update(buyer *entities.Buyer, status string) error {
+	// insert log
+	err := helper.InsertLog(buyer.ID, constant.Buyer)
+	if err != nil {
+		return err
+	}
 	buyer.UpdatedAt = time.Now()
 
-	err := b.buyerRepository.Update(buyer)
+	updateData := map[string]interface{}{
+		"user_id":      buyer.UserID,
+		"nik":          buyer.Nik,
+		"name":         buyer.Name,
+		"address":      buyer.Address,
+		"phone_number": buyer.PhoneNumber,
+	}
+
+	existingBuyer, err := b.buyerRepository.GetByID(buyer.ID)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Buyer repository error")
+		return stacktrace.Propagate(err, "[GetByID] Buyer repository error")
+	}
+
+	// Permanent to temporary
+	if existingBuyer.TpiID == buyer.TpiID && status == constant.TemporaryStatus {
+		// remove tpi_id
+		updateData["tpi_id"] = nil
+		err = b.buyerRepository.Update(buyer.ID, updateData)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Update] Buyer repository error")
+		}
+
+		// insert to buyer_tpis
+		buyerTpi := &entities.BuyerTpi{
+			BuyerID: buyer.ID,
+			TpiID:   buyer.TpiID,
+		}
+		err = b.buyerTpiRepository.Create(buyerTpi)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Create] Buyer tpi repository error")
+		}
+	}
+
+	// Temporary to permanent
+	if existingBuyer.TpiID != buyer.TpiID && status == constant.PermanentStatus {
+		// remove buyer_tpis
+		err = b.buyerTpiRepository.Delete(map[string]interface{}{"buyer_id": buyer.ID, "tpi_id": buyer.TpiID})
+		if err != nil {
+			return stacktrace.Propagate(err, "[Delete] Buyer tpi repository error")
+		}
+
+		// update tpi_id
+		updateData["tpi_id"] = buyer.TpiID
+		err = b.buyerRepository.Update(buyer.ID, updateData)
+		if err != nil {
+			return stacktrace.Propagate(err, "[Update] Buyer repository error")
+		}
 	}
 
 	return nil
 }
 
-func (b *buyerUsecase) GetByID(id int) (entities.Buyer, error) {
+func (b *buyerUsecase) GetByID(id int, tpiID int) (entities.Buyer, error) {
 	buyer, err := b.buyerRepository.GetByID(id)
 	if err != nil {
 		return buyer, stacktrace.Propagate(err, "[GetByID] Buyer repository error")
+	}
+
+	if buyer.TpiID == tpiID {
+		buyer.Status = constant.PermanentStatus
+	} else {
+		buyer.Status = constant.TemporaryStatus
 	}
 
 	return buyer, nil

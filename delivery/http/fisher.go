@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
@@ -110,9 +109,9 @@ func (h *fisherHandler) Update(c *gin.Context) {
 		return
 	}
 
-	curUserID, ok := c.Get("userID")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(stacktrace.NewError("Login status invalid")))
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
 		return
 	}
 
@@ -125,17 +124,18 @@ func (h *fisherHandler) Update(c *gin.Context) {
 
 	fisher := &entities.Fisher{
 		ID:          intFisherID,
-		UserID:      curUserID.(int),
+		UserID:      userID,
 		Nik:         request.Nik,
 		Name:        request.Name,
+		NickName:    request.NickName,
 		Address:     request.Address,
 		ShipType:    request.ShipType,
 		AbkTotal:    request.AbkTotal,
 		PhoneNumber: request.PhoneNumber,
-		//Status:      request.Status,
+		TpiID:       tpiID,
 	}
 
-	err = h.FisherUsecase.Update(fisher)
+	err = h.FisherUsecase.Update(fisher, request.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -148,6 +148,12 @@ func (h *fisherHandler) Update(c *gin.Context) {
 }
 
 func (h *fisherHandler) GetByID(c *gin.Context) {
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
 	fisherID := c.Param("id")
 	intFisherID, err := strconv.Atoi(fisherID)
 	if err != nil {
@@ -155,7 +161,7 @@ func (h *fisherHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	fisher, err := h.FisherUsecase.GetByID(intFisherID)
+	fisher, err := h.FisherUsecase.GetByID(intFisherID, tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

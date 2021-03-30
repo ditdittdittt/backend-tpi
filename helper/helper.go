@@ -125,6 +125,12 @@ func InsertLog(refID int, entityName string) error {
 	case constant.Transaction:
 		transactionRepository := mysql.NewTransactionRepository(*database.DB)
 		payload, _ = transactionRepository.GetByID(refID)
+	case constant.Fisher:
+		fisherRepository := mysql.NewFisherRepository(*database.DB)
+		payload, _ = fisherRepository.GetByID(refID)
+	case constant.Buyer:
+		buyerRepository := mysql.NewBuyerRepository(*database.DB)
+		payload, _ = buyerRepository.GetByID(refID)
 	}
 
 	b, err := json.Marshal(payload)
