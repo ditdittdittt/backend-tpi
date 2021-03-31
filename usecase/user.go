@@ -147,12 +147,13 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 	}
 
 	if tpiID == 0 && districtID == 0 {
-		users, err = u.userRepository.Get()
+		usersGet, err := u.userRepository.Get()
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "[Get] User repository error")
 		}
 
-		for _, user := range users {
+		for _, user := range usersGet {
+			user.Token = ""
 			switch user.RoleID {
 			case 2:
 				locationDetail, err := u.userDistrictRepository.GetByUserID(user.ID)
@@ -169,6 +170,8 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 				user.LocationID = locationDetail.Tpi.ID
 				user.LocationName = locationDetail.Tpi.Name
 			}
+
+			users = append(users, user)
 		}
 	}
 
