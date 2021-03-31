@@ -77,4 +77,12 @@ const (
 	Fisher      = "fisher"
 	Buyer       = "buyer"
 	Tpi         = "tpi"
+
+	Daily   = "daily"
+	Monthly = "monthly"
+	Yearly  = "yearly"
+	Period  = "period"
+
+	TransactionPdf = "transaction"
+	ProductionPdf  = "production"
 )

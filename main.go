@@ -108,7 +108,7 @@ func main() {
 	http.NewTransactionHandler(r, transactionUsecase)
 
 	// Report
-	reportUsecase := usecase.NewReportUsecase(caughtRepository, auctionRepository, transactionRepository, fishTypeRepository, transactionItemRepository, tpiRepository)
+	reportUsecase := usecase.NewReportUsecase(caughtRepository, auctionRepository, transactionRepository, fishTypeRepository, transactionItemRepository, tpiRepository, districtRepository)
 	http.NewReportHandler(r, reportUsecase)
 
 	// Dashboard

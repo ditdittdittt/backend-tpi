@@ -64,7 +64,7 @@ func (t *tpiRepository) Get(query map[string]interface{}) (tpis []entities.Tpi, 
 }
 
 func (t *tpiRepository) GetByID(id int) (tpi entities.Tpi, err error) {
-	err = t.db.Find(&tpi, id).Error
+	err = t.db.Preload("District").Find(&tpi, id).Error
 	if err != nil {
 		return entities.Tpi{}, err
 	}
