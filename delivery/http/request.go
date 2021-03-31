@@ -152,8 +152,11 @@ type UpdateAuctionRequest struct {
 }
 
 type UpdateTpiRequest struct {
-	DistrictID int    `json:"district_id"`
-	Name       string `json:"name"`
+	DistrictID  int    `json:"district_id"`
+	Name        string `json:"name"`
+	Address     string `json:"address"`
+	PhoneNumber string `json:"phone_number"`
+	Pic         string `json:"pic"`
 }
 
 type UpdateCaughtRequest struct {

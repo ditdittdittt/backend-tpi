@@ -123,10 +123,19 @@ func (h *tpiHandler) Update(c *gin.Context) {
 		return
 	}
 
+	userID, _, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
 	tpi := &entities.Tpi{
-		ID:         intTpiID,
-		Name:       request.Name,
-		DistrictID: request.DistrictID,
+		ID:          intTpiID,
+		UserID:      userID,
+		Name:        request.Name,
+		Address:     request.Address,
+		PhoneNumber: request.PhoneNumber,
+		Pic:         request.Pic,
 	}
 
 	err = h.TpiUsecase.Update(tpi)

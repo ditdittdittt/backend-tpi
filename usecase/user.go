@@ -137,6 +137,8 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 		}
 		for _, userTpi := range usersTpi {
 			userTpi.User.Token = ""
+			userTpi.User.LocationID = userTpi.TpiID
+			userTpi.User.LocationName = userTpi.Tpi.Name
 			if userTpi.User.ID == userID {
 				continue
 			}
@@ -148,6 +150,25 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 		users, err = u.userRepository.Get()
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "[Get] User repository error")
+		}
+
+		for _, user := range users {
+			switch user.RoleID {
+			case 2:
+				locationDetail, err := u.userDistrictRepository.GetByUserID(user.ID)
+				if err != nil {
+					return nil, stacktrace.Propagate(err, "[GetByUserID] User district repository error")
+				}
+				user.LocationID = locationDetail.District.ID
+				user.LocationName = locationDetail.District.Name
+			case 3, 4, 5:
+				locationDetail, err := u.userTpiRepository.GetByUserID(user.ID)
+				if err != nil {
+					return nil, stacktrace.Propagate(err, "[GetByUserID] User tpi repository error")
+				}
+				user.LocationID = locationDetail.Tpi.ID
+				user.LocationName = locationDetail.Tpi.Name
+			}
 		}
 	}
 

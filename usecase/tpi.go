@@ -7,7 +7,9 @@ import (
 
 	"github.com/palantir/stacktrace"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
@@ -48,7 +50,12 @@ func (t *tpiUsecase) GetByID(id int) (entities.Tpi, error) {
 }
 
 func (t *tpiUsecase) Update(tpi *entities.Tpi) error {
-	err := t.tpiRepository.Update(tpi)
+	err := helper.InsertLog(tpi.ID, constant.Tpi)
+	if err != nil {
+		return err
+	}
+
+	err = t.tpiRepository.Update(tpi)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] Tpi repository error")
 	}

@@ -90,6 +90,10 @@ func (b *buyerUsecase) Update(buyer *entities.Buyer, status string) error {
 			return stacktrace.Propagate(err, "[Update] Buyer repository error")
 		}
 	}
+	err = b.buyerRepository.Update(buyer.ID, updateData)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Buyer repository error")
+	}
 
 	return nil
 }

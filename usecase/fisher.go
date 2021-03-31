@@ -109,6 +109,10 @@ func (f *fisherUsecase) Update(fisher *entities.Fisher, status string) error {
 		}
 	}
 
+	err = f.fisherRepository.Update(fisher.ID, updateData)
+	if err != nil {
+		return stacktrace.Propagate(err, "[Update] Fisher repository error")
+	}
 	return nil
 }
 

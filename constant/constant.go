@@ -76,4 +76,5 @@ const (
 	Transaction = "transactions"
 	Fisher      = "fisher"
 	Buyer       = "buyer"
+	Tpi         = "tpi"
 )
