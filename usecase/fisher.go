@@ -236,6 +236,11 @@ func (f *fisherUsecase) Create(fisher *entities.Fisher, tpiID int, status string
 			}
 
 			if existingFisher.TpiID != tpiID {
+				err = f.fisherRepository.Update(existingFisher.ID, updateData)
+				if err != nil {
+					return err
+				}
+
 				fisherTpi := &entities.FisherTpi{
 					FisherID: existingFisher.ID,
 					TpiID:    tpiID,

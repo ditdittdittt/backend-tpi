@@ -230,6 +230,11 @@ func (b *buyerUsecase) Create(buyer *entities.Buyer, tpiID int, status string) e
 			}
 
 			if existingBuyer.TpiID != tpiID {
+				err = b.buyerRepository.Update(existingBuyer.ID, updateData)
+				if err != nil {
+					return err
+				}
+
 				buyerTpi := &entities.BuyerTpi{
 					BuyerID: existingBuyer.ID,
 					TpiID:   tpiID,
