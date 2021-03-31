@@ -9,11 +9,14 @@ func Migrate() {
 	err := database.DB.AutoMigrate(
 		&entities.Auction{},
 		&entities.Buyer{},
+		&entities.BuyerTpi{},
 		&entities.Caught{},
+		&entities.CaughtItem{},
 		&entities.CaughtStatus{},
 		&entities.District{},
 		&entities.FishType{},
 		&entities.Fisher{},
+		&entities.FisherTpi{},
 		&entities.FishingArea{},
 		&entities.FishingGear{},
 		&entities.Permission{},
@@ -27,6 +30,7 @@ func Migrate() {
 		&entities.UserStatus{},
 		&entities.UserSuperadmin{},
 		&entities.UserTpi{},
+		&entities.Log{},
 	)
 
 	if err != nil {

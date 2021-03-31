@@ -5,10 +5,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -45,18 +45,21 @@ func (h *buyerHandler) Create(c *gin.Context) {
 		return
 	}
 
-	curUserID := c.MustGet("userID")
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
 	buyer := &entities.Buyer{
-		UserID:      curUserID.(int),
+		UserID:      userID,
 		Nik:         request.Nik,
 		Name:        request.Name,
 		Address:     request.Address,
 		PhoneNumber: request.PhoneNumber,
-		Status:      request.Status,
 	}
 
-	err := h.BuyerUsecase.Create(buyer)
+	err = h.BuyerUsecase.Create(buyer, tpiID, request.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
@@ -73,7 +76,13 @@ func (h *buyerHandler) Create(c *gin.Context) {
 }
 
 func (h *buyerHandler) Index(c *gin.Context) {
-	buyers, err := h.BuyerUsecase.Index()
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
+	buyers, err := h.BuyerUsecase.Index(tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, Response{
 			ResponseCode: constant.ErrorResponseCode,
@@ -97,9 +106,9 @@ func (h *buyerHandler) Update(c *gin.Context) {
 		return
 	}
 
-	curUserID, ok := c.Get("userID")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(stacktrace.NewError("Login status invalid")))
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
 		return
 	}
 
@@ -112,15 +121,15 @@ func (h *buyerHandler) Update(c *gin.Context) {
 
 	buyer := &entities.Buyer{
 		ID:          intBuyerID,
-		UserID:      curUserID.(int),
+		UserID:      userID,
 		Nik:         request.Nik,
 		Name:        request.Name,
 		Address:     request.Address,
 		PhoneNumber: request.PhoneNumber,
-		Status:      request.Status,
+		TpiID:       tpiID,
 	}
 
-	err = h.BuyerUsecase.Update(buyer)
+	err = h.BuyerUsecase.Update(buyer, request.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -133,6 +142,12 @@ func (h *buyerHandler) Update(c *gin.Context) {
 }
 
 func (h *buyerHandler) GetByID(c *gin.Context) {
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
 	buyerID := c.Param("id")
 	intBuyerID, err := strconv.Atoi(buyerID)
 	if err != nil {
@@ -140,7 +155,7 @@ func (h *buyerHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	buyer, err := h.BuyerUsecase.GetByID(intBuyerID)
+	buyer, err := h.BuyerUsecase.GetByID(intBuyerID, tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

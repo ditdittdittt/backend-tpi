@@ -8,9 +8,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/palantir/stacktrace"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
+	"github.com/ditdittdittt/backend-tpi/database"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
 func ValidatePermission(permissionList []*entities.Permission, permissionNeeded string) bool {
@@ -77,4 +82,76 @@ func ComparePassword(hashedPwd string, pwd []byte) bool {
 	}
 
 	return true
+}
+
+func GetCurrentUserID(c *gin.Context) (int, int, int, error) {
+	userID := 0
+	tpiID := 0
+	districtID := 0
+
+	curUserID, ok := c.Get("userID")
+	if !ok {
+		return userID, tpiID, districtID, stacktrace.NewError("Invalid user")
+	}
+	userID = curUserID.(int)
+
+	curTpiID, ok := c.Get("tpiID")
+	if ok {
+		tpiID = curTpiID.(int)
+	}
+
+	curDistrictID, ok := c.Get("districtID")
+	if ok {
+		districtID = curDistrictID.(int)
+	}
+
+	return userID, tpiID, districtID, nil
+}
+
+func InsertLog(refID int, entityName string) error {
+	var payload interface{}
+	logRepository := mysql.NewLogRepository(*database.DB)
+
+	switch entityName {
+	case constant.User:
+		userRepository := mysql.NewUserRepository(*database.DB)
+		payload, _ = userRepository.GetByID(refID)
+	case constant.Caught:
+		caughtRepository := mysql.NewCaughtRepository(*database.DB)
+		payload, _ = caughtRepository.GetByID(refID)
+	case constant.Auction:
+		auctionRepository := mysql.NewAuctionRepository(*database.DB)
+		payload, _ = auctionRepository.GetByID(refID)
+	case constant.Transaction:
+		transactionRepository := mysql.NewTransactionRepository(*database.DB)
+		payload, _ = transactionRepository.GetByID(refID)
+	case constant.Fisher:
+		fisherRepository := mysql.NewFisherRepository(*database.DB)
+		payload, _ = fisherRepository.GetByID(refID)
+	case constant.Buyer:
+		buyerRepository := mysql.NewBuyerRepository(*database.DB)
+		payload, _ = buyerRepository.GetByID(refID)
+	case constant.Tpi:
+		tpiRepository := mysql.NewTpiRepository(*database.DB)
+		payload, _ = tpiRepository.GetByID(refID)
+	}
+
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	archiveLog := &entities.Log{
+		ReferenceID: refID,
+		Entity:      entityName,
+		Payload:     string(b),
+		CreatedAt:   time.Now(),
+	}
+
+	err = logRepository.Create(archiveLog)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -1,7 +1,5 @@
 package http
 
-import "github.com/ditdittdittt/backend-tpi/entities"
-
 type LoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -16,6 +14,7 @@ type CreateTpiAdminRequest struct {
 }
 
 type CreateTpiOfficerRequest struct {
+	TpiID    int    `json:"tpi_id" binding:"required"`
 	Nik      string `json:"nik" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Address  string `json:"address" binding:"required"`
@@ -23,6 +22,7 @@ type CreateTpiOfficerRequest struct {
 }
 
 type CreateTpiCashierRequest struct {
+	TpiID    int    `json:"tpi_id" binding:"required"`
 	Nik      string `json:"nik" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Address  string `json:"address" binding:"required"`
@@ -38,13 +38,16 @@ type CreateDistrictAdminRequest struct {
 }
 
 type CreateTpiRequest struct {
-	Name string `json:"name" binding:"required"`
-	Code string `json:"code" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	Address     string `json:"address"`
+	PhoneNumber string `json:"phone_number"`
+	Pic         string `json:"pic"`
 }
 
 type CreateFisherRequest struct {
 	Nik         string `json:"nik"`
 	Name        string `json:"name"`
+	NickName    string `json:"nick_name"`
 	Address     string `json:"address"`
 	ShipType    string `json:"ship_type"`
 	AbkTotal    int    `json:"abk_total"`
@@ -81,16 +84,20 @@ type CreateFishingAreaRequest struct {
 }
 
 type CreateCaughtRequest struct {
-	FisherID       int                   `json:"fisher_id"`
-	TripDay        int                   `json:"trip_day"`
-	FishingGearID  int                   `json:"fishing_gear_id"`
-	FishingAreaID  int                   `json:"fishing_area_id"`
-	CaughtFishData []entities.CaughtData `json:"caught_fish_data"`
+	FisherID      int `json:"fisher_id"`
+	TripDay       int `json:"trip_day"`
+	FishingGearID int `json:"fishing_gear_id"`
+	FishingAreaID int `json:"fishing_area_id"`
+	CaughtItems   []struct {
+		FishTypeID int     `json:"fish_type_id"`
+		Weight     float64 `json:"weight"`
+		WeightUnit string  `json:"weight_unit"`
+	} `json:"caught_items"`
 }
 
 type CreateAuctionRequest struct {
-	CaughtID int     `json:"caught_id"`
-	Price    float64 `json:"price"`
+	CaughtItemID int     `json:"caught_item_id"`
+	Price        float64 `json:"price"`
 }
 
 type CreateTransactionRequest struct {
@@ -103,6 +110,7 @@ type CreateTransactionRequest struct {
 type UpdateFisherRequest struct {
 	Nik         string `json:"nik"`
 	Name        string `json:"name"`
+	NickName    string `json:"nick_name"`
 	Address     string `json:"address"`
 	ShipType    string `json:"ship_type"`
 	AbkTotal    int    `json:"abk_total"`
@@ -144,8 +152,11 @@ type UpdateAuctionRequest struct {
 }
 
 type UpdateTpiRequest struct {
-	DistrictID int    `json:"district_id"`
-	Name       string `json:"name"`
+	DistrictID  int    `json:"district_id"`
+	Name        string `json:"name"`
+	Address     string `json:"address"`
+	PhoneNumber string `json:"phone_number"`
+	Pic         string `json:"pic"`
 }
 
 type UpdateCaughtRequest struct {
@@ -156,6 +167,7 @@ type UpdateCaughtRequest struct {
 	FishTypeID    int     `json:"fish_type_id"`
 	Weight        float64 `json:"weight"`
 	WeightUnit    string  `json:"weight_unit"`
+	CaughtID      int     `json:"caught_id"`
 }
 
 type UpdateTransactionRequest struct {

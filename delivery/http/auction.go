@@ -8,6 +8,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -42,17 +43,20 @@ func (h *auctionHandler) Create(c *gin.Context) {
 		return
 	}
 
-	curUserID := c.MustGet("userID")
-	curTpiID := c.MustGet("tpiID")
-
-	auction := &entities.Auction{
-		UserID:   curUserID.(int),
-		TpiID:    curTpiID.(int),
-		CaughtID: request.CaughtID,
-		Price:    request.Price,
+	curUserID, curTpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
 	}
 
-	err := h.auctionUsecase.Create(auction)
+	auction := &entities.Auction{
+		UserID:       curUserID,
+		TpiID:        curTpiID,
+		CaughtItemID: request.CaughtItemID,
+		Price:        request.Price,
+	}
+
+	err = h.auctionUsecase.Create(auction)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -71,9 +75,13 @@ func (h *auctionHandler) Inquiry(c *gin.Context) {
 	fishTypeID := c.DefaultQuery("fish_type_id", "0")
 	intFishTypeID, _ := strconv.Atoi(fishTypeID)
 
-	tpiID := c.MustGet("tpiID")
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
-	auctions, err := h.auctionUsecase.Inquiry(intFisherID, intFishTypeID, tpiID.(int))
+	auctions, err := h.auctionUsecase.Inquiry(intFisherID, intFishTypeID, tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -96,9 +104,13 @@ func (h *auctionHandler) Index(c *gin.Context) {
 	caughtStatusID := c.DefaultQuery("caught_status_id", "0")
 	intCaughtStatusID, _ := strconv.Atoi(caughtStatusID)
 
-	tpiID := c.MustGet("tpiID")
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
-	auctions, err := h.auctionUsecase.Index(intFisherID, intFishTypeID, intCaughtStatusID, tpiID.(int))
+	auctions, err := h.auctionUsecase.Index(intFisherID, intFishTypeID, intCaughtStatusID, tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

@@ -1,11 +1,15 @@
 package usecase
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/palantir/stacktrace"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
@@ -22,8 +26,10 @@ type tpiUsecase struct {
 }
 
 func (t *tpiUsecase) Index(districtID int) ([]entities.Tpi, error) {
-	queryMap := map[string]interface{}{
-		"district_id": districtID,
+	queryMap := map[string]interface{}{}
+
+	if districtID != 0 {
+		queryMap["district_id"] = districtID
 	}
 
 	tpis, err := t.tpiRepository.Get(queryMap)
@@ -44,7 +50,12 @@ func (t *tpiUsecase) GetByID(id int) (entities.Tpi, error) {
 }
 
 func (t *tpiUsecase) Update(tpi *entities.Tpi) error {
-	err := t.tpiRepository.Update(tpi)
+	err := helper.InsertLog(tpi.ID, constant.Tpi)
+	if err != nil {
+		return err
+	}
+
+	err = t.tpiRepository.Update(tpi)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] Tpi repository error")
 	}
@@ -65,7 +76,21 @@ func (t *tpiUsecase) Create(tpi *entities.Tpi) error {
 	tpi.CreatedAt = time.Now()
 	tpi.UpdatedAt = time.Now()
 
-	err := t.tpiRepository.Create(tpi)
+	existingCode, err := t.tpiRepository.GetLatestCode(tpi.DistrictID)
+	if err != nil {
+		return stacktrace.Propagate(err, "[GetLatestCode] Tpi repository error")
+	}
+
+	if existingCode != "" {
+		latestID := existingCode[len(existingCode)-2:]
+		intLatestID, _ := strconv.Atoi(latestID)
+		intLatestID++
+		tpi.Code = strconv.Itoa(tpi.DistrictID) + fmt.Sprintf("%02d", intLatestID)
+	} else {
+		tpi.Code = strconv.Itoa(tpi.DistrictID) + "01"
+	}
+
+	err = t.tpiRepository.Create(tpi)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Create] Tpi repository error")
 	}

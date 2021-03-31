@@ -66,4 +66,23 @@ const (
 	Pass = "pass"
 
 	ResetPassword = "reset-password"
+
+	PermanentStatus = "Tetap"
+	TemporaryStatus = "Pendatang"
+
+	User        = "user"
+	Caught      = "caught"
+	Auction     = "auction"
+	Transaction = "transactions"
+	Fisher      = "fisher"
+	Buyer       = "buyer"
+	Tpi         = "tpi"
+
+	Daily   = "daily"
+	Monthly = "monthly"
+	Yearly  = "yearly"
+	Period  = "period"
+
+	TransactionPdf = "transaction"
+	ProductionPdf  = "production"
 )

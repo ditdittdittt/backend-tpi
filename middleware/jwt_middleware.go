@@ -40,6 +40,11 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			return
 		}
 
+		if curUser.RoleID == 1 {
+			c.Set("userID", curUser.ID)
+			return
+		}
+
 		if function != constant.Pass {
 			if !helper.ValidatePermission(curUser.Role.Permission, function) {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Message": "Forbidden"})

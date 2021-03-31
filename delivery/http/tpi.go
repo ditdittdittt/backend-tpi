@@ -8,6 +8,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -40,15 +41,22 @@ func (h *tpiHandler) Create(c *gin.Context) {
 		return
 	}
 
-	districtID := c.MustGet("districtID")
-
-	tpi := &entities.Tpi{
-		DistrictID: districtID.(int),
-		Name:       request.Name,
-		Code:       request.Code,
+	userID, _, districtID, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
 	}
 
-	err := h.TpiUsecase.Create(tpi)
+	tpi := &entities.Tpi{
+		DistrictID:  districtID,
+		UserID:      userID,
+		Name:        request.Name,
+		Address:     request.Address,
+		PhoneNumber: request.PhoneNumber,
+		Pic:         request.Pic,
+	}
+
+	err = h.TpiUsecase.Create(tpi)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -61,9 +69,13 @@ func (h *tpiHandler) Create(c *gin.Context) {
 }
 
 func (h *tpiHandler) Index(c *gin.Context) {
-	districtID := c.MustGet("districtID")
+	_, _, districtID, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
-	tpis, err := h.TpiUsecase.Index(districtID.(int))
+	tpis, err := h.TpiUsecase.Index(districtID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -111,10 +123,19 @@ func (h *tpiHandler) Update(c *gin.Context) {
 		return
 	}
 
+	userID, _, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
+
 	tpi := &entities.Tpi{
-		ID:         intTpiID,
-		Name:       request.Name,
-		DistrictID: request.DistrictID,
+		ID:          intTpiID,
+		UserID:      userID,
+		Name:        request.Name,
+		Address:     request.Address,
+		PhoneNumber: request.PhoneNumber,
+		Pic:         request.Pic,
 	}
 
 	err = h.TpiUsecase.Update(tpi)

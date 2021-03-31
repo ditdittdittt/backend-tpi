@@ -5,6 +5,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
@@ -90,9 +91,15 @@ func (u *userUsecase) GetByID(id int) (entities.User, error) {
 }
 
 func (u *userUsecase) Update(user *entities.User) error {
+	// insert log
+	err := helper.InsertLog(user.ID, constant.User)
+	if err != nil {
+		return err
+	}
+
 	user.UpdatedAt = time.Now()
 
-	err := u.userRepository.Update(user)
+	err = u.userRepository.Update(user)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] User repository error")
 	}
@@ -130,6 +137,8 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 		}
 		for _, userTpi := range usersTpi {
 			userTpi.User.Token = ""
+			userTpi.User.LocationID = userTpi.TpiID
+			userTpi.User.LocationName = userTpi.Tpi.Name
 			if userTpi.User.ID == userID {
 				continue
 			}
@@ -138,9 +147,31 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 	}
 
 	if tpiID == 0 && districtID == 0 {
-		users, err = u.userRepository.Get()
+		usersGet, err := u.userRepository.Get()
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "[Get] User repository error")
+		}
+
+		for _, user := range usersGet {
+			user.Token = ""
+			switch user.RoleID {
+			case 2:
+				locationDetail, err := u.userDistrictRepository.GetByUserID(user.ID)
+				if err != nil {
+					return nil, stacktrace.Propagate(err, "[GetByUserID] User district repository error")
+				}
+				user.LocationID = locationDetail.District.ID
+				user.LocationName = locationDetail.District.Name
+			case 3, 4, 5:
+				locationDetail, err := u.userTpiRepository.GetByUserID(user.ID)
+				if err != nil {
+					return nil, stacktrace.Propagate(err, "[GetByUserID] User tpi repository error")
+				}
+				user.LocationID = locationDetail.Tpi.ID
+				user.LocationName = locationDetail.Tpi.Name
+			}
+
+			users = append(users, user)
 		}
 	}
 
@@ -186,6 +217,10 @@ func (u *userUsecase) Login(username string, password string) (token string, err
 	user, err := u.userRepository.GetByUsername(username)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "[GetByUsername] User repository error")
+	}
+
+	if user.UserStatusID == 2 {
+		return "", stacktrace.NewError("Not active account")
 	}
 
 	if !helper.ComparePassword(user.Password, []byte(password)) {

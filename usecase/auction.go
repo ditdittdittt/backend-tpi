@@ -1,12 +1,13 @@
 package usecase
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/palantir/stacktrace"
 
+	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
 
@@ -20,12 +21,19 @@ type AuctionUsecase interface {
 }
 
 type auctionUsecase struct {
-	auctionRepository mysql.AuctionRepository
-	caughtRepository  mysql.CaughtRepository
+	auctionRepository    mysql.AuctionRepository
+	caughtRepository     mysql.CaughtRepository
+	caughtItemRepository mysql.CaughtItemRepository
 }
 
 func (a *auctionUsecase) Update(auction *entities.Auction) error {
-	err := a.auctionRepository.Update(auction)
+	// insert log
+	err := helper.InsertLog(auction.ID, constant.Auction)
+	if err != nil {
+		return err
+	}
+
+	err = a.auctionRepository.Update(auction)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] Auction repository error")
 	}
@@ -43,7 +51,7 @@ func (a *auctionUsecase) Delete(id int) error {
 		"caught_status_id": 1,
 	}
 
-	err = a.caughtRepository.Update(auction.Caught, data)
+	err = a.caughtItemRepository.Update(auction.CaughtItemID, data)
 	if err != nil {
 		return stacktrace.Propagate(err, "[Update] Caught repository error for caught id")
 	}
@@ -67,25 +75,24 @@ func (a *auctionUsecase) GetByID(id int) (entities.Auction, error) {
 
 func (a *auctionUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int, tpiID int) ([]entities.Auction, error) {
 	queryMap := map[string]interface{}{
-		"tpi_id": tpiID,
+		"auctions.tpi_id": tpiID,
 	}
 
 	if fisherID != 0 {
-		queryMap["fisher_id"] = fisherID
+		queryMap["caughts.fisher_id"] = fisherID
 	}
 
 	if fishTypeID != 0 {
-		queryMap["fish_type_id"] = fishTypeID
+		queryMap["caught_items.fish_type_id"] = fishTypeID
 	}
 
 	if caughtStatusID != 0 {
-		queryMap["caught_status_id"] = caughtStatusID
+		queryMap["caught_items.caught_status_id"] = caughtStatusID
 	}
 
-	startDate := time.Now().Format("2006-01-02")
-	toDate := time.Now().String()
+	date := time.Now().Format("2006-01-02")
 
-	auctions, err := a.auctionRepository.Get(queryMap, startDate, toDate)
+	auctions, err := a.auctionRepository.Index(queryMap, date)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[Get] Caught repository error")
 	}
@@ -95,22 +102,21 @@ func (a *auctionUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int,
 
 func (a *auctionUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]entities.Auction, error) {
 	queryMap := map[string]interface{}{
-		"tpi_id":           tpiID,
-		"caught_status_id": 2,
+		"auctions.tpi_id":               tpiID,
+		"caught_items.caught_status_id": 2,
 	}
 
 	if fisherID != 0 {
-		queryMap["fisher_id"] = fisherID
+		queryMap["caughts.fisher_id"] = fisherID
 	}
 
 	if fishTypeID != 0 {
-		queryMap["fish_type_id"] = fishTypeID
-		fmt.Println(fishTypeID)
+		queryMap["caught_items.fish_type_id"] = fishTypeID
 	}
 
 	auctions, err := a.auctionRepository.Search(queryMap)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Search] Caught repository")
+		return nil, stacktrace.Propagate(err, "[Search] Auction repository error")
 	}
 
 	return auctions, nil
@@ -121,28 +127,30 @@ func (a *auctionUsecase) Create(auction *entities.Auction) error {
 	auction.CreatedAt = time.Now()
 	auction.UpdatedAt = time.Now()
 
-	err := a.auctionRepository.Create(auction)
+	caughtItem, err := a.caughtItemRepository.GetByID(auction.CaughtItemID)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Create] Auction repository error")
+		return stacktrace.Propagate(err, "[GetByID] Caught item repository error")
 	}
 
-	caught, err := a.caughtRepository.GetByID(auction.CaughtID)
+	auction.Code = caughtItem.Code
+
+	err = a.auctionRepository.Create(auction)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] Caught repository error")
+		return stacktrace.Propagate(err, "[Create] Auction repository error")
 	}
 
 	updateStatus := map[string]interface{}{
 		"caught_status_id": 2,
 	}
 
-	err = a.caughtRepository.Update(&caught, updateStatus)
+	err = a.caughtItemRepository.Update(auction.CaughtItemID, updateStatus)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Caught repository error")
+		return stacktrace.Propagate(err, "[Update] Caught item repository error")
 	}
 
 	return nil
 }
 
-func NewAuctionUsecase(auctionRepository mysql.AuctionRepository, caughtRepository mysql.CaughtRepository) AuctionUsecase {
-	return &auctionUsecase{auctionRepository: auctionRepository, caughtRepository: caughtRepository}
+func NewAuctionUsecase(auctionRepository mysql.AuctionRepository, caughtRepository mysql.CaughtRepository, caughtItemRepository mysql.CaughtItemRepository) AuctionUsecase {
+	return &auctionUsecase{auctionRepository: auctionRepository, caughtRepository: caughtRepository, caughtItemRepository: caughtItemRepository}
 }

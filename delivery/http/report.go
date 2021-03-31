@@ -19,6 +19,8 @@ type ReportHandler interface {
 	Transaction(c *gin.Context)
 	ExportExcelProduction(c *gin.Context)
 	ExportExcelTransaction(c *gin.Context)
+	ExportPdfProduction(c *gin.Context)
+	ExportPdfTransaction(c *gin.Context)
 }
 
 type reportHandler struct {
@@ -31,6 +33,8 @@ func NewReportHandler(server *gin.Engine, reportUsecase usecase.ReportUsecase) {
 	server.GET("/report/transaction", middleware.AuthorizeJWT(constant.Pass), handler.Transaction)
 	server.GET("/report/production/excel", middleware.AuthorizeJWT(constant.Pass), handler.ExportExcelProduction)
 	server.GET("/report/transaction/excel", middleware.AuthorizeJWT(constant.Pass), handler.ExportExcelTransaction)
+	server.GET("/report/production/pdf", middleware.AuthorizeJWT(constant.Pass), handler.ExportPdfProduction)
+	server.GET("/report/transaction/pdf", middleware.AuthorizeJWT(constant.Pass), handler.ExportPdfTransaction)
 }
 
 func (h *reportHandler) Production(c *gin.Context) {
@@ -39,7 +43,7 @@ func (h *reportHandler) Production(c *gin.Context) {
 		return
 	}
 
-	stringFrom, stringTo := h.getDate(c)
+	stringFrom, stringTo, _ := h.getDate(c)
 
 	productionReport, err := h.reportUsecase.GetProductionReport(tpiID, districtID, stringFrom, stringTo)
 	if err != nil {
@@ -60,7 +64,7 @@ func (h *reportHandler) Transaction(c *gin.Context) {
 		return
 	}
 
-	stringFrom, stringTo := h.getDate(c)
+	stringFrom, stringTo, _ := h.getDate(c)
 
 	transactionReport, err := h.reportUsecase.GetTransactionReport(tpiID, districtID, stringFrom, stringTo)
 	if err != nil {
@@ -82,9 +86,9 @@ func (h *reportHandler) ExportExcelProduction(c *gin.Context) {
 		return
 	}
 
-	stringFrom, stringTo := h.getDate(c)
+	stringFrom, stringTo, queryType := h.getDate(c)
 
-	xlsx, err := h.reportUsecase.ExportExcelProductionReport(tpiID, districtID, stringFrom, stringTo)
+	xlsx, err := h.reportUsecase.ExportExcelProductionReport(tpiID, districtID, stringFrom, stringTo, queryType)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -102,9 +106,9 @@ func (h *reportHandler) ExportExcelTransaction(c *gin.Context) {
 		return
 	}
 
-	stringFrom, stringTo := h.getDate(c)
+	stringFrom, stringTo, queryType := h.getDate(c)
 
-	xlsx, err := h.reportUsecase.ExportExcelTransactionReport(tpiID, districtID, stringFrom, stringTo)
+	xlsx, err := h.reportUsecase.ExportExcelTransactionReport(tpiID, districtID, stringFrom, stringTo, queryType)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -116,15 +120,59 @@ func (h *reportHandler) ExportExcelTransaction(c *gin.Context) {
 	_ = xlsx.Write(c.Writer)
 }
 
-func (h *reportHandler) getDate(c *gin.Context) (string, string) {
+func (h *reportHandler) ExportPdfProduction(c *gin.Context) {
+	tpiID, districtID := h.getTpiAndDistrict(c)
+
+	if tpiID == 0 && districtID == 0 {
+		return
+	}
+
+	stringFrom, stringTo, queryType := h.getDate(c)
+
+	pdf, err := h.reportUsecase.ExportPdfProductionReport(tpiID, districtID, stringFrom, stringTo, queryType)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Disposition", "attachment; filename="+"Laporan Produksi Ikan.pdf")
+	c.Header("Content-Transfer-Encoding", "binary")
+	pdf.SetOutput(c.Writer)
+}
+
+func (h *reportHandler) ExportPdfTransaction(c *gin.Context) {
+	tpiID, districtID := h.getTpiAndDistrict(c)
+
+	if tpiID == 0 && districtID == 0 {
+		return
+	}
+
+	stringFrom, stringTo, queryType := h.getDate(c)
+
+	pdf, err := h.reportUsecase.ExportPdfTransactionReport(tpiID, districtID, stringFrom, stringTo, queryType)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Disposition", "attachment; filename="+"Laporan Transaksi Lelang.pdf")
+	c.Header("Content-Transfer-Encoding", "binary")
+	pdf.SetOutput(c.Writer)
+}
+
+func (h *reportHandler) getDate(c *gin.Context) (string, string, string) {
 	var from time.Time
 	var to time.Time
+	var queryType string
 
 	daily, ok := c.GetQuery("daily")
 	if ok {
 		from, _ = time.Parse("2006-01-02", daily)
 		to, _ = time.Parse("2006-01-02", daily)
 		to = to.Add(24 * time.Hour)
+		queryType = constant.Daily
 	}
 
 	monthly, ok := c.GetQuery("monthly")
@@ -132,6 +180,7 @@ func (h *reportHandler) getDate(c *gin.Context) (string, string) {
 		from, _ = time.Parse("2006-01", monthly)
 		to, _ = time.Parse("2006-01", monthly)
 		to = to.AddDate(0, 1, 0)
+		queryType = constant.Monthly
 	}
 
 	yearly, ok := c.GetQuery("yearly")
@@ -139,6 +188,7 @@ func (h *reportHandler) getDate(c *gin.Context) (string, string) {
 		from, _ = time.Parse("2006", yearly)
 		to, _ = time.Parse("2006", yearly)
 		to = to.AddDate(1, 0, 0)
+		queryType = constant.Yearly
 	}
 
 	period, ok := c.GetQuery("period")
@@ -148,12 +198,13 @@ func (h *reportHandler) getDate(c *gin.Context) (string, string) {
 		from, _ = time.Parse("2006-01-02", fromPeriod)
 		to, _ = time.Parse("2006-01-02", toPeriod)
 		to = to.Add(24 * time.Hour)
+		queryType = constant.Period
 	}
 
 	stringFrom := from.Format("2006-01-02 15:04:05")
 	stringTo := to.Format("2006-01-02 15:04:05")
 
-	return stringFrom, stringTo
+	return stringFrom, stringTo, queryType
 }
 
 func (h *reportHandler) getTpiAndDistrict(c *gin.Context) (int, int) {

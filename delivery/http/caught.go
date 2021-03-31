@@ -8,6 +8,7 @@ import (
 
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
+	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/middleware"
 	"github.com/ditdittdittt/backend-tpi/usecase"
 )
@@ -28,11 +29,11 @@ type caughtHandler struct {
 func NewCaughtHandler(server *gin.Engine, caughtUsecase usecase.CaughtUsecase) {
 	handler := &caughtHandler{CaughtUsecase: caughtUsecase}
 	server.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
-	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.InquiryCaught), handler.Inquiry)
 	server.GET("/caught/getbyid/:id", middleware.AuthorizeJWT(constant.GetByIDCaught), handler.GetByID)
 	server.PUT("/caught/update/:id", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
 	server.DELETE("/caught/delete/:id", middleware.AuthorizeJWT(constant.DeleteCaught), handler.Delete)
 	server.GET("/caughts", middleware.AuthorizeJWT(constant.Pass), handler.Index)
+	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.InquiryCaught), handler.Inquiry)
 }
 
 func (h *caughtHandler) Create(c *gin.Context) {
@@ -42,19 +43,32 @@ func (h *caughtHandler) Create(c *gin.Context) {
 		return
 	}
 
-	curUserID := c.MustGet("userID")
-	curTpiID := c.MustGet("tpiID")
+	curUserID, curTpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
 	caught := &entities.Caught{
-		UserID:        curUserID.(int),
-		TpiID:         curTpiID.(int),
+		UserID:        curUserID,
+		TpiID:         curTpiID,
 		FisherID:      request.FisherID,
 		FishingGearID: request.FishingGearID,
 		FishingAreaID: request.FishingAreaID,
 		TripDay:       request.TripDay,
 	}
 
-	err := h.CaughtUsecase.Create(caught, request.CaughtFishData)
+	for _, item := range request.CaughtItems {
+		caughtItem := &entities.CaughtItem{
+			FishTypeID:     item.FishTypeID,
+			Weight:         item.Weight,
+			WeightUnit:     item.WeightUnit,
+			CaughtStatusID: 1,
+		}
+		caught.CaughtItem = append(caught.CaughtItem, caughtItem)
+	}
+
+	err = h.CaughtUsecase.Create(caught)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -76,9 +90,13 @@ func (h *caughtHandler) Index(c *gin.Context) {
 	caughtStatusID := c.DefaultQuery("caught_status_id", "0")
 	intCaughtStatusID, _ := strconv.Atoi(caughtStatusID)
 
-	tpiID := c.MustGet("tpiID")
+	_, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
-	caughts, err := h.CaughtUsecase.Index(intFisherID, intFishTypeID, intCaughtStatusID, tpiID.(int))
+	caughts, err := h.CaughtUsecase.Index(intFisherID, intFishTypeID, intCaughtStatusID, tpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -98,9 +116,13 @@ func (h *caughtHandler) Inquiry(c *gin.Context) {
 	fishTypeID := c.DefaultQuery("fish_type_id", "0")
 	intFishTypeID, _ := strconv.Atoi(fishTypeID)
 
-	tpiID := c.MustGet("tpiID")
+	_, curTpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
+	}
 
-	caughts, err := h.CaughtUsecase.Inquiry(intFisherID, intFishTypeID, tpiID.(int))
+	caughts, err := h.CaughtUsecase.Inquiry(intFisherID, intFishTypeID, curTpiID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -148,22 +170,27 @@ func (h *caughtHandler) Update(c *gin.Context) {
 		return
 	}
 
-	curUserID := c.MustGet("userID")
-	curTpiID := c.MustGet("tpiID")
-
-	caught := &entities.Caught{
-		ID:            intCaughtID,
-		UserID:        curUserID.(int),
-		TpiID:         curTpiID.(int),
-		FisherID:      request.FisherID,
-		FishingGearID: request.FishingGearID,
-		FishingAreaID: request.FishingAreaID,
-		TripDay:       request.TripDay,
+	userID, tpiID, _, err := helper.GetCurrentUserID(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
+		return
 	}
 
-	caught.FishTypeID = request.FishTypeID
-	caught.Weight = request.Weight
-	caught.WeightUnit = request.WeightUnit
+	caught := &entities.CaughtItem{
+		ID:       intCaughtID,
+		CaughtID: request.CaughtID,
+		Caught: &entities.Caught{
+			UserID:        userID,
+			TpiID:         tpiID,
+			FisherID:      request.FisherID,
+			FishingGearID: request.FishingGearID,
+			FishingAreaID: request.FishingAreaID,
+			TripDay:       request.TripDay,
+		},
+		FishTypeID: request.FishTypeID,
+		Weight:     request.Weight,
+		WeightUnit: request.WeightUnit,
+	}
 
 	err = h.CaughtUsecase.Update(caught)
 	if err != nil {

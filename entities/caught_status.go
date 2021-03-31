@@ -1,6 +1,6 @@
 package entities
 
 type CaughtStatus struct {
-	ID		int
-	Status	string
+	ID     int    `json:"id,omitempty"`
+	Status string `json:"status,omitempty"`
 }
