@@ -15,6 +15,11 @@
                 font-family: Arial, Helvetica, sans-serif;
                 font-size: 16px;
             }
+            h5 {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                text-align: right;
+            }
 
             #tpi {
                 font-family: Arial, Helvetica, sans-serif;
@@ -103,6 +108,7 @@
 
     <body>
         <h1>Laporan Transaksi Lelang</h1>
+        <h5>Diunduh tanggal: {{ .downloaded_at }}</h5>
 
         <table id="tpi">
             <tr>
@@ -119,19 +125,19 @@
         <table id="header">
             <tr>
                 <td style="width: 20%">Jumlah Transaksi</td>
-                <td>: {{ .transaction_total }} Transaksi</td>
+                <td>: {{ .transaction_total }}</td>
             </tr>
             <tr>
                 <td style="width: 20%">Total Produksi</td>
-                <td>: {{ .production_total }} Kg</td>
+                <td>: {{ .production_total }}</td>
             </tr>
             <tr>
                 <td style="width: 20%">Nilai Produksi</td>
-                <td>: Rp{{ .production_value }}</td>
+                <td>: {{ .production_value }}</td>
             </tr>
             <tr>
                 <td style="width: 20%">Kecepatan Penjualan</td>
-                <td>: {{ .transaction_speed }} Jam</td>
+                <td>: {{ .transaction_speed }}</td>
             </tr>
         </table>
 
@@ -145,16 +151,16 @@
         <table id="fisher">
             <tr>
                 <td style="width: 20%">Nelayan Tetap</td>
-                <td style="width: 30%">: {{ .permanent_fisher }} orang</td>
+                <td style="width: 30%">: {{ .permanent_fisher }}</td>
                 <td style="width: 20%">Pembeli Tetap</td>
-                <td style="width: 30%">: {{ .permanent_buyer }} orang</td>
+                <td style="width: 30%">: {{ .permanent_buyer }}</td>
             </tr>
 
             <tr>
                 <td style="width: 20%">Nelayan Pendatang</td>
-                <td style="width: 30%">: {{ .temporary_fisher }} orang</td>
+                <td style="width: 30%">: {{ .temporary_fisher }}</td>
                 <td style="width: 20%">Pembeli Pendatang</td>
-                <td style="width: 30%">: {{ .temporary_buyer }} orang</td>
+                <td style="width: 30%">: {{ .temporary_buyer }}</td>
             </tr>
         </table>
 
@@ -179,8 +185,8 @@
                     <td>{{ .buyer_name}}</td>
                     <td>{{ .fish_code }}</td>
                     <td>{{ .fish_name }}</td>
-                    <td style="text-align: right">{{ .weight }} {{ .weight_unit }}</td>
-                    <td style="text-align: right">Rp{{ .price }}</td>
+                    <td style="text-align: right">{{ .fix_weight }}</td>
+                    <td style="text-align: right">{{ .price }}</td>
                 </tr>
             {{ end }}
         </table>

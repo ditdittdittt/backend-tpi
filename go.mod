@@ -12,6 +12,7 @@ require (
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
+	github.com/leekchan/accounting v1.0.0
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177

@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"time"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 
@@ -23,6 +24,7 @@ func GeneratePdf(header map[string]interface{}, data []map[string]interface{}, p
 	}
 
 	header["table"] = data
+	header["downloaded_at"] = time.Now().Format("2 Jan 2006 15:04:05")
 
 	switch pdfType {
 	case constant.ProductionPdf:

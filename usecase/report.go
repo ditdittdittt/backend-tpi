@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/leekchan/accounting"
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
@@ -311,9 +312,9 @@ func (r *reportUsecase) exportExcelProductionReport(header map[string]interface{
 	xlsx.SetCellValue(sheet1Name, "A6", "Total Produksi")
 	xlsx.SetCellValue(sheet1Name, "A7", "Nilai Produksi")
 	xlsx.SetCellValue(sheet1Name, "A8", "Kecepatan Penjualan")
-	xlsx.SetCellValue(sheet1Name, "B6", fmt.Sprintf("%.2f Kg", header["production_total"]))
-	xlsx.SetCellValue(sheet1Name, "B7", fmt.Sprintf("Rp %2.f", header["production_value"]))
-	xlsx.SetCellValue(sheet1Name, "B8", fmt.Sprintf("%s Jam", header["transaction_speed"]))
+	xlsx.SetCellValue(sheet1Name, "B6", header["production_total"])
+	xlsx.SetCellValue(sheet1Name, "B7", header["production_value"])
+	xlsx.SetCellValue(sheet1Name, "B8", header["transaction_speed"])
 
 	xlsx.SetCellValue(sheet1Name, "A10", "Tabel Produksi Ikan")
 	xlsx.MergeCell(sheet1Name, "A10", "F10")
@@ -334,9 +335,9 @@ func (r *reportUsecase) exportExcelProductionReport(header map[string]interface{
 		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("A%d", i+12), i+1)
 		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("B%d", i+12), each["code"])
 		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("C%d", i+12), each["name"])
-		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("D%d", i+12), fmt.Sprintf("%.2f Kg", each["production_total"]))
-		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("E%d", i+12), fmt.Sprintf("Rp %2.f", each["production_value"]))
-		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("F%d", i+12), fmt.Sprintf("%s Jam", each["transaction_speed"]))
+		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("D%d", i+12), each["production_total"])
+		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("E%d", i+12), each["production_value"])
+		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("F%d", i+12), each["transaction_speed"])
 	}
 
 	return xlsx, nil
@@ -378,9 +379,9 @@ func (r *reportUsecase) productionReport(tpiID int, districtID int, from string,
 			avgTransactionSpeed += averageTransactionSpeedPerTpi / 3600
 		}
 
-		data["production_total"] = productionTotal
-		data["production_value"] = productionValue
-		data["transaction_speed"] = fmt.Sprintf("%.2f", avgTransactionSpeed/float64(len(tpis)))
+		data["production_total"] = weightFormatter(productionTotal)
+		data["production_value"] = currencyFormatter(productionValue)
+		data["transaction_speed"] = fmt.Sprintf("%.2f Jam", avgTransactionSpeed/float64(len(tpis)))
 
 		return data, nil
 	}
@@ -390,21 +391,21 @@ func (r *reportUsecase) productionReport(tpiID int, districtID int, from string,
 		return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
 	}
 
-	data["production_total"] = weightTotal
+	data["production_total"] = weightFormatter(weightTotal)
 
 	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
 	}
 
-	data["production_value"] = productionValue
+	data["production_value"] = currencyFormatter(productionValue)
 
 	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
 	}
 
-	data["transaction_speed"] = fmt.Sprintf("%.2f", averageTransactionSpeed/3600)
+	data["transaction_speed"] = fmt.Sprintf("%.2f Jam", averageTransactionSpeed/3600)
 
 	return data, nil
 }
@@ -454,9 +455,9 @@ func (r *reportUsecase) getProductionTable(tpiID int, districtID int, from strin
 				"id":                fishType.ID,
 				"code":              fishType.Code,
 				"name":              fishType.Name,
-				"production_total":  productionTotal,
-				"production_value":  productionValue,
-				"transaction_speed": fmt.Sprintf("%.2f", avgTransactionSpeed/float64(len(tpis))),
+				"production_total":  weightFormatter(productionTotal),
+				"production_value":  currencyFormatter(productionValue),
+				"transaction_speed": fmt.Sprintf("%.2f Jam", avgTransactionSpeed/float64(len(tpis))),
 			}
 			productionTable = append(productionTable, data)
 		}
@@ -484,9 +485,9 @@ func (r *reportUsecase) getProductionTable(tpiID int, districtID int, from strin
 			"id":                fishType.ID,
 			"code":              fishType.Code,
 			"name":              fishType.Name,
-			"production_total":  fishWeightTotal,
-			"production_value":  fishProductionValue,
-			"transaction_speed": fmt.Sprintf("%.2f", fishAverageTransactionSpeed/3600),
+			"production_total":  weightFormatter(fishWeightTotal),
+			"production_value":  currencyFormatter(fishProductionValue),
+			"transaction_speed": fmt.Sprintf("%.2f Jam", fishAverageTransactionSpeed/3600),
 		}
 		productionTable = append(productionTable, data)
 	}
@@ -522,24 +523,24 @@ func (r *reportUsecase) exportExcelTransactionReport(header map[string]interface
 	xlsx.SetCellValue(sheet1Name, "A7", "Total Produksi")
 	xlsx.SetCellValue(sheet1Name, "A8", "Nilai Produksi")
 	xlsx.SetCellValue(sheet1Name, "A9", "Kecepatan Penjualan")
-	xlsx.SetCellValue(sheet1Name, "B6", fmt.Sprintf("%d transaksi", header["transaction_total"]))
-	xlsx.SetCellValue(sheet1Name, "B7", fmt.Sprintf("%.2f Kg", header["production_total"]))
-	xlsx.SetCellValue(sheet1Name, "B8", fmt.Sprintf("Rp %2.f", header["production_value"]))
-	xlsx.SetCellValue(sheet1Name, "B9", fmt.Sprintf("%s Jam", header["transaction_speed"]))
+	xlsx.SetCellValue(sheet1Name, "B6", header["transaction_total"])
+	xlsx.SetCellValue(sheet1Name, "B7", header["production_total"])
+	xlsx.SetCellValue(sheet1Name, "B8", header["production_value"])
+	xlsx.SetCellValue(sheet1Name, "B9", header["transaction_speed"])
 
 	xlsx.SetCellValue(sheet1Name, "A10", "Jumlah nelayan yang mendaratkan ikan")
 	xlsx.MergeCell(sheet1Name, "A10", "D10")
 	xlsx.SetCellValue(sheet1Name, "A11", "Nelayan Tetap")
-	xlsx.SetCellValue(sheet1Name, "B11", fmt.Sprintf("%d orang", header["permanent_fisher"]))
+	xlsx.SetCellValue(sheet1Name, "B11", header["permanent_fisher"])
 	xlsx.SetCellValue(sheet1Name, "A12", "Nelayan Pendatang")
-	xlsx.SetCellValue(sheet1Name, "B12", fmt.Sprintf("%d orang", header["temporary_fisher"]))
+	xlsx.SetCellValue(sheet1Name, "B12", header["temporary_fisher"])
 
 	xlsx.SetCellValue(sheet1Name, "E10", "Jumlah pembeli yang ikut lelang ikan")
 	xlsx.MergeCell(sheet1Name, "E10", "H10")
 	xlsx.SetCellValue(sheet1Name, "E11", "Pembeli Tetap")
-	xlsx.SetCellValue(sheet1Name, "F11", fmt.Sprintf("%d orang", header["permanent_buyer"]))
+	xlsx.SetCellValue(sheet1Name, "F11", header["permanent_buyer"])
 	xlsx.SetCellValue(sheet1Name, "E12", "Pembeli Pendatang")
-	xlsx.SetCellValue(sheet1Name, "F12", fmt.Sprintf("%d orang", header["temporary_buyer"]))
+	xlsx.SetCellValue(sheet1Name, "F12", header["temporary_buyer"])
 
 	xlsx.SetCellValue(sheet1Name, "A14", "Tabel Transaksi Lelang")
 	xlsx.MergeCell(sheet1Name, "A14", "H14")
@@ -565,8 +566,8 @@ func (r *reportUsecase) exportExcelTransactionReport(header map[string]interface
 		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("D%d", i+16), each["buyer_name"])
 		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("E%d", i+16), each["fish_code"])
 		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("F%d", i+16), each["fish_name"])
-		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("G%d", i+16), fmt.Sprintf("%.2f %s", each["weight"], each["weight_unit"]))
-		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("H%d", i+16), fmt.Sprintf("Rp %.2f", each["price"]))
+		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("G%d", i+16), each["fix_weight"])
+		xlsx.SetCellValue(sheet1Name, fmt.Sprintf("H%d", i+16), each["price"])
 	}
 
 	return xlsx, nil
@@ -641,14 +642,14 @@ func (r *reportUsecase) transactionReport(tpiID int, districtID int, from string
 			temporaryBuyer += temporaryBuyerPerTpi
 		}
 
-		data["transaction_total"] = transactionTotal
-		data["production_total"] = productionTotal
-		data["production_value"] = productionValue
-		data["transaction_speed"] = fmt.Sprintf("%.2f", avgTransactionSpeed/float64(len(tpis)))
-		data["permanent_fisher"] = permanentFisher
-		data["temporary_fisher"] = temporaryFisher
-		data["permanent_buyer"] = permanentBuyer
-		data["temporary_buyer"] = temporaryBuyer
+		data["transaction_total"] = totalFormatter(transactionTotal)
+		data["production_total"] = weightFormatter(productionTotal)
+		data["production_value"] = currencyFormatter(productionValue)
+		data["transaction_speed"] = fmt.Sprintf("%.2f Jam", avgTransactionSpeed/float64(len(tpis)))
+		data["permanent_fisher"] = peopleFormatter(permanentFisher)
+		data["temporary_fisher"] = peopleFormatter(temporaryFisher)
+		data["permanent_buyer"] = peopleFormatter(permanentBuyer)
+		data["temporary_buyer"] = peopleFormatter(temporaryBuyer)
 
 		return data, nil
 	}
@@ -658,56 +659,56 @@ func (r *reportUsecase) transactionReport(tpiID int, districtID int, from string
 		return data, stacktrace.Propagate(err, "[GetTotalTransaction] Total transaction error")
 	}
 
-	data["transaction_total"] = transactionTotal
+	data["transaction_total"] = totalFormatter(transactionTotal)
 
 	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
 	}
 
-	data["production_total"] = weightTotal
+	data["production_total"] = weightFormatter(weightTotal)
 
 	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
 	}
 
-	data["production_value"] = productionValue
+	data["production_value"] = currencyFormatter(productionValue)
 
 	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
 	}
 
-	data["transaction_speed"] = fmt.Sprintf("%.2f", averageTransactionSpeed/3600)
+	data["transaction_speed"] = fmt.Sprintf("%.2f Jam", averageTransactionSpeed/3600)
 
 	permanentFisher, err := r.caughtRepository.GetFisherTotal("Tetap", tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
 	}
 
-	data["permanent_fisher"] = permanentFisher
+	data["permanent_fisher"] = peopleFormatter(permanentFisher)
 
 	temporaryFisher, err := r.caughtRepository.GetFisherTotal("Pendatang", tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
 	}
 
-	data["temporary_fisher"] = temporaryFisher
+	data["temporary_fisher"] = peopleFormatter(temporaryFisher)
 
 	permanentBuyer, err := r.transactionRepository.GetBuyerTotal("Tetap", tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
 	}
 
-	data["permanent_buyer"] = permanentBuyer
+	data["permanent_buyer"] = peopleFormatter(permanentBuyer)
 
 	temporaryBuyer, err := r.transactionRepository.GetBuyerTotal("Pendatang", tpiID, from, to)
 	if err != nil {
 		return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
 	}
 
-	data["temporary_buyer"] = temporaryBuyer
+	data["temporary_buyer"] = peopleFormatter(temporaryBuyer)
 
 	return data, nil
 }
@@ -716,6 +717,12 @@ func (r *reportUsecase) getTransactionTable(tpiID int, districtID int, from stri
 	transactionData, err := r.transactionItemRepository.GetReport(tpiID, districtID, from, to)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[Get] Transaction item repository error")
+	}
+
+	for index, data := range transactionData {
+		data["index"] = index + 1
+		data["price"] = currencyFormatter(data["price"].(float64))
+		data["fix_weight"] = modifyFormatter(data["weight_unit"].(string), data["weight"].(float64))
 	}
 
 	return transactionData, nil
@@ -730,4 +737,29 @@ func generateXlsxStyle(xlsx *excelize.File) int {
 }`)
 	xlsx.SetRowHeight(xlsx.GetSheetName(1), 1, 36)
 	return style
+}
+
+func currencyFormatter(input float64) string {
+	ac := accounting.Accounting{Symbol: "Rp", Precision: 2, Thousand: ".", Decimal: ",", Format: "%s %v"}
+	return ac.FormatMoneyFloat64(input)
+}
+
+func weightFormatter(input float64) string {
+	ac := accounting.Accounting{Symbol: "Kg", Precision: 2, Thousand: ".", Decimal: ",", Format: "%v %s"}
+	return ac.FormatMoneyFloat64(input)
+}
+
+func totalFormatter(input int) string {
+	ac := accounting.Accounting{Symbol: "Transaksi", Thousand: ".", Format: "%v %s"}
+	return ac.FormatMoneyInt(input)
+}
+
+func peopleFormatter(input int) string {
+	ac := accounting.Accounting{Symbol: "Orang", Thousand: ".", Format: "%v %s"}
+	return ac.FormatMoneyInt(input)
+}
+
+func modifyFormatter(symbol string, input float64) string {
+	ac := accounting.Accounting{Symbol: symbol, Precision: 2, Thousand: ".", Decimal: ",", Format: "%v %s"}
+	return ac.FormatMoneyFloat64(input)
 }
