@@ -3,7 +3,9 @@ package services
 import (
 	"bytes"
 	"html/template"
+	"io/ioutil"
 	"log"
+	"os"
 	"path"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
@@ -11,7 +13,7 @@ import (
 	"github.com/ditdittdittt/backend-tpi/constant"
 )
 
-func GeneratePdf(header map[string]interface{}, data []map[string]interface{}, pdfType string) (*wkhtmltopdf.PDFGenerator, error) {
+func GeneratePdf(header map[string]interface{}, data []map[string]interface{}, pdfType string) ([]byte, error) {
 	var filepath string
 
 	pdfg, err := wkhtmltopdf.NewPDFGenerator()
@@ -53,13 +55,39 @@ func GeneratePdf(header map[string]interface{}, data []map[string]interface{}, p
 		return nil, err
 	}
 
-	//outputFile := "./output.pdf"
-	//
-	//err = pdfg.WriteFile(outputFile)
+	outputFile := "./output.pdf"
+	switch pdfType {
+	case constant.ProductionPdf:
+		outputFile = "./output-production.pdf"
+	case constant.TransactionPdf:
+		outputFile = "./output-transaction.pdf"
+	}
+
+	err = pdfg.WriteFile(outputFile)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	// Take a pdf file
+	outputPDF, err := os.OpenFile(outputFile, os.O_RDWR, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	// Read a file
+	pdf, err := ioutil.ReadAll(outputPDF)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	//// Remove a file
+	//err = os.Remove(outputFile)
 	//if err != nil {
 	//	log.Fatal(err)
 	//	return nil, err
 	//}
-
-	return pdfg, nil
+	return pdf, nil
 }

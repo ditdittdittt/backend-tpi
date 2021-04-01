@@ -129,7 +129,7 @@ func (h *reportHandler) ExportPdfProduction(c *gin.Context) {
 
 	stringFrom, stringTo, queryType := h.getDate(c)
 
-	pdf, err := h.reportUsecase.ExportPdfProductionReport(tpiID, districtID, stringFrom, stringTo, queryType)
+	pdfProduction, err := h.reportUsecase.ExportPdfProductionReport(tpiID, districtID, stringFrom, stringTo, queryType)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -138,7 +138,7 @@ func (h *reportHandler) ExportPdfProduction(c *gin.Context) {
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Disposition", "attachment; filename="+"Laporan Produksi Ikan.pdf")
 	c.Header("Content-Transfer-Encoding", "binary")
-	pdf.SetOutput(c.Writer)
+	c.Writer.Write(pdfProduction)
 }
 
 func (h *reportHandler) ExportPdfTransaction(c *gin.Context) {
@@ -150,7 +150,7 @@ func (h *reportHandler) ExportPdfTransaction(c *gin.Context) {
 
 	stringFrom, stringTo, queryType := h.getDate(c)
 
-	pdf, err := h.reportUsecase.ExportPdfTransactionReport(tpiID, districtID, stringFrom, stringTo, queryType)
+	pdfTransaction, err := h.reportUsecase.ExportPdfTransactionReport(tpiID, districtID, stringFrom, stringTo, queryType)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -159,7 +159,7 @@ func (h *reportHandler) ExportPdfTransaction(c *gin.Context) {
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Disposition", "attachment; filename="+"Laporan Transaksi Lelang.pdf")
 	c.Header("Content-Transfer-Encoding", "binary")
-	pdf.SetOutput(c.Writer)
+	c.Writer.Write(pdfTransaction)
 }
 
 func (h *reportHandler) getDate(c *gin.Context) (string, string, string) {

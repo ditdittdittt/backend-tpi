@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/palantir/stacktrace"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
@@ -17,8 +16,8 @@ type ReportUsecase interface {
 	GetTransactionReport(tpiID int, districtID int, from string, to string) (map[string]interface{}, error)
 	ExportExcelProductionReport(tpiID int, districtID int, from string, to string, queryType string) (*excelize.File, error)
 	ExportExcelTransactionReport(tpiID int, districtID int, from string, to string, queryType string) (*excelize.File, error)
-	ExportPdfProductionReport(tpiID int, districtID int, from string, to string, queryType string) (*wkhtmltopdf.PDFGenerator, error)
-	ExportPdfTransactionReport(tpiID int, districtID int, from string, to string, queryType string) (*wkhtmltopdf.PDFGenerator, error)
+	ExportPdfProductionReport(tpiID int, districtID int, from string, to string, queryType string) ([]byte, error)
+	ExportPdfTransactionReport(tpiID int, districtID int, from string, to string, queryType string) ([]byte, error)
 }
 
 var queryMapping = map[string]interface{}{
@@ -57,7 +56,7 @@ func NewReportUsecase(
 	}
 }
 
-func (r *reportUsecase) ExportPdfProductionReport(tpiID int, districtID int, from string, to string, queryType string) (*wkhtmltopdf.PDFGenerator, error) {
+func (r *reportUsecase) ExportPdfProductionReport(tpiID int, districtID int, from string, to string, queryType string) ([]byte, error) {
 	header, err := r.productionReport(tpiID, districtID, from, to)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[productionReport] Report usecase error")
@@ -106,7 +105,7 @@ func (r *reportUsecase) ExportPdfProductionReport(tpiID int, districtID int, fro
 	return pdf, nil
 }
 
-func (r *reportUsecase) ExportPdfTransactionReport(tpiID int, districtID int, from string, to string, queryType string) (*wkhtmltopdf.PDFGenerator, error) {
+func (r *reportUsecase) ExportPdfTransactionReport(tpiID int, districtID int, from string, to string, queryType string) ([]byte, error) {
 	header, err := r.transactionReport(tpiID, districtID, from, to)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[transactionReport] Report usecase error")
@@ -285,7 +284,7 @@ func (r *reportUsecase) GetProductionReport(tpiID int, districtID int, from stri
 	return data, nil
 }
 
-func (r *reportUsecase) exportPdfProductionReport(header map[string]interface{}, data []map[string]interface{}) (*wkhtmltopdf.PDFGenerator, error) {
+func (r *reportUsecase) exportPdfProductionReport(header map[string]interface{}, data []map[string]interface{}) ([]byte, error) {
 	pdfg, err := services.GeneratePdf(header, data, constant.ProductionPdf)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "[GeneratePdf] Services error")
@@ -495,7 +494,7 @@ func (r *reportUsecase) getProductionTable(tpiID int, districtID int, from strin
 	return productionTable, nil
 }
 
-func (r *reportUsecase) exportPdfTransactionReport(header map[string]interface{}, data []map[string]interface{}) (*wkhtmltopdf.PDFGenerator, error) {
+func (r *reportUsecase) exportPdfTransactionReport(header map[string]interface{}, data []map[string]interface{}) ([]byte, error) {
 	pdfg, err := services.GeneratePdf(header, data, constant.TransactionPdf)
 	if err != nil {
 		return nil, err

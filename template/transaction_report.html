@@ -1,116 +1,189 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <meta charset="utf-8">
-    <title>Table</title>
-    <style media="screen">
-        body {
-            font-size: 12px;
-        }
+    <head>
+        <meta charset="utf-8">
+        <title>Table</title>
+        <style media="screen">
+            h1 {
+                font-family: Arial, Helvetica, sans-serif;
+                padding-bottom: 20px;
+                text-align: center;
+                font-size: 24px;
+            }
+            h3 {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 16px;
+            }
 
-        .table {
-            width: 100%;
-            border: 1px solid #dadada;
-        }
+            #tpi {
+                font-family: Arial, Helvetica, sans-serif;
+                font-weight: bold;
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 10px;
+                margin-bottom: 20px;
+            }
 
-        .tableTitle {
-            font-weight: bold;
-            background-color: #efefef;
-            padding: 15px;
-            border: 1px solid #dadada;
-        }
+            #tpi td {
+                padding-top: 6px;
+                text-align: left;
+                font-size: 16px;
+                color: #000000;
+            }
+            #header {
+                font-family: Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 10px;
+                margin-bottom: 20px;
+            }
 
-        .tableBody {
-            padding: 10px;
-        }
-    </style>
-</head>
+            #header td {
+                padding-top: 6px;
+                text-align: left;
+                font-size: 16px;
+                color: #000000;
+            }
 
-<body>
-<h1>Laporan Transaksi Lelang</h1>
+            #fisherTitle {
+                font-family: Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 10px;
+                font-weight: bold;
+            }
 
-<h2>{{ .district_name }}</h2>
-<h2>{{ .tpi_name }}</h2>
+            #fisherTitle td {
+                padding-top: 6px;
+                text-align: left;
+                font-size: 16px;
+                color: #000000;
+                width: 50%;
+            }
 
-<h3>{{ .query_type }} : {{ .date }}</h3>
+            #fisher {
+                font-family: Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 3px;
+                margin-bottom: 35px;
+            }
 
-<table class="table">
-    <tr class="tableBody">
-        <th>Jumlah Transaksi</th>
-        <th>{{ .transaction_total }} transaksi</th>
-    </tr>
+            #fisher td {
+                padding-top: 6px;
+                text-align: left;
+                font-size: 16px;
+                color: #000000;
+            }
 
-    <tr class="tableBody">
-        <th>Total Produksi</th>
-        <th>{{ .production_total }} Kg</th>
-    </tr>
+            #transaction {
+                font-family: Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 20px;
+            }
 
-    <tr class="tableBody">
-        <th>Nilai Produksi</th>
-        <th>Rp. {{ .production_value }} Kg</th>
-    </tr>
+            #transaction td,
+            #transaction th {
+                border: 1px solid #ddd;
+                padding: 8px;
+                font-size: 14px;
+            }
 
-    <tr class="tableBody">
-        <th>Kecepatan Penjualan </th>
-        <th>{{ .transation_speed }} Jam</th>
-    </tr>
-</table>
+            #transaction th {
+                padding-top: 12px;
+                padding-bottom: 12px;
+                text-align: center;
+                background-color: #f5f6f8;
+                color: #000000;
+            }
+        </style>
+    </head>
 
-<table class="table">
-    <tr class="tableBody">
-        <th>Jumlah nelayan yang mendaratkan ikan :</th>
-    </tr>
-    <tr class="tableBody">
-        <td>Nelayan Tetap</td>
-        <td>{{ .permanent_fisher }} orang</td>
-    </tr>
-    <tr class="tableBody">
-        <td>Nelayan Pendatang</td>
-        <td>{{ .temporary_fisher }} orang</td>
-    </tr>
-</table>
+    <body>
+        <h1>Laporan Transaksi Lelang</h1>
 
-<table class="table">
-    <tr class="tableBody">
-        <th>Jumlah pembeli yang ikut lelang ikan :</th>
-    </tr>
-    <tr class="tableBody">
-        <td>Pembeli Tetap</td>
-        <td>{{ .permanent_buyer }} orang</td>
-    </tr>
-    <tr class="tableBody">
-        <td>Pembeli Pendatang</td>
-        <td>{{ .temporary_buyer }} orang</td>
-    </tr>
-</table>
+        <table id="tpi">
+            <tr>
+                <td>{{ .district_name }}</td>
+            </tr>
+            <tr>
+                <td>{{ .tpi_name }}</td>
+            </tr>
+            <tr>
+                <td style="width: 20%">{{ .query_type }} : {{ .date }}</td>
+            </tr>
+        </table>
 
-<h3>Tabel Transaksi Lelang</h3>
-<table class="table">
-    <tr class="tableTitle">
-        <th>No.</th>
-        <th>ID</th>
-        <th>Nama Nelayan</th>
-        <th>Nama Pembeli</th>
-        <th>Kode Ikan</th>
-        <th>Nama Ikan</th>
-        <th>Berat</th>
-        <th>Nilai Lelang (Rp)</th>
-    </tr>
-    {{ range $index, $value := .table }}
-        <tr style="border:1px solid #dadada">
-            <td>{{ $index }}</td>
-            <td>{{ .code }}</td>
-            <td>{{ .fisher_name }}</td>
-            <td>{{ .buyer_name}}</td>
-            <td>{{ .fish_code }}</td>
-            <td>{{ .fish_name }}</td>
-            <td>{{ .weight }} {{ .weight_unit }}</td>
-            <td>Rp {{ .price }}</td>
-        </tr>
-    {{ end }}
-</table>
+        <table id="header">
+            <tr>
+                <td style="width: 20%">Jumlah Transaksi</td>
+                <td>: {{ .transaction_total }} Transaksi</td>
+            </tr>
+            <tr>
+                <td style="width: 20%">Total Produksi</td>
+                <td>: {{ .production_total }} Kg</td>
+            </tr>
+            <tr>
+                <td style="width: 20%">Nilai Produksi</td>
+                <td>: Rp{{ .production_value }}</td>
+            </tr>
+            <tr>
+                <td style="width: 20%">Kecepatan Penjualan</td>
+                <td>: {{ .transaction_speed }} Jam</td>
+            </tr>
+        </table>
 
-</body>
+        <table id="fisherTitle">
+            <tr>
+                <td>Jumlah nelayan yang mendaratkan ikan :</td>
+                <td>Jumlah pembeli yang ikut lelang ikan :</td>
+            </tr>
+        </table>
 
+        <table id="fisher">
+            <tr>
+                <td style="width: 20%">Nelayan Tetap</td>
+                <td style="width: 30%">: {{ .permanent_fisher }} orang</td>
+                <td style="width: 20%">Pembeli Tetap</td>
+                <td style="width: 30%">: {{ .permanent_buyer }} orang</td>
+            </tr>
+
+            <tr>
+                <td style="width: 20%">Nelayan Pendatang</td>
+                <td style="width: 30%">: {{ .temporary_fisher }} orang</td>
+                <td style="width: 20%">Pembeli Pendatang</td>
+                <td style="width: 30%">: {{ .temporary_buyer }} orang</td>
+            </tr>
+        </table>
+
+        <h3>Tabel Transaksi Lelang</h3>
+
+        <table id="transaction">
+            <tr>
+                <th>No.</th>
+                <th>ID Transaksi</th>
+                <th>Nama Nelayan</th>
+                <th>Nama Pembeli</th>
+                <th>Kode Ikan</th>
+                <th>Nama Ikan</th>
+                <th>Berat</th>
+                <th>Nilai Lelang</th>
+            </tr>
+            {{ range $index, $value := .table }}
+                <tr>
+                    <td>{{ $index }}</td>
+                    <td>{{ .code }}</td>
+                    <td>{{ .fisher_name }}</td>
+                    <td>{{ .buyer_name}}</td>
+                    <td>{{ .fish_code }}</td>
+                    <td>{{ .fish_name }}</td>
+                    <td style="text-align: right">{{ .weight }} {{ .weight_unit }}</td>
+                    <td style="text-align: right">Rp{{ .price }}</td>
+                </tr>
+            {{ end }}
+        </table>
+
+    </body>
 </html>
