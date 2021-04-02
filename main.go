@@ -30,7 +30,6 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.Use(cors.Default())
 	jwtService := services.NewJWTAuthService()
 
 	// TPI
@@ -115,5 +114,6 @@ func main() {
 	dashboardUsecase := usecase.NewDashboardUsecase(caughtRepository, auctionRepository, transactionRepository, tpiRepository)
 	http.NewDashboardHandler(r, dashboardUsecase)
 
+	r.Use(cors.Default())
 	r.Run(":9090")
 }
