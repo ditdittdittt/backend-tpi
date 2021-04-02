@@ -30,6 +30,11 @@ func main() {
 	}
 
 	r := gin.Default()
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowCredentials = true
+	config.AddAllowHeaders("authorization")
+	r.Use(cors.New(config))
 	jwtService := services.NewJWTAuthService()
 
 	// TPI
@@ -114,6 +119,5 @@ func main() {
 	dashboardUsecase := usecase.NewDashboardUsecase(caughtRepository, auctionRepository, transactionRepository, tpiRepository)
 	http.NewDashboardHandler(r, dashboardUsecase)
 
-	r.Use(cors.Default())
 	r.Run(":9090")
 }
