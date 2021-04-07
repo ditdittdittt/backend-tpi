@@ -11,7 +11,7 @@ type Transaction struct {
 	BuyerID          int                `json:"buyer_id,omitempty"`
 	Buyer            *Buyer             `json:"buyer,omitempty"`
 	DistributionArea string             `json:"distribution_area,omitempty"`
-	Code             string             `json:"code,omitempty"`
+	Code             string             `gorm:"unique" json:"code,omitempty"`
 	TotalPrice       float64            `json:"total_price,omitempty"`
 	CreatedAt        time.Time          `json:"created_at,omitempty"`
 	UpdatedAt        time.Time          `json:"updated_at,omitempty"`

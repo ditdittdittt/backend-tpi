@@ -6,7 +6,7 @@ type Fisher struct {
 	ID          int          `json:"id,omitempty"`
 	UserID      int          `json:"user_id,omitempty"`
 	User        *User        `json:"user,omitempty"`
-	Nik         string       `json:"nik,omitempty"`
+	Nik         string       `gorm:"unique" json:"nik,omitempty"`
 	Name        string       `json:"name,omitempty"`
 	NickName    string       `json:"nick_name,omitempty"`
 	Address     string       `json:"address,omitempty"`

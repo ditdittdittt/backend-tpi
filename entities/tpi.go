@@ -11,7 +11,7 @@ type Tpi struct {
 	Address     string    `json:"address,omitempty"`
 	PhoneNumber string    `json:"phone_number,omitempty"`
 	Pic         string    `json:"pic,omitempty"`
-	Code        string    `json:"code,omitempty"`
+	Code        string    `gorm:"unique" json:"code,omitempty"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`
 	UpdatedAt   time.Time `json:"updated_at,omitempty"`
 }

@@ -28,8 +28,8 @@ type fishingAreaHandler struct {
 func NewFishingAreaHandler(server *gin.Engine, fishingAreaUsecase usecase.FishingAreaUsecase) {
 	handler := &fishingAreaHandler{fishingAreaUsecase: fishingAreaUsecase}
 	server.POST("/fishing-area", middleware.AuthorizeJWT(constant.CreateFishingArea), handler.Create)
-	server.GET("/fishing-areas", middleware.AuthorizeJWT(constant.Pass), handler.Index)
-	server.GET("/fishing-area/:id", middleware.AuthorizeJWT(constant.GetByIDFishingArea), handler.GetByID)
+	server.GET("/fishing-areas", middleware.AuthorizeJWT(constant.ReadFishingArea), handler.Index)
+	server.GET("/fishing-area/:id", middleware.AuthorizeJWT(constant.ReadFishingArea), handler.GetByID)
 	server.PUT("/fishing-area/:id", middleware.AuthorizeJWT(constant.UpdateFishingArea), handler.Update)
 	server.DELETE("/fishing-area/:id", middleware.AuthorizeJWT(constant.DeleteFishingArea), handler.Delete)
 }

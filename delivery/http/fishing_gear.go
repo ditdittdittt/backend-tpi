@@ -28,8 +28,8 @@ type fishingGearHandler struct {
 func NewFishingGearHandler(server *gin.Engine, fishingGearusecase usecase.FishingGearUsecase) {
 	handler := &fishingGearHandler{FishingGearUsecase: fishingGearusecase}
 	server.POST("/fishing-gear", middleware.AuthorizeJWT(constant.CreateFishingGear), handler.Create)
-	server.GET("/fishing-gears", middleware.AuthorizeJWT(constant.Pass), handler.Index)
-	server.GET("/fishing-gear/:id", middleware.AuthorizeJWT(constant.GetByIDFishingGear), handler.GetByID)
+	server.GET("/fishing-gears", middleware.AuthorizeJWT(constant.ReadFishingGear), handler.Index)
+	server.GET("/fishing-gear/:id", middleware.AuthorizeJWT(constant.ReadFishingGear), handler.GetByID)
 	server.PUT("/fishing-gear/:id", middleware.AuthorizeJWT(constant.UpdateFishingGear), handler.Update)
 	server.DELETE("/fishing-gear/:id", middleware.AuthorizeJWT(constant.DeleteFishingGear), handler.Delete)
 }

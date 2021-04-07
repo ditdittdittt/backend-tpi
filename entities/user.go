@@ -8,10 +8,10 @@ type User struct {
 	Role         *Role       `json:"role,omitempty"`
 	UserStatusID int         `json:"user_status_id,omitempty"`
 	UserStatus   *UserStatus `json:"user_status,omitempty"`
-	Nik          string      `json:"nik,omitempty"`
+	Nik          string      `gorm:"unique" json:"nik,omitempty"`
 	Name         string      `json:"name,omitempty"`
 	Address      string      `json:"address,omitempty"`
-	Username     string      `json:"username,omitempty"`
+	Username     string      `gorm:"unique" json:"username,omitempty"`
 	Password     string      `json:"-"`
 	CreatedAt    time.Time   `json:"created_at,omitempty"`
 	UpdatedAt    time.Time   `json:"updated_at,omitempty"`
