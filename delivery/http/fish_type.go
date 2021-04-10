@@ -27,8 +27,8 @@ type fishTypeHandler struct {
 func NewFishTypeHandler(server *gin.Engine, fishTypeUsecase usecase.FishTypeUsecase) {
 	handler := &fishTypeHandler{fishTypeUsecase: fishTypeUsecase}
 	server.POST("/fish-type", middleware.AuthorizeJWT(constant.CreateFishType), handler.Create)
-	server.GET("/fish-types", middleware.AuthorizeJWT(constant.Pass), handler.Index)
-	server.GET("/fish-type/:id", middleware.AuthorizeJWT(constant.GetByIDFishType), handler.GetByID)
+	server.GET("/fish-types", middleware.AuthorizeJWT(constant.ReadFishType), handler.Index)
+	server.GET("/fish-type/:id", middleware.AuthorizeJWT(constant.ReadFishType), handler.GetByID)
 	server.PUT("/fish-type/:id", middleware.AuthorizeJWT(constant.UpdateFishType), handler.Update)
 	server.DELETE("/fish-type/:id", middleware.AuthorizeJWT(constant.DeleteFishType), handler.Delete)
 }

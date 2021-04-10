@@ -10,5 +10,5 @@ type CaughtItem struct {
 	CaughtStatus   *CaughtStatus `json:"caught_status,omitempty"`
 	Weight         float64       `json:"weight,omitempty"`
 	WeightUnit     string        `json:"weight_unit,omitempty"`
-	Code           string        `json:"code,omitempty"`
+	Code           string        `gorm:"unique" json:"code,omitempty"`
 }

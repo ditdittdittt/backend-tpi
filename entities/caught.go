@@ -17,6 +17,6 @@ type Caught struct {
 	TripDay       int           `json:"trip_day,omitempty"`
 	CreatedAt     time.Time     `json:"created_at,omitempty"`
 	UpdatedAt     time.Time     `json:"updated_at,omitempty"`
-	Code          string        `json:"code,omitempty"`
+	Code          string        `gorm:"unique" json:"code,omitempty"`
 	CaughtItem    []*CaughtItem `json:"caught_item,omitempty"`
 }

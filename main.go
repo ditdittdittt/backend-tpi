@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
+	configuration "github.com/ditdittdittt/backend-tpi/config"
 	"github.com/ditdittdittt/backend-tpi/database"
 	"github.com/ditdittdittt/backend-tpi/delivery/http"
 	"github.com/ditdittdittt/backend-tpi/repository/client"
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	configuration.Init()
 	database.Init()
 
 	if len(os.Args) > 1 {

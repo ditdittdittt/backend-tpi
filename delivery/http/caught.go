@@ -29,11 +29,11 @@ type caughtHandler struct {
 func NewCaughtHandler(server *gin.Engine, caughtUsecase usecase.CaughtUsecase) {
 	handler := &caughtHandler{CaughtUsecase: caughtUsecase}
 	server.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
-	server.GET("/caught/getbyid/:id", middleware.AuthorizeJWT(constant.GetByIDCaught), handler.GetByID)
+	server.GET("/caught/getbyid/:id", middleware.AuthorizeJWT(constant.ReadCaught), handler.GetByID)
 	server.PUT("/caught/update/:id", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
 	server.DELETE("/caught/delete/:id", middleware.AuthorizeJWT(constant.DeleteCaught), handler.Delete)
-	server.GET("/caughts", middleware.AuthorizeJWT(constant.Pass), handler.Index)
-	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.InquiryCaught), handler.Inquiry)
+	server.GET("/caughts", middleware.AuthorizeJWT(constant.ReadCaught), handler.Index)
+	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.ReadCaught), handler.Inquiry)
 }
 
 func (h *caughtHandler) Create(c *gin.Context) {

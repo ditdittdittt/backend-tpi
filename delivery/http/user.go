@@ -37,7 +37,7 @@ func NewUserHandler(server *gin.Engine, userUsecase usecase.UserUsecase) {
 		user.POST("/change-password", middleware.AuthorizeJWT(constant.Pass), handler.ChangePassword)
 	}
 	server.GET("/users", middleware.AuthorizeJWT(constant.Pass), handler.Index)
-	server.GET("/user/:id", middleware.AuthorizeJWT(constant.GetByIDUser), handler.GetByID)
+	server.GET("/user/:id", middleware.AuthorizeJWT(constant.ReadUser), handler.GetByID)
 	server.PUT("/user/:id", middleware.AuthorizeJWT(constant.UpdateUser), handler.Update)
 	server.POST("/user/reset-password/:id", middleware.AuthorizeJWT(constant.ResetPassword), handler.ResetPassword)
 }

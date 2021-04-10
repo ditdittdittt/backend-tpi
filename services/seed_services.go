@@ -12,10 +12,10 @@ import (
 )
 
 func Seed() {
+	seedProvinceAndDistrict()
 	seedCaughtStatus()
 	seedFishType()
 	seedFishingGear()
-	seedProvinceAndDistrict()
 	seedUserStatus()
 	seedRoleAndPermission()
 	seedSuperadmin()
@@ -123,46 +123,44 @@ func seedRoleAndPermission() {
 		3:  constant.CreateTpiOfficer,
 		4:  constant.CreateTpiCashier,
 		5:  constant.GetUser,
-		6:  constant.GetByIDUser,
+		6:  constant.ReadUser,
 		7:  constant.UpdateUser,
 		8:  constant.CreateTpi,
-		9:  constant.GetByIDTpi,
+		9:  constant.ReadTpi,
 		10: constant.UpdateTpi,
 		11: constant.DeleteTpi,
 		12: constant.CreateCaught,
-		13: constant.InquiryCaught,
-		14: constant.GetByIDCaught,
-		15: constant.UpdateCaught,
-		16: constant.DeleteCaught,
-		17: constant.CreateAuction,
-		18: constant.InquiryAuction,
-		19: constant.GetByIDAuction,
-		20: constant.UpdateAuction,
-		21: constant.DeleteAuction,
-		22: constant.CreateTransaction,
-		23: constant.GetByIDTransaction,
-		24: constant.UpdateTransaction,
-		25: constant.DeleteTransaction,
-		26: constant.CreateFisher,
-		27: constant.UpdateFisher,
-		28: constant.GetByIDFisher,
-		29: constant.DeleteFisher,
-		30: constant.CreateBuyer,
-		31: constant.UpdateBuyer,
-		32: constant.GetByIDBuyer,
-		33: constant.DeleteBuyer,
-		34: constant.CreateFishingGear,
-		35: constant.UpdateFishingGear,
-		36: constant.GetByIDFishingGear,
-		37: constant.DeleteFishingGear,
-		38: constant.CreateFishingArea,
-		39: constant.UpdateFishingArea,
-		40: constant.GetByIDFishingArea,
-		41: constant.DeleteFishingArea,
-		42: constant.CreateFishType,
-		43: constant.UpdateFishType,
-		44: constant.GetByIDFishType,
-		45: constant.DeleteFishType,
+		13: constant.ReadCaught,
+		14: constant.UpdateCaught,
+		15: constant.DeleteCaught,
+		16: constant.CreateAuction,
+		17: constant.ReadAuction,
+		18: constant.UpdateAuction,
+		19: constant.DeleteAuction,
+		20: constant.CreateTransaction,
+		21: constant.ReadTransaction,
+		22: constant.UpdateTransaction,
+		23: constant.DeleteTransaction,
+		24: constant.CreateFisher,
+		25: constant.UpdateFisher,
+		26: constant.ReadFisher,
+		27: constant.DeleteFisher,
+		28: constant.CreateBuyer,
+		29: constant.UpdateBuyer,
+		30: constant.ReadBuyer,
+		31: constant.DeleteBuyer,
+		32: constant.CreateFishingGear,
+		33: constant.UpdateFishingGear,
+		34: constant.ReadFishingGear,
+		35: constant.DeleteFishingGear,
+		36: constant.CreateFishingArea,
+		37: constant.UpdateFishingArea,
+		38: constant.ReadFishingArea,
+		39: constant.DeleteFishingArea,
+		40: constant.CreateFishType,
+		41: constant.UpdateFishType,
+		42: constant.ReadFishType,
+		43: constant.DeleteFishType,
 	}
 	for index, key := range permissionMap {
 		permission := &entities.Permission{
@@ -179,7 +177,7 @@ func seedRoleAndPermission() {
 		ID:   1,
 		Name: "superadmin",
 	}
-	permissionSuperadmin := []int{1, 2, 3, 4, 5, 6, 7, 42, 43, 44, 45}
+	permissionSuperadmin := []int{1, 2, 3, 4, 5, 6, 7, 40, 41, 42, 43}
 	for _, permissionID := range permissionSuperadmin {
 		permission := &entities.Permission{ID: permissionID}
 		roleSuperadmin.Permission = append(roleSuperadmin.Permission, permission)
@@ -190,7 +188,7 @@ func seedRoleAndPermission() {
 		ID:   2,
 		Name: "district-admin",
 	}
-	permissionDistrictAdmin := []int{2, 5, 6, 7, 8, 9, 10, 11, 14, 19, 23, 38, 39, 40, 41}
+	permissionDistrictAdmin := []int{2, 5, 6, 7, 8, 9, 10, 11, 32, 33, 34, 35, 36, 37, 38, 39}
 	for _, permissionID := range permissionDistrictAdmin {
 		permission := &entities.Permission{ID: permissionID}
 		roleDistrictAdmin.Permission = append(roleDistrictAdmin.Permission, permission)
@@ -201,7 +199,7 @@ func seedRoleAndPermission() {
 		ID:   3,
 		Name: "tpi-admin",
 	}
-	permissionTpiAdmin := []int{3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 44}
+	permissionTpiAdmin := []int{3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42}
 	for _, permissionID := range permissionTpiAdmin {
 		permission := &entities.Permission{ID: permissionID}
 		roleTpiAdmin.Permission = append(roleTpiAdmin.Permission, permission)
@@ -212,7 +210,7 @@ func seedRoleAndPermission() {
 		ID:   4,
 		Name: "tpi-officer",
 	}
-	permissionTpiOfficer := []int{5, 6, 7, 12, 13, 14, 17, 18, 19, 22, 23, 26, 27, 28, 30, 31, 32, 34, 36, 40, 44}
+	permissionTpiOfficer := []int{5, 6, 7, 12, 13, 16, 17, 20, 21, 24, 26, 28, 30, 32, 34, 38, 40, 42}
 	for _, permissionID := range permissionTpiOfficer {
 		permission := &entities.Permission{ID: permissionID}
 		roleTpiOfficer.Permission = append(roleTpiOfficer.Permission, permission)
@@ -223,7 +221,7 @@ func seedRoleAndPermission() {
 		ID:   5,
 		Name: "tpi-cashier",
 	}
-	permissionTpiCashier := []int{5, 6, 7, 18, 22, 23, 24, 25}
+	permissionTpiCashier := []int{5, 6, 7, 17, 20, 21, 28, 30}
 	for _, permissionID := range permissionTpiCashier {
 		permission := &entities.Permission{ID: permissionID}
 		roleTpiCashier.Permission = append(roleTpiCashier.Permission, permission)
@@ -241,8 +239,8 @@ func seedSuperadmin() {
 			ID:           1,
 			RoleID:       1,
 			UserStatusID: 1,
-			Nik:          "1234567890",
-			Name:         "superadmin",
+			Nik:          "3216021204980014",
+			Name:         "Yudit Yudiarto",
 			Address:      "Bekasi",
 			Username:     "superadmin",
 			Password:     helper.HashAndSaltPassword([]byte("superadmin")),
