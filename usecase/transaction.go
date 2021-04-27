@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/palantir/stacktrace"
-
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/helper"
@@ -34,7 +32,7 @@ type transactionUsecase struct {
 func (t *transactionUsecase) GetByID(id int) (entities.Transaction, error) {
 	transaction, err := t.transactionRepository.GetByID(id)
 	if err != nil {
-		return entities.Transaction{}, stacktrace.Propagate(err, "[GetByID] Transaction repository error")
+		return entities.Transaction{}, err
 	}
 
 	return transaction, nil
@@ -49,7 +47,7 @@ func (t *transactionUsecase) Update(transaction *entities.Transaction) error {
 
 	err = t.transactionRepository.Update(transaction)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Transaction repository error")
+		return err
 	}
 
 	return nil
@@ -58,7 +56,7 @@ func (t *transactionUsecase) Update(transaction *entities.Transaction) error {
 func (t *transactionUsecase) Delete(id int) error {
 	transaction, err := t.transactionRepository.GetByID(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] Transaction repository error")
+		return err
 	}
 
 	data := map[string]interface{}{
@@ -68,18 +66,18 @@ func (t *transactionUsecase) Delete(id int) error {
 	for _, transactionItem := range transaction.TransactionItem {
 		err := t.caughtItemRepository.Update(transactionItem.Auction.CaughtItemID, data)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Update] Transaction repository error")
+			return err
 		}
 
 		err = t.transactionItemRepository.Delete(transactionItem.ID)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Delete] Transaction item repository error")
+			return err
 		}
 	}
 
 	err = t.transactionRepository.Delete(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Delete] Transaction repository error")
+		return err
 	}
 
 	return nil
@@ -94,7 +92,7 @@ func (t *transactionUsecase) Index(tpiID int) ([]entities.Transaction, error) {
 
 	transactions, err := t.transactionRepository.Index(queryMap, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Index] Transaction repository error")
+		return nil, err
 	}
 
 	return transactions, nil
@@ -109,12 +107,12 @@ func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionID
 	currentDate := time.Now().Format("2006-01-02")
 	existingCode, err := t.transactionRepository.GetLatestCode(currentDate)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetLatestCode] Transaction repository error")
+		return err
 	}
 
 	tpi, err := t.tpiRepository.GetByID(transaction.TpiID)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] TPI repository error")
+		return err
 	}
 
 	if existingCode != "" {
@@ -132,7 +130,7 @@ func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionID
 		})
 		auction, err := t.auctionRepository.GetByID(auctionID)
 		if err != nil {
-			return stacktrace.Propagate(err, "[GetByID] Auction repository error")
+			return err
 		}
 		transaction.TotalPrice += auction.Price
 		caughtItemsID = append(caughtItemsID, auction.CaughtItemID)
@@ -140,7 +138,7 @@ func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionID
 
 	err = t.transactionRepository.Create(transaction)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Create] Transaction repository error")
+		return err
 	}
 
 	updateStatus := map[string]interface{}{
@@ -149,7 +147,7 @@ func (t *transactionUsecase) Create(transaction *entities.Transaction, auctionID
 
 	err = t.caughtItemRepository.BulkUpdate(caughtItemsID, updateStatus)
 	if err != nil {
-		return stacktrace.Propagate(err, "[BulkUpdate] Caught repository error")
+		return err
 	}
 
 	return nil

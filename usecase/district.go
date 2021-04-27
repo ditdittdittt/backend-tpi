@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"github.com/palantir/stacktrace"
-
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
@@ -22,7 +20,7 @@ func (d *districtUsecase) Index(provinceID int) ([]entities.District, error) {
 
 	districts, err := d.districtRepository.Get(query)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Get] District repository error")
+		return nil, err
 	}
 
 	return districts, nil

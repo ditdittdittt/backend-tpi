@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/palantir/stacktrace"
-
 	"github.com/ditdittdittt/backend-tpi/constant"
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/helper"
@@ -52,12 +50,12 @@ func (c *caughtUsecase) Update(caught *entities.CaughtItem) error {
 
 	err = c.caughtRepository.Update(caught.CaughtID, updateDateCaught)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Caught repository error")
+		return err
 	}
 
 	err = c.caughtItemRepository.Update(caught.ID, updateDateCaughtItem)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Caught item repository error")
+		return err
 	}
 
 	return nil
@@ -66,25 +64,25 @@ func (c *caughtUsecase) Update(caught *entities.CaughtItem) error {
 func (c *caughtUsecase) Delete(id int) error {
 	caughtItem, err := c.caughtItemRepository.GetByID(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] Caught item repository error")
+		return err
 	}
 
 	caughtID := caughtItem.CaughtID
 
 	err = c.caughtItemRepository.Delete(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Delete] Caught item repository error")
+		return err
 	}
 
 	caught, err := c.caughtRepository.GetByID(caughtID)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] Caught repository error")
+		return err
 	}
 
 	if len(caught.CaughtItem) == 0 {
 		err = c.caughtRepository.Delete(caughtID)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Delete] Caught repository error")
+			return err
 		}
 	}
 
@@ -94,7 +92,7 @@ func (c *caughtUsecase) Delete(id int) error {
 func (c *caughtUsecase) GetByID(id int) (entities.CaughtItem, error) {
 	caught, err := c.caughtItemRepository.GetByID(id)
 	if err != nil {
-		return entities.CaughtItem{}, stacktrace.Propagate(err, "[GetByID] Caught item repository error")
+		return entities.CaughtItem{}, err
 	}
 
 	return caught, nil
@@ -116,7 +114,7 @@ func (c *caughtUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]enti
 
 	caughts, err := c.caughtItemRepository.Search(queryMap)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Search] Caught item repository")
+		return nil, err
 	}
 
 	return caughts, nil
@@ -143,7 +141,7 @@ func (c *caughtUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int, 
 
 	caughts, err := c.caughtItemRepository.Index(queryMap, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Index] Caught item repository error")
+		return nil, err
 	}
 
 	return caughts, nil
@@ -157,7 +155,7 @@ func (c *caughtUsecase) Create(caught *entities.Caught) error {
 
 	existingCode, err := c.caughtRepository.GetLatestCode(currentDate)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetLatestCode] Caught repository error")
+		return err
 	}
 
 	if existingCode != "" {
@@ -175,7 +173,7 @@ func (c *caughtUsecase) Create(caught *entities.Caught) error {
 
 	err = c.caughtRepository.Create(caught)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Create] Caught repository error")
+		return err
 	}
 
 	return nil

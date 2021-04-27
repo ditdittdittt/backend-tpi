@@ -60,7 +60,7 @@ func NewReportUsecase(
 func (r *reportUsecase) ExportPdfProductionReport(tpiID int, districtID int, from string, to string, queryType string) ([]byte, error) {
 	header, err := r.productionReport(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[productionReport] Report usecase error")
+		return nil, err
 	}
 
 	header["query_type"] = queryMapping[queryType]
@@ -87,7 +87,7 @@ func (r *reportUsecase) ExportPdfProductionReport(tpiID int, districtID int, fro
 	if tpiID != 0 {
 		tpi, err := r.tpiRepository.GetByID(tpiID)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetByID] Tpi repository error")
+			return nil, err
 		}
 		header["tpi_name"] = tpi.Name
 		header["district_name"] = tpi.District.Name
@@ -109,7 +109,7 @@ func (r *reportUsecase) ExportPdfProductionReport(tpiID int, districtID int, fro
 func (r *reportUsecase) ExportPdfTransactionReport(tpiID int, districtID int, from string, to string, queryType string) ([]byte, error) {
 	header, err := r.transactionReport(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[transactionReport] Report usecase error")
+		return nil, err
 	}
 
 	header["query_type"] = queryMapping[queryType]
@@ -136,7 +136,7 @@ func (r *reportUsecase) ExportPdfTransactionReport(tpiID int, districtID int, fr
 	if tpiID != 0 {
 		tpi, err := r.tpiRepository.GetByID(tpiID)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetByID] Tpi repository error")
+			return nil, err
 		}
 		header["tpi_name"] = tpi.Name
 		header["district_name"] = tpi.District.Name
@@ -144,7 +144,7 @@ func (r *reportUsecase) ExportPdfTransactionReport(tpiID int, districtID int, fr
 
 	data, err := r.getTransactionTable(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[getTransactionTable] Report usecase error")
+		return nil, err
 	}
 
 	pdf, err := r.exportPdfTransactionReport(header, data)
@@ -158,7 +158,7 @@ func (r *reportUsecase) ExportPdfTransactionReport(tpiID int, districtID int, fr
 func (r *reportUsecase) ExportExcelTransactionReport(tpiID int, districtID int, from string, to string, queryType string) (*excelize.File, error) {
 	header, err := r.transactionReport(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[transactionReport] Report usecase error")
+		return nil, err
 	}
 
 	header["query_type"] = queryMapping[queryType]
@@ -185,7 +185,7 @@ func (r *reportUsecase) ExportExcelTransactionReport(tpiID int, districtID int, 
 	if tpiID != 0 {
 		tpi, err := r.tpiRepository.GetByID(tpiID)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetByID] Tpi repository error")
+			return nil, err
 		}
 		header["tpi_name"] = tpi.Name
 		header["district_name"] = tpi.District.Name
@@ -193,12 +193,12 @@ func (r *reportUsecase) ExportExcelTransactionReport(tpiID int, districtID int, 
 
 	data, err := r.getTransactionTable(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[getTransactionTable] Report usecase error")
+		return nil, err
 	}
 
 	xlsx, err := r.exportExcelTransactionReport(header, data)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[exportExcelTransactionReport] Report usecase error")
+		return nil, err
 	}
 
 	return xlsx, nil
@@ -207,7 +207,7 @@ func (r *reportUsecase) ExportExcelTransactionReport(tpiID int, districtID int, 
 func (r *reportUsecase) ExportExcelProductionReport(tpiID int, districtID int, from string, to string, queryType string) (*excelize.File, error) {
 	header, err := r.productionReport(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[productionReport] Report usecase error")
+		return nil, err
 	}
 
 	header["query_type"] = queryMapping[queryType]
@@ -234,7 +234,7 @@ func (r *reportUsecase) ExportExcelProductionReport(tpiID int, districtID int, f
 	if tpiID != 0 {
 		tpi, err := r.tpiRepository.GetByID(tpiID)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetByID] Tpi repository error")
+			return nil, err
 		}
 		header["tpi_name"] = tpi.Name
 		header["district_name"] = tpi.District.Name
@@ -256,12 +256,12 @@ func (r *reportUsecase) ExportExcelProductionReport(tpiID int, districtID int, f
 func (r *reportUsecase) GetTransactionReport(tpiID int, districtID int, from string, to string) (map[string]interface{}, error) {
 	data, err := r.transactionReport(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[transactionReport] Report usecase error")
+		return nil, err
 	}
 
 	transactionTable, err := r.getTransactionTable(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[getTransactionTable] Report usecase error")
+		return nil, err
 	}
 
 	data["transaction_table"] = transactionTable
@@ -288,7 +288,7 @@ func (r *reportUsecase) GetProductionReport(tpiID int, districtID int, from stri
 func (r *reportUsecase) exportPdfProductionReport(header map[string]interface{}, data []map[string]interface{}) ([]byte, error) {
 	pdfg, err := services.GeneratePdf(header, data, constant.ProductionPdf)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GeneratePdf] Services error")
+		return nil, err
 	}
 	return pdfg, nil
 }
@@ -328,7 +328,7 @@ func (r *reportUsecase) exportExcelProductionReport(header map[string]interface{
 
 	err := xlsx.AutoFilter(sheet1Name, "A11", "F11", "")
 	if err != nil {
-		return xlsx, nil
+		return xlsx, err
 	}
 
 	for i, each := range data {
@@ -349,7 +349,7 @@ func (r *reportUsecase) productionReport(tpiID int, districtID int, from string,
 	if districtID != 0 {
 		tpis, err := r.tpiRepository.Get(map[string]interface{}{"district_id": districtID})
 		if err != nil {
-			return data, stacktrace.Propagate(err, "[Get] Tpi repository error")
+			return data, err
 		}
 
 		productionTotal := 0.0
@@ -359,21 +359,21 @@ func (r *reportUsecase) productionReport(tpiID int, districtID int, from string,
 		for _, tpi := range tpis {
 			weightTotalPerTpi, err := r.caughtRepository.GetWeightTotal(0, tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+				return data, err
 			}
 
 			productionTotal += weightTotalPerTpi
 
 			productionValuePerTpi, err := r.auctionRepository.GetPriceTotal(0, tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+				return data, err
 			}
 
 			productionValue += productionValuePerTpi
 
 			averageTransactionSpeedPerTpi, err := r.auctionRepository.GetTransactionSpeed(0, tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+				return data, err
 			}
 
 			avgTransactionSpeed += averageTransactionSpeedPerTpi / 3600
@@ -388,21 +388,21 @@ func (r *reportUsecase) productionReport(tpiID int, districtID int, from string,
 
 	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+		return data, err
 	}
 
 	data["production_total"] = weightFormatter(weightTotal)
 
 	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+		return data, err
 	}
 
 	data["production_value"] = currencyFormatter(productionValue)
 
 	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+		return data, err
 	}
 
 	data["transaction_speed"] = fmt.Sprintf("%.2f Jam", averageTransactionSpeed/3600)
@@ -416,13 +416,13 @@ func (r *reportUsecase) getProductionTable(tpiID int, districtID int, from strin
 	queryMap := []string{"id", "name", "code"}
 	fishTypes, err := r.fishTypeRepository.GetWithSelectedField(queryMap)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetWithSelectedField] Fish type repository error")
+		return nil, err
 	}
 
 	if districtID != 0 {
 		tpis, err := r.tpiRepository.Get(map[string]interface{}{"district_id": districtID})
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[Get] Tpi repository error")
+			return nil, err
 		}
 
 		for _, fishType := range fishTypes {
@@ -433,17 +433,17 @@ func (r *reportUsecase) getProductionTable(tpiID int, districtID int, from strin
 			for _, tpi := range tpis {
 				fishWeightTotal, err := r.caughtRepository.GetWeightTotal(fishType.ID, tpi.ID, from, to)
 				if err != nil {
-					return nil, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+					return nil, err
 				}
 
 				fishProductionValue, err := r.auctionRepository.GetPriceTotal(fishType.ID, tpi.ID, from, to)
 				if err != nil {
-					return nil, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+					return nil, err
 				}
 
 				fishAverageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(fishType.ID, tpi.ID, from, to)
 				if err != nil {
-					return nil, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+					return nil, err
 				}
 
 				productionTotal += fishWeightTotal
@@ -468,17 +468,17 @@ func (r *reportUsecase) getProductionTable(tpiID int, districtID int, from strin
 	for _, fishType := range fishTypes {
 		fishWeightTotal, err := r.caughtRepository.GetWeightTotal(fishType.ID, tpiID, from, to)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+			return nil, err
 		}
 
 		fishProductionValue, err := r.auctionRepository.GetPriceTotal(fishType.ID, tpiID, from, to)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+			return nil, err
 		}
 
 		fishAverageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(fishType.ID, tpiID, from, to)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+			return nil, err
 		}
 
 		data := map[string]interface{}{
@@ -556,7 +556,7 @@ func (r *reportUsecase) exportExcelTransactionReport(header map[string]interface
 
 	err := xlsx.AutoFilter(sheet1Name, "A15", "H15", "")
 	if err != nil {
-		return xlsx, nil
+		return xlsx, err
 	}
 
 	for i, each := range data {
@@ -594,42 +594,42 @@ func (r *reportUsecase) transactionReport(tpiID int, districtID int, from string
 		for _, tpi := range tpis {
 			transactionTotalPerTpi, err := r.transactionRepository.GetTransactionTotal(tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetTotalTransaction] Total transaction error")
+				return data, err
 			}
 
 			weightTotalPerTpi, err := r.caughtRepository.GetWeightTotal(0, tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+				return data, err
 			}
 
 			productionValuePerTpi, err := r.auctionRepository.GetPriceTotal(0, tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+				return data, err
 			}
 
 			averageTransactionSpeedPerTpi, err := r.auctionRepository.GetTransactionSpeed(0, tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+				return data, err
 			}
 
 			permanentFisherPerTpi, err := r.caughtRepository.GetFisherTotal("Tetap", tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
+				return data, err
 			}
 
 			temporaryFisherPerTpi, err := r.caughtRepository.GetFisherTotal("Pendatang", tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
+				return data, err
 			}
 
 			permanentBuyerPerTpi, err := r.transactionRepository.GetBuyerTotal("Tetap", tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
+				return data, err
 			}
 
 			temporaryBuyerPerTpi, err := r.transactionRepository.GetBuyerTotal("Pendatang", tpi.ID, from, to)
 			if err != nil {
-				return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
+				return data, err
 			}
 
 			transactionTotal += transactionTotalPerTpi
@@ -656,56 +656,56 @@ func (r *reportUsecase) transactionReport(tpiID int, districtID int, from string
 
 	transactionTotal, err := r.transactionRepository.GetTransactionTotal(tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetTotalTransaction] Total transaction error")
+		return data, err
 	}
 
 	data["transaction_total"] = totalFormatter(transactionTotal)
 
 	weightTotal, err := r.caughtRepository.GetWeightTotal(0, tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetWeightTotal] Caught repository error")
+		return data, err
 	}
 
 	data["production_total"] = weightFormatter(weightTotal)
 
 	productionValue, err := r.auctionRepository.GetPriceTotal(0, tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetPriceTotal] Auction repository error")
+		return data, err
 	}
 
 	data["production_value"] = currencyFormatter(productionValue)
 
 	averageTransactionSpeed, err := r.auctionRepository.GetTransactionSpeed(0, tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+		return data, err
 	}
 
 	data["transaction_speed"] = fmt.Sprintf("%.2f Jam", averageTransactionSpeed/3600)
 
 	permanentFisher, err := r.caughtRepository.GetFisherTotal("Tetap", tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
+		return data, err
 	}
 
 	data["permanent_fisher"] = peopleFormatter(permanentFisher)
 
 	temporaryFisher, err := r.caughtRepository.GetFisherTotal("Pendatang", tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetFisherTotal] Caught repository error")
+		return data, err
 	}
 
 	data["temporary_fisher"] = peopleFormatter(temporaryFisher)
 
 	permanentBuyer, err := r.transactionRepository.GetBuyerTotal("Tetap", tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
+		return data, err
 	}
 
 	data["permanent_buyer"] = peopleFormatter(permanentBuyer)
 
 	temporaryBuyer, err := r.transactionRepository.GetBuyerTotal("Pendatang", tpiID, from, to)
 	if err != nil {
-		return data, stacktrace.Propagate(err, "[GetTotalBuyer] Transaction repository error")
+		return data, err
 	}
 
 	data["temporary_buyer"] = peopleFormatter(temporaryBuyer)
@@ -716,7 +716,7 @@ func (r *reportUsecase) transactionReport(tpiID int, districtID int, from string
 func (r *reportUsecase) getTransactionTable(tpiID int, districtID int, from string, to string) ([]map[string]interface{}, error) {
 	transactionData, err := r.transactionItemRepository.GetReport(tpiID, districtID, from, to)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Get] Transaction item repository error")
+		return nil, err
 	}
 
 	for index, data := range transactionData {

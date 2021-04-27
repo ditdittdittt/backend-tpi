@@ -1,6 +1,8 @@
 package http
 
-import "github.com/ditdittdittt/backend-tpi/constant"
+import (
+	"github.com/ditdittdittt/backend-tpi/constant"
+)
 
 type Response struct {
 	ResponseCode string      `json:"response_code"`

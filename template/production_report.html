@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
     <head>
         <meta charset="utf-8">
@@ -78,7 +78,7 @@
     <body>
         <h1>Laporan Produksi Ikan</h1>
         <h5>Diunduh tanggal: {{ .downloaded_at }}</h5>
-        <table id="tpi">
+        <table id="tpi" aria-hidden="true">
             <tr>
                 <td>{{ .district_name }}</td>
             </tr>
@@ -90,7 +90,7 @@
             </tr>
         </table>
 
-        <table id="header">
+        <table id="header" aria-hidden="true">
             <tr>
                 <td style="width: 20%">Total Produksi</td>
                 <td>: {{ .production_total }}</td>
@@ -107,14 +107,14 @@
 
         <h3>Tabel Produksi Ikan</h3>
 
-        <table id="production">
+        <table id="production" aria-hidden="true">
             <tr>
-                <th>No.</th>
-                <th>Kode Ikan</th>
-                <th>Nama Ikan</th>
-                <th>Jumlah Produksi</th>
-                <th>Nilai Produksi</th>
-                <th>Kecepatan Penjualan</th>
+                <th id="no">No.</th>
+                <th id="fish-type">Kode Ikan</th>
+                <th id="fish-name">Nama Ikan</th>
+                <th id="production-value">Jumlah Produksi</th>
+                <th id="production-value">Nilai Produksi</th>
+                <th id="transaction-speed">Kecepatan Penjualan</th>
             </tr>
             {{ range $index, $value := .table }}
                 <tr>

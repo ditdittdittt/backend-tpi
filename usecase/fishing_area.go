@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"github.com/palantir/stacktrace"
-
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
@@ -23,7 +21,7 @@ type fishingAreaUsecase struct {
 func (f *fishingAreaUsecase) Delete(id int) error {
 	err := f.fishingAreaRepository.Delete(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Delete] Fishing area repository error")
+		return err
 	}
 
 	return nil
@@ -32,7 +30,7 @@ func (f *fishingAreaUsecase) Delete(id int) error {
 func (f *fishingAreaUsecase) Update(fishingArea *entities.FishingArea) error {
 	err := f.fishingAreaRepository.Update(fishingArea)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Fishing area repository error")
+		return err
 	}
 
 	return nil
@@ -41,7 +39,7 @@ func (f *fishingAreaUsecase) Update(fishingArea *entities.FishingArea) error {
 func (f *fishingAreaUsecase) GetByID(id int) (entities.FishingArea, error) {
 	fishingArea, err := f.fishingAreaRepository.GetByID(id)
 	if err != nil {
-		return fishingArea, stacktrace.Propagate(err, "[GetByID] Fishing area repository error")
+		return fishingArea, err
 	}
 
 	return fishingArea, nil
@@ -63,7 +61,7 @@ func (f *fishingAreaUsecase) Index(tpiID int, districtID int) (fishingAreas []en
 	if districtID == 0 {
 		tpi, err := f.tpiRepository.GetByID(tpiID)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetByID] Tpi repository error")
+			return nil, err
 		}
 		districtID = tpi.DistrictID
 	}
@@ -74,7 +72,7 @@ func (f *fishingAreaUsecase) Index(tpiID int, districtID int) (fishingAreas []en
 
 	fishingAreas, err = f.fishingAreaRepository.GetWithSelectedField(selectedField, queryMap)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fishing area repository error")
+		return nil, err
 	}
 
 	return fishingAreas, nil
@@ -84,14 +82,14 @@ func (f *fishingAreaUsecase) Create(fishingArea *entities.FishingArea, tpiID int
 	if fishingArea.DistrictID == 0 {
 		tpi, err := f.tpiRepository.GetByID(tpiID)
 		if err != nil {
-			return stacktrace.Propagate(err, "[GetByID] Tpi repository error")
+			return err
 		}
 		fishingArea.DistrictID = tpi.DistrictID
 	}
 
 	err := f.fishingAreaRepository.Create(fishingArea)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Create] Fishing Area Repository error")
+		return err
 	}
 
 	return nil

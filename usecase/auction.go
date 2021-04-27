@@ -35,7 +35,7 @@ func (a *auctionUsecase) Update(auction *entities.Auction) error {
 
 	err = a.auctionRepository.Update(auction)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Auction repository error")
+		return err
 	}
 
 	return nil
@@ -44,7 +44,7 @@ func (a *auctionUsecase) Update(auction *entities.Auction) error {
 func (a *auctionUsecase) Delete(id int) error {
 	auction, err := a.auctionRepository.GetByID(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] Auction repository error for auction id %d", id)
+		return err
 	}
 
 	data := map[string]interface{}{
@@ -67,7 +67,7 @@ func (a *auctionUsecase) Delete(id int) error {
 func (a *auctionUsecase) GetByID(id int) (entities.Auction, error) {
 	auction, err := a.auctionRepository.GetByID(id)
 	if err != nil {
-		return entities.Auction{}, stacktrace.Propagate(err, "[GetByID] Auction repository error")
+		return entities.Auction{}, err
 	}
 
 	return auction, nil
@@ -94,7 +94,7 @@ func (a *auctionUsecase) Index(fisherID int, fishTypeID int, caughtStatusID int,
 
 	auctions, err := a.auctionRepository.Index(queryMap, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Get] Caught repository error")
+		return nil, err
 	}
 
 	return auctions, nil
@@ -116,7 +116,7 @@ func (a *auctionUsecase) Inquiry(fisherID int, fishTypeID int, tpiID int) ([]ent
 
 	auctions, err := a.auctionRepository.Search(queryMap)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Search] Auction repository error")
+		return nil, err
 	}
 
 	return auctions, nil
@@ -129,14 +129,14 @@ func (a *auctionUsecase) Create(auction *entities.Auction) error {
 
 	caughtItem, err := a.caughtItemRepository.GetByID(auction.CaughtItemID)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] Caught item repository error")
+		return err
 	}
 
 	auction.Code = caughtItem.Code
 
 	err = a.auctionRepository.Create(auction)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Create] Auction repository error")
+		return err
 	}
 
 	updateStatus := map[string]interface{}{
@@ -145,7 +145,7 @@ func (a *auctionUsecase) Create(auction *entities.Auction) error {
 
 	err = a.caughtItemRepository.Update(auction.CaughtItemID, updateStatus)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Caught item repository error")
+		return err
 	}
 
 	return nil

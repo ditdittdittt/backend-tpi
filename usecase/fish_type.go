@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"github.com/palantir/stacktrace"
-
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
 )
@@ -22,7 +20,7 @@ type fishTypeUsecase struct {
 func (f *fishTypeUsecase) Delete(id int) error {
 	err := f.fishTypeRepository.Delete(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Delete] Fish type repository error")
+		return err
 	}
 
 	return nil
@@ -31,7 +29,7 @@ func (f *fishTypeUsecase) Delete(id int) error {
 func (f *fishTypeUsecase) Update(fishType *entities.FishType) error {
 	err := f.fishTypeRepository.Update(fishType)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Fish type repository error")
+		return err
 	}
 
 	return nil
@@ -40,7 +38,7 @@ func (f *fishTypeUsecase) Update(fishType *entities.FishType) error {
 func (f *fishTypeUsecase) GetByID(id int) (entities.FishType, error) {
 	fishType, err := f.fishTypeRepository.GetByID(id)
 	if err != nil {
-		return fishType, stacktrace.Propagate(err, "[GetByID] Fish type repository error")
+		return fishType, err
 	}
 
 	return fishType, nil
@@ -51,7 +49,7 @@ func (f *fishTypeUsecase) Index() (fishTypes []entities.FishType, err error) {
 
 	fishTypes, err = f.fishTypeRepository.GetWithSelectedField(selectedField)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetSelectedField] Fish type repository error")
+		return nil, err
 	}
 
 	return fishTypes, nil
@@ -61,7 +59,7 @@ func (f *fishTypeUsecase) Create(fishType *entities.FishType) error {
 
 	err := f.fishTypeRepository.Create(fishType)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Create] Fish type repository")
+		return err
 	}
 
 	return nil

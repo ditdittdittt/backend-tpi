@@ -3,7 +3,6 @@ package usecase
 import (
 	"time"
 
-	"github.com/palantir/stacktrace"
 	"gorm.io/gorm"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
@@ -28,7 +27,7 @@ type fisherUsecase struct {
 func (f *fisherUsecase) Delete(id int) error {
 	err := f.fisherRepository.Delete(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Delete] Fisher repository error")
+		return err
 	}
 
 	return nil
@@ -37,7 +36,7 @@ func (f *fisherUsecase) Delete(id int) error {
 func (f *fisherUsecase) GetByID(id int, tpiID int) (entities.Fisher, error) {
 	fisher, err := f.fisherRepository.GetByID(id)
 	if err != nil {
-		return fisher, stacktrace.Propagate(err, "[GetByID] Fisher repository error")
+		return fisher, err
 	}
 
 	if fisher.TpiID == tpiID {
@@ -70,7 +69,7 @@ func (f *fisherUsecase) Update(fisher *entities.Fisher, status string) error {
 
 	existingFisher, err := f.fisherRepository.GetByID(fisher.ID)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] Fisher repository error")
+		return err
 	}
 
 	// Permanent to temporary
@@ -79,7 +78,7 @@ func (f *fisherUsecase) Update(fisher *entities.Fisher, status string) error {
 		updateData["tpi_id"] = nil
 		err = f.fisherRepository.Update(fisher.ID, updateData)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Update] Fisher repository error")
+			return err
 		}
 
 		// insert to fisher_tpis
@@ -89,7 +88,7 @@ func (f *fisherUsecase) Update(fisher *entities.Fisher, status string) error {
 		}
 		err = f.fisherTpiRepository.Create(fisherTpi)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Create] Fisher tpi repository error")
+			return err
 		}
 	}
 
@@ -98,20 +97,20 @@ func (f *fisherUsecase) Update(fisher *entities.Fisher, status string) error {
 		// remove fisher_tpis
 		err = f.fisherTpiRepository.Delete(map[string]interface{}{"fisher_id": fisher.ID, "tpi_id": fisher.TpiID})
 		if err != nil {
-			return stacktrace.Propagate(err, "[Delete] Fisher tpi repository error")
+			return err
 		}
 
 		// update tpi_id
 		updateData["tpi_id"] = fisher.TpiID
 		err = f.fisherRepository.Update(fisher.ID, updateData)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Update] Fisher repository error")
+			return err
 		}
 	}
 
 	err = f.fisherRepository.Update(fisher.ID, updateData)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Fisher repository error")
+		return err
 	}
 	return nil
 }
@@ -125,7 +124,7 @@ func (f *fisherUsecase) Index(tpiID int) (fishers []entities.Fisher, err error) 
 
 	fishers, err = f.fisherRepository.Index(query)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Index] Fisher repository error")
+		return nil, err
 	}
 	for _, fisher := range fishers {
 		fisher.Status = constant.PermanentStatus
@@ -134,7 +133,7 @@ func (f *fisherUsecase) Index(tpiID int) (fishers []entities.Fisher, err error) 
 
 	fisherTpis, err := f.fisherTpiRepository.Index(query)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Index] Fisher tpi repository error")
+		return nil, err
 	}
 	for _, fisherTpi := range fisherTpis {
 		fisherTpi.Fisher.Status = constant.TemporaryStatus
@@ -150,7 +149,7 @@ func (f *fisherUsecase) Create(fisher *entities.Fisher, tpiID int, status string
 
 	existingFisher, err := f.fisherRepository.Get(map[string]interface{}{"nik": fisher.Nik})
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return stacktrace.Propagate(err, "[Get] Fisher repository error")
+		return err
 	}
 
 	if err == gorm.ErrRecordNotFound {
@@ -159,13 +158,13 @@ func (f *fisherUsecase) Create(fisher *entities.Fisher, tpiID int, status string
 			fisher.TpiID = tpiID
 			err := f.fisherRepository.Create(fisher)
 			if err != nil {
-				return stacktrace.Propagate(err, "[Create] Fisher repository err")
+				return err
 			}
 
 		case constant.TemporaryStatus:
 			err = f.fisherRepository.Create(fisher)
 			if err != nil {
-				return stacktrace.Propagate(err, "[Create] Fisher repository err")
+				return err
 			}
 
 			fisherTpi := &entities.FisherTpi{
@@ -175,7 +174,7 @@ func (f *fisherUsecase) Create(fisher *entities.Fisher, tpiID int, status string
 
 			err = f.fisherTpiRepository.Create(fisherTpi)
 			if err != nil {
-				return stacktrace.Propagate(err, "[Create] Fisher tpi repository")
+				return err
 			}
 		}
 

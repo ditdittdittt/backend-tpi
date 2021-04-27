@@ -216,11 +216,11 @@ func (u *userUsecase) GetUser(id int) (entities.User, map[string]interface{}, er
 func (u *userUsecase) Login(username string, password string) (token string, err error) {
 	user, err := u.userRepository.GetByUsername(username)
 	if err != nil {
-		return "", stacktrace.Propagate(err, "[GetByUsername] User repository error")
+		return "", stacktrace.NewError("Username not found for username %s", username)
 	}
 
 	if user.UserStatusID == 2 {
-		return "", stacktrace.NewError("Not active account")
+		return "", stacktrace.NewError("Account inactive")
 	}
 
 	if !helper.ComparePassword(user.Password, []byte(password)) {

@@ -3,7 +3,6 @@ package usecase
 import (
 	"time"
 
-	"github.com/palantir/stacktrace"
 	"gorm.io/gorm"
 
 	"github.com/ditdittdittt/backend-tpi/constant"
@@ -28,7 +27,7 @@ type buyerUsecase struct {
 func (b *buyerUsecase) Delete(id int) error {
 	err := b.buyerRepository.Delete(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Delete] Buyer repository error")
+		return err
 	}
 
 	return nil
@@ -52,7 +51,7 @@ func (b *buyerUsecase) Update(buyer *entities.Buyer, status string) error {
 
 	existingBuyer, err := b.buyerRepository.GetByID(buyer.ID)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] Buyer repository error")
+		return err
 	}
 
 	// Permanent to temporary
@@ -61,7 +60,7 @@ func (b *buyerUsecase) Update(buyer *entities.Buyer, status string) error {
 		updateData["tpi_id"] = nil
 		err = b.buyerRepository.Update(buyer.ID, updateData)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Update] Buyer repository error")
+			return err
 		}
 
 		// insert to buyer_tpis
@@ -71,7 +70,7 @@ func (b *buyerUsecase) Update(buyer *entities.Buyer, status string) error {
 		}
 		err = b.buyerTpiRepository.Create(buyerTpi)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Create] Buyer tpi repository error")
+			return err
 		}
 	}
 
@@ -80,19 +79,19 @@ func (b *buyerUsecase) Update(buyer *entities.Buyer, status string) error {
 		// remove buyer_tpis
 		err = b.buyerTpiRepository.Delete(map[string]interface{}{"buyer_id": buyer.ID, "tpi_id": buyer.TpiID})
 		if err != nil {
-			return stacktrace.Propagate(err, "[Delete] Buyer tpi repository error")
+			return err
 		}
 
 		// update tpi_id
 		updateData["tpi_id"] = buyer.TpiID
 		err = b.buyerRepository.Update(buyer.ID, updateData)
 		if err != nil {
-			return stacktrace.Propagate(err, "[Update] Buyer repository error")
+			return err
 		}
 	}
 	err = b.buyerRepository.Update(buyer.ID, updateData)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] Buyer repository error")
+		return err
 	}
 
 	return nil
@@ -101,7 +100,7 @@ func (b *buyerUsecase) Update(buyer *entities.Buyer, status string) error {
 func (b *buyerUsecase) GetByID(id int, tpiID int) (entities.Buyer, error) {
 	buyer, err := b.buyerRepository.GetByID(id)
 	if err != nil {
-		return buyer, stacktrace.Propagate(err, "[GetByID] Buyer repository error")
+		return buyer, err
 	}
 
 	if buyer.TpiID == tpiID {
@@ -122,7 +121,7 @@ func (b *buyerUsecase) Index(tpiID int) (buyers []entities.Buyer, err error) {
 
 	buyers, err = b.buyerRepository.Index(query)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Index] Buyer repository error")
+		return nil, err
 	}
 	for _, buyer := range buyers {
 		buyer.Status = constant.PermanentStatus
@@ -131,7 +130,7 @@ func (b *buyerUsecase) Index(tpiID int) (buyers []entities.Buyer, err error) {
 
 	buyerTpis, err := b.buyerTpiRepository.Index(query)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[Index] Buyer tpi repository error")
+		return nil, err
 	}
 	for _, buyerTpi := range buyerTpis {
 		buyerTpi.Buyer.Status = constant.TemporaryStatus
@@ -147,7 +146,7 @@ func (b *buyerUsecase) Create(buyer *entities.Buyer, tpiID int, status string) e
 
 	existingBuyer, err := b.buyerRepository.Get(map[string]interface{}{"nik": buyer.Nik})
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return stacktrace.Propagate(err, "[Get] Buyer repository error")
+		return err
 	}
 
 	if err == gorm.ErrRecordNotFound {
@@ -156,13 +155,13 @@ func (b *buyerUsecase) Create(buyer *entities.Buyer, tpiID int, status string) e
 			buyer.TpiID = tpiID
 			err := b.buyerRepository.Create(buyer)
 			if err != nil {
-				return stacktrace.Propagate(err, "[Create] Buyer repository err")
+				return err
 			}
 
 		case constant.TemporaryStatus:
 			err = b.buyerRepository.Create(buyer)
 			if err != nil {
-				return stacktrace.Propagate(err, "[Create] Buyer repository err")
+				return err
 			}
 
 			buyerTpi := &entities.BuyerTpi{
@@ -172,7 +171,7 @@ func (b *buyerUsecase) Create(buyer *entities.Buyer, tpiID int, status string) e
 
 			err = b.buyerTpiRepository.Create(buyerTpi)
 			if err != nil {
-				return stacktrace.Propagate(err, "[Create] Buyer tpi repository")
+				return err
 			}
 		}
 

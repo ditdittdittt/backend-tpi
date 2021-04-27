@@ -3,8 +3,6 @@ package usecase
 import (
 	"time"
 
-	"github.com/palantir/stacktrace"
-
 	"github.com/ditdittdittt/backend-tpi/entities"
 	"github.com/ditdittdittt/backend-tpi/helper"
 	"github.com/ditdittdittt/backend-tpi/repository/mysql"
@@ -27,7 +25,7 @@ func (u *userTpiUsecase) CreateTpiAccount(userTpi *entities.UserTpi) error {
 
 	err := u.userTpiUsecase.Create(userTpi)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Create] User district repository error")
+		return err
 	}
 
 	return nil

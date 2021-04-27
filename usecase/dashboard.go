@@ -32,7 +32,7 @@ func (d *dashboardUsecase) GetFisherAndBuyerTotal(tpiID int, districtID int) (ma
 	if districtID != 0 {
 		tpis, err := d.tpiRepository.Get(map[string]interface{}{"district_id": districtID})
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[Get] Tpi repository error")
+			return nil, err
 		}
 
 		permanentFisherTotal := 0
@@ -43,22 +43,22 @@ func (d *dashboardUsecase) GetFisherAndBuyerTotal(tpiID int, districtID int) (ma
 		for _, tpi := range tpis {
 			permanentFisherTotalPerTpi, err := d.caughtRepository.GetFisherTotalDashboard(tpi.ID, constant.PermanentStatus)
 			if err != nil {
-				return nil, stacktrace.Propagate(err, "[GetFisherTotalDashboard] Caught repository error")
+				return nil, err
 			}
 
 			temporaryFisherTotalPerTpi, err := d.caughtRepository.GetFisherTotalDashboard(tpi.ID, constant.TemporaryStatus)
 			if err != nil {
-				return nil, stacktrace.Propagate(err, "[GetFisherTotalDashboard] Caught repository error")
+				return nil, err
 			}
 
 			permanentBuyerTotalPerTpi, err := d.transactionRepository.GetBuyerTotalDashboard(tpi.ID, constant.PermanentStatus)
 			if err != nil {
-				return nil, stacktrace.Propagate(err, "[GetBuyerTotalDashboard] Transaction repository error")
+				return nil, err
 			}
 
 			temporaryBuyerTotalPerTpi, err := d.transactionRepository.GetBuyerTotalDashboard(tpi.ID, constant.TemporaryStatus)
 			if err != nil {
-				return nil, stacktrace.Propagate(err, "[GetBuyerTotalDashboard] Transaction repository error")
+				return nil, err
 			}
 
 			permanentFisherTotal += permanentFisherTotalPerTpi
@@ -97,22 +97,22 @@ func (d *dashboardUsecase) GetFisherAndBuyerTotal(tpiID int, districtID int) (ma
 
 	permanentFisherTotal, err := d.caughtRepository.GetFisherTotalDashboard(tpiID, constant.PermanentStatus)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetFisherTotalDashboard] Caught repository error")
+		return nil, err
 	}
 
 	temporaryFisherTotal, err := d.caughtRepository.GetFisherTotalDashboard(tpiID, constant.TemporaryStatus)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetFisherTotalDashboard] Caught repository error")
+		return nil, err
 	}
 
 	permanentBuyerTotal, err := d.transactionRepository.GetBuyerTotalDashboard(tpiID, constant.PermanentStatus)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetBuyerTotalDashboard] Transaction repository error")
+		return nil, err
 	}
 
 	temporaryBuyerTotal, err := d.transactionRepository.GetBuyerTotalDashboard(tpiID, constant.TemporaryStatus)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetBuyerTotalDashboard] Transaction repository error")
+		return nil, err
 	}
 
 	result := map[string]interface{}{
@@ -163,17 +163,17 @@ func (d *dashboardUsecase) GetDashboardDetail(tpiID int, districtID int, queryTy
 		for _, tpi := range tpis {
 			productionTotalPerTpi, err := d.caughtRepository.GetProductionTotalDashboard(tpi.ID, queryType, date)
 			if err != nil {
-				return nil, stacktrace.Propagate(err, "[GetProductionTotalDashboard] Caught repository error")
+				return nil, err
 			}
 
 			transactionTotalPerTpi, err := d.auctionRepository.GetTransactionValueDashboard(tpi.ID, queryType, date)
 			if err != nil {
-				return nil, stacktrace.Propagate(err, "[GetTransactionTotalDashboard] Auction repository error")
+				return nil, err
 			}
 
 			transactionSpeedPerTpi, err := d.auctionRepository.GetTransactionSpeedDashboard(tpi.ID, queryType, date)
 			if err != nil {
-				return nil, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+				return nil, err
 			}
 
 			productionTotal += productionTotalPerTpi
@@ -183,17 +183,17 @@ func (d *dashboardUsecase) GetDashboardDetail(tpiID int, districtID int, queryTy
 
 		productionGraph, err := d.caughtRepository.GetProductionTotalGraphDashboard(tpiID, districtID, queryType, date)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetProductionGraphDashboard] Caught repository error")
+			return nil, err
 		}
 
 		productionValueGraph, err := d.auctionRepository.GetTransactionTotalGraphDashboard(tpiID, districtID, queryType, date)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetProductionValueGraphDashboard] Auction repository error")
+			return nil, err
 		}
 
 		transactionSpeedGraph, err := d.auctionRepository.GetTransactionSpeedGraphDashboard(tpiID, districtID, queryType, date)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetTransactionSpeedDashboard] Auction repository error")
+			return nil, err
 		}
 
 		result := map[string]interface{}{
@@ -210,32 +210,32 @@ func (d *dashboardUsecase) GetDashboardDetail(tpiID int, districtID int, queryTy
 
 	productionTotal, err := d.caughtRepository.GetProductionTotalDashboard(tpiID, queryType, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetProductionTotalDashboard] Caught repository error")
+		return nil, err
 	}
 
 	transactionTotal, err := d.auctionRepository.GetTransactionValueDashboard(tpiID, queryType, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetTransactionTotalDashboard] Auction repository error")
+		return nil, err
 	}
 
 	transactionSpeed, err := d.auctionRepository.GetTransactionSpeedDashboard(tpiID, queryType, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetTransactionSpeed] Auction repository error")
+		return nil, err
 	}
 
 	productionGraph, err := d.caughtRepository.GetProductionTotalGraphDashboard(tpiID, districtID, queryType, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetProductionGraphDashboard] Caught repository error")
+		return nil, err
 	}
 
 	productionValueGraph, err := d.auctionRepository.GetTransactionTotalGraphDashboard(tpiID, districtID, queryType, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetProductionValueGraphDashboard] Auction repository error")
+		return nil, err
 	}
 
 	transactionSpeedGraph, err := d.auctionRepository.GetTransactionSpeedGraphDashboard(tpiID, districtID, queryType, date)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "[GetTransactionSpeedDashboard] Auction repository error")
+		return nil, err
 	}
 
 	result := map[string]interface{}{
