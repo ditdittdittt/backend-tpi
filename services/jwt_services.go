@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -14,13 +15,14 @@ import (
 type JWTService interface {
 	GenerateToken(user *entities.User) (string, error)
 	ValidateToken(token string) (*jwt.Token, error)
+	ExtractClaims(tokenStr string) (string, error)
 }
-type authCustomClaims struct {
-	Username	string	`json:"username"`
-	RoleID		int		`json:"role_id"`
-	Nik			string	`json:"nik"`
-	Name 		string	`json:"name"`
-	Address		string	`json:"address"`
+type AuthCustomClaims struct {
+	Username string `json:"username"`
+	RoleID   int    `json:"role_id"`
+	Nik      string `json:"nik"`
+	Name     string `json:"name"`
+	Address  string `json:"address"`
 	jwt.StandardClaims
 }
 
@@ -32,7 +34,7 @@ type jwtServices struct {
 func NewJWTAuthService() JWTService {
 	return &jwtServices{
 		secretKey: getSecretKey(),
-		issure:    "yudit",
+		issure:    "tpi-app",
 	}
 }
 
@@ -45,14 +47,14 @@ func getSecretKey() string {
 }
 
 func (service *jwtServices) GenerateToken(user *entities.User) (string, error) {
-	claims := &authCustomClaims{
+	claims := &AuthCustomClaims{
 		user.Username,
 		user.RoleID,
 		user.Nik,
 		user.Name,
 		user.Address,
 		jwt.StandardClaims{
-			Id: strconv.Itoa(user.ID),
+			Id:        strconv.Itoa(user.ID),
 			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),
 			Issuer:    service.issure,
 			IssuedAt:  time.Now().Unix(),
@@ -77,4 +79,28 @@ func (service *jwtServices) ValidateToken(encodedToken string) (*jwt.Token, erro
 		return []byte(service.secretKey), nil
 	})
 
+}
+
+func (service *jwtServices) ExtractClaims(tokenStr string) (string, error) {
+	hmacSecretString := service.secretKey
+	hmacSecret := []byte(hmacSecretString)
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// check token signing method etc
+		return hmacSecret, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		accessUsername, ok := claims["username"]
+		if !ok {
+			return "", err
+		}
+		return accessUsername.(string), nil
+	} else {
+		log.Printf("Invalid JWT Token")
+		return "", err
+	}
 }

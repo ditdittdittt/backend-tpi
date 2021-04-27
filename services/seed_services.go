@@ -92,9 +92,10 @@ func seedFishType() {
 func seedFishingGear() {
 	fishingGearRepository := mysql.NewFishingGearRepository(*database.DB)
 	fishingGear1 := &entities.FishingGear{
-		ID:   1,
-		Name: "Net",
-		Code: "FG01",
+		ID:         1,
+		Name:       "Net",
+		Code:       "FG01",
+		DistrictID: 3212,
 	}
 	fishingGearRepository.Create(fishingGear1)
 }
@@ -246,7 +247,6 @@ func seedSuperadmin() {
 			Password:     helper.HashAndSaltPassword([]byte("superadmin")),
 			CreatedAt:    time.Now(),
 			UpdatedAt:    time.Now(),
-			Token:        "",
 		},
 	}
 	userSuperadminRepository.Create(userSuperadmin)

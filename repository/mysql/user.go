@@ -12,7 +12,6 @@ type UserRepository interface {
 	GetByID(id int) (user entities.User, err error)
 	GetByNik(nik string) (user entities.User, err error)
 	GetByUsername(username string) (user entities.User, err error)
-	GetByToken(token string) (user entities.User, err error)
 	GetWithSelectedField(selectedField []string) (users []entities.User, err error)
 	Get() (users []entities.User, err error)
 }
@@ -68,13 +67,6 @@ func (u *userRepository) GetByNik(nik string) (user entities.User, err error) {
 	err = u.db.Where(&entities.User{
 		Nik: nik,
 	}).Find(&user).Error
-	return user, err
-}
-
-func (u *userRepository) GetByToken(token string) (user entities.User, err error) {
-	err = u.db.Preload("Role").Preload("Role.Permission").Where(&entities.User{
-		Token: token,
-	}).First(&user).Error
 	return user, err
 }
 

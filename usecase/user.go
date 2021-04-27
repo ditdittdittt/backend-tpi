@@ -67,15 +67,9 @@ func (u *userUsecase) ChangePassword(id int, oldPassword string, newPassword str
 }
 
 func (u *userUsecase) Logout(id int) error {
-	user, err := u.userRepository.GetByID(id)
+	_, err := u.userRepository.GetByID(id)
 	if err != nil {
 		return stacktrace.Propagate(err, "[GetByID] User repository error")
-	}
-
-	user.Token = ""
-	err = u.userRepository.Update(&user)
-	if err != nil {
-		return stacktrace.Propagate(err, "[Update] User repository error")
 	}
 
 	return nil
@@ -114,7 +108,6 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 			return nil, stacktrace.Propagate(err, "[GetByTpiID] User tpi repository error")
 		}
 		for _, userTpi := range usersTpi {
-			userTpi.User.Token = ""
 			if userTpi.User.ID == userID {
 				continue
 			}
@@ -136,7 +129,6 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 			return nil, stacktrace.Propagate(err, "[GetByTpiID] User tpi repository error")
 		}
 		for _, userTpi := range usersTpi {
-			userTpi.User.Token = ""
 			userTpi.User.LocationID = userTpi.TpiID
 			userTpi.User.LocationName = userTpi.Tpi.Name
 			if userTpi.User.ID == userID {
@@ -153,7 +145,6 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 		}
 
 		for _, user := range usersGet {
-			user.Token = ""
 			switch user.RoleID {
 			case 2:
 				locationDetail, err := u.userDistrictRepository.GetByUserID(user.ID)
@@ -230,12 +221,6 @@ func (u *userUsecase) Login(username string, password string) (token string, err
 	token, err = u.jwtService.GenerateToken(&user)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "[GenerateToken] Jwt Service error")
-	}
-
-	user.Token = token
-	err = u.userRepository.Update(&user)
-	if err != nil {
-		return "", stacktrace.Propagate(err, "[Update] User repository error")
 	}
 
 	return token, nil

@@ -15,7 +15,6 @@ type User struct {
 	Password     string      `json:"-"`
 	CreatedAt    time.Time   `json:"created_at,omitempty"`
 	UpdatedAt    time.Time   `json:"updated_at,omitempty"`
-	Token        string      `json:"token,omitempty"`
 
 	Permissions  []string `gorm:"-" json:"permissions,omitempty"`
 	LocationID   int      `gorm:"-" json:"location_id,omitempty"`

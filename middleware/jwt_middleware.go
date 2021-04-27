@@ -21,8 +21,10 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			return
 		}
 
+		authService := services.NewJWTAuthService()
+
 		tokenString := authHeader[len(BEARER_SCHEMA):]
-		token, err := services.NewJWTAuthService().ValidateToken(tokenString)
+		token, err := authService.ValidateToken(tokenString)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
 			return
@@ -33,8 +35,13 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			return
 		}
 
+		username, err := authService.ExtractClaims(token.Raw)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
+		}
+
 		userRepository := mysql.NewUserRepository(*database.DB)
-		curUser, err := userRepository.GetByToken(token.Raw)
+		curUser, err := userRepository.GetByUsername(username)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
 			return
