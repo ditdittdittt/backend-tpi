@@ -43,7 +43,7 @@ func (u *userRepository) Update(user *entities.User) (err error) {
 }
 
 func (u *userRepository) GetByUsername(username string) (user entities.User, err error) {
-	err = u.db.Where(&entities.User{
+	err = u.db.Preload("Role").Preload("Role.Permission").Where(&entities.User{
 		Username: username,
 	}).First(&user).Error
 
