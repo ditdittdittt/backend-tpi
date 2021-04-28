@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"time"
 
 	"github.com/palantir/stacktrace"
@@ -34,14 +35,14 @@ type userUsecase struct {
 func (u *userUsecase) ResetPassword(id int) error {
 	user, err := u.userRepository.GetByID(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] User repository error")
+		return err
 	}
 
 	user.Password = helper.HashAndSaltPassword([]byte(user.Username))
 
 	err = u.userRepository.Update(&user)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] User repository error")
+		return err
 	}
 
 	return nil
@@ -50,17 +51,17 @@ func (u *userUsecase) ResetPassword(id int) error {
 func (u *userUsecase) ChangePassword(id int, oldPassword string, newPassword string) error {
 	user, err := u.userRepository.GetByID(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] User repository error")
+		return err
 	}
 
 	if !helper.ComparePassword(user.Password, []byte(oldPassword)) {
-		return stacktrace.NewError("Password didn't match")
+		return errors.New("Password didn't match")
 	}
 
 	user.Password = helper.HashAndSaltPassword([]byte(newPassword))
 	err = u.userRepository.Update(&user)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] User repository error")
+		return err
 	}
 
 	return nil
@@ -69,7 +70,7 @@ func (u *userUsecase) ChangePassword(id int, oldPassword string, newPassword str
 func (u *userUsecase) Logout(id int) error {
 	_, err := u.userRepository.GetByID(id)
 	if err != nil {
-		return stacktrace.Propagate(err, "[GetByID] User repository error")
+		return err
 	}
 
 	return nil
@@ -78,7 +79,7 @@ func (u *userUsecase) Logout(id int) error {
 func (u *userUsecase) GetByID(id int) (entities.User, error) {
 	user, err := u.userRepository.GetByID(id)
 	if err != nil {
-		return user, stacktrace.Propagate(err, "[GetByID] User repository error")
+		return user, err
 	}
 
 	return user, nil
@@ -95,7 +96,7 @@ func (u *userUsecase) Update(user *entities.User) error {
 
 	err = u.userRepository.Update(user)
 	if err != nil {
-		return stacktrace.Propagate(err, "[Update] User repository error")
+		return err
 	}
 
 	return nil
@@ -105,7 +106,7 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 	if tpiID != 0 {
 		usersTpi, err := u.userTpiRepository.GetByTpiIDs([]int{tpiID})
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetByTpiID] User tpi repository error")
+			return nil, err
 		}
 		for _, userTpi := range usersTpi {
 			if userTpi.User.ID == userID {
@@ -121,12 +122,12 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 		}
 		tpis, err := u.tpiRepository.Get(queryMap)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[Get] Tpi repository error")
+			return nil, err
 		}
 
 		usersTpi, err := u.userTpiRepository.GetByTpiIDs(tpiToID(tpis))
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[GetByTpiID] User tpi repository error")
+			return nil, err
 		}
 		for _, userTpi := range usersTpi {
 			userTpi.User.LocationID = userTpi.TpiID
@@ -141,7 +142,7 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 	if tpiID == 0 && districtID == 0 {
 		usersGet, err := u.userRepository.Get()
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "[Get] User repository error")
+			return nil, err
 		}
 
 		for _, user := range usersGet {
@@ -207,20 +208,20 @@ func (u *userUsecase) GetUser(id int) (entities.User, map[string]interface{}, er
 func (u *userUsecase) Login(username string, password string) (token string, err error) {
 	user, err := u.userRepository.GetByUsername(username)
 	if err != nil {
-		return "", stacktrace.NewError("Username not found for username %s", username)
+		return "", errors.New("Username not found")
 	}
 
 	if user.UserStatusID == 2 {
-		return "", stacktrace.NewError("Account inactive")
+		return "", errors.New("account inactive")
 	}
 
 	if !helper.ComparePassword(user.Password, []byte(password)) {
-		return "", stacktrace.NewError("Password didn't match")
+		return "", errors.New("Password didn't match")
 	}
 
 	token, err = u.jwtService.GenerateToken(&user)
 	if err != nil {
-		return "", stacktrace.Propagate(err, "[GenerateToken] Jwt Service error")
+		return "", err
 	}
 
 	return token, nil

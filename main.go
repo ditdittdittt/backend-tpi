@@ -44,18 +44,19 @@ func main() {
 	tpiUsecase := usecase.NewTpiUsecase(tpiRepository)
 	http.NewTpiHandler(r, tpiUsecase)
 
-	// User District
 	userDistrictRepository := mysql.NewUserDistrictRepository(*database.DB)
-	userDistrictUsecase := usecase.NewUserDistrictUsecase(userDistrictRepository)
+	userTpiRepository := mysql.NewUserTpiRepository(*database.DB)
+	userRepository := mysql.NewUserRepository(*database.DB)
+
+	// User District
+	userDistrictUsecase := usecase.NewUserDistrictUsecase(userDistrictRepository, userRepository)
 	http.NewUserDistrictHandler(r, userDistrictUsecase)
 
 	// User Tpi
-	userTpiRepository := mysql.NewUserTpiRepository(*database.DB)
-	userTpiUsecase := usecase.NewUserTpiUsecase(userTpiRepository)
+	userTpiUsecase := usecase.NewUserTpiUsecase(userTpiRepository, userRepository)
 	http.NewUserTpiHandler(r, userTpiUsecase)
 
 	// User
-	userRepository := mysql.NewUserRepository(*database.DB)
 	userUsecase := usecase.NewUserUsecase(jwtService, userRepository, userDistrictRepository, userTpiRepository, tpiRepository)
 	http.NewUserHandler(r, userUsecase)
 

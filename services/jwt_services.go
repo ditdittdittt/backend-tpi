@@ -20,7 +20,6 @@ type JWTService interface {
 type AuthCustomClaims struct {
 	Username string `json:"username"`
 	RoleID   int    `json:"role_id"`
-	Nik      string `json:"nik"`
 	Name     string `json:"name"`
 	Address  string `json:"address"`
 	jwt.StandardClaims
@@ -50,7 +49,6 @@ func (service *jwtServices) GenerateToken(user *entities.User) (string, error) {
 	claims := &AuthCustomClaims{
 		user.Username,
 		user.RoleID,
-		user.Nik,
 		user.Name,
 		user.Address,
 		jwt.StandardClaims{
@@ -62,7 +60,6 @@ func (service *jwtServices) GenerateToken(user *entities.User) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	//encoded string
 	t, err := token.SignedString([]byte(service.secretKey))
 	if err != nil {
 		return "", err
