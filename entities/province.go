@@ -1,6 +1,6 @@
 package entities
 
 type Province struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID   int    `gorm:"not null" json:"id"`
+	Name string `gorm:"not null" json:"name"`
 }

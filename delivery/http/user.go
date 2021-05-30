@@ -29,17 +29,20 @@ type userHandler struct {
 
 func NewUserHandler(server *gin.Engine, userUsecase usecase.UserUsecase) {
 	handler := &userHandler{UserUsecase: userUsecase}
-	user := server.Group("/auth")
+	api := server.Group("/api/v1")
 	{
-		user.POST("/get-user", middleware.AuthorizeJWT(constant.GetUser), handler.GetUser)
-		user.POST("/login", handler.Login)
-		user.POST("/logout", middleware.AuthorizeJWT(constant.Pass), handler.Logout)
-		user.POST("/change-password", middleware.AuthorizeJWT(constant.Pass), handler.ChangePassword)
+		user := api.Group("/auth")
+		{
+			user.POST("/get-user", middleware.AuthorizeJWT(constant.GetUser), handler.GetUser)
+			user.POST("/login", handler.Login)
+			user.POST("/logout", middleware.AuthorizeJWT(constant.Pass), handler.Logout)
+			user.POST("/change-password", middleware.AuthorizeJWT(constant.Pass), handler.ChangePassword)
+		}
+		api.GET("/users", middleware.AuthorizeJWT(constant.Pass), handler.Index)
+		api.GET("/user/:id", middleware.AuthorizeJWT(constant.ReadUser), handler.GetByID)
+		api.PUT("/user/:id", middleware.AuthorizeJWT(constant.UpdateUser), handler.Update)
+		api.POST("/user/reset-password/:id", middleware.AuthorizeJWT(constant.ResetPassword), handler.ResetPassword)
 	}
-	server.GET("/users", middleware.AuthorizeJWT(constant.Pass), handler.Index)
-	server.GET("/user/:id", middleware.AuthorizeJWT(constant.ReadUser), handler.GetByID)
-	server.PUT("/user/:id", middleware.AuthorizeJWT(constant.UpdateUser), handler.Update)
-	server.POST("/user/reset-password/:id", middleware.AuthorizeJWT(constant.ResetPassword), handler.ResetPassword)
 }
 
 func (handler *userHandler) Login(c *gin.Context) {

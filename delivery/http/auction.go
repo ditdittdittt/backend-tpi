@@ -28,12 +28,15 @@ type auctionHandler struct {
 
 func NewAuctionHandler(server *gin.Engine, auctionUsecase usecase.AuctionUsecase) {
 	handler := &auctionHandler{auctionUsecase: auctionUsecase}
-	server.POST("/auction", middleware.AuthorizeJWT(constant.CreateAuction), handler.Create)
-	server.GET("/auction/inquiry", middleware.AuthorizeJWT(constant.ReadAuction), handler.Inquiry)
-	server.GET("/auctions", middleware.AuthorizeJWT(constant.ReadAuction), handler.Index)
-	server.GET("/auction/getbyid/:id}", middleware.AuthorizeJWT(constant.ReadAuction), handler.GetByID)
-	server.PUT("/auction/update/:id", middleware.AuthorizeJWT(constant.UpdateAuction), handler.Update)
-	server.DELETE("/auction/delete/:id", middleware.AuthorizeJWT(constant.DeleteAuction), handler.Delete)
+	api := server.Group("/api/v1")
+	{
+		api.POST("/auction", middleware.AuthorizeJWT(constant.CreateAuction), handler.Create)
+		api.GET("/auction/inquiry", middleware.AuthorizeJWT(constant.ReadAuction), handler.Inquiry)
+		api.GET("/auctions", middleware.AuthorizeJWT(constant.ReadAuction), handler.Index)
+		api.GET("/auction/getbyid/:id}", middleware.AuthorizeJWT(constant.ReadAuction), handler.GetByID)
+		api.PUT("/auction/update/:id", middleware.AuthorizeJWT(constant.UpdateAuction), handler.Update)
+		api.DELETE("/auction/delete/:id", middleware.AuthorizeJWT(constant.DeleteAuction), handler.Delete)
+	}
 }
 
 func (h *auctionHandler) Create(c *gin.Context) {

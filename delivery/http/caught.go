@@ -28,12 +28,15 @@ type caughtHandler struct {
 
 func NewCaughtHandler(server *gin.Engine, caughtUsecase usecase.CaughtUsecase) {
 	handler := &caughtHandler{CaughtUsecase: caughtUsecase}
-	server.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
-	server.GET("/caught/getbyid/:id", middleware.AuthorizeJWT(constant.ReadCaught), handler.GetByID)
-	server.PUT("/caught/update/:id", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
-	server.DELETE("/caught/delete/:id", middleware.AuthorizeJWT(constant.DeleteCaught), handler.Delete)
-	server.GET("/caughts", middleware.AuthorizeJWT(constant.ReadCaught), handler.Index)
-	server.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.ReadCaught), handler.Inquiry)
+	api := server.Group("/api/v1")
+	{
+		api.POST("/caught", middleware.AuthorizeJWT(constant.CreateCaught), handler.Create)
+		api.GET("/caught/getbyid/:id", middleware.AuthorizeJWT(constant.ReadCaught), handler.GetByID)
+		api.PUT("/caught/update/:id", middleware.AuthorizeJWT(constant.UpdateCaught), handler.Update)
+		api.DELETE("/caught/delete/:id", middleware.AuthorizeJWT(constant.DeleteCaught), handler.Delete)
+		api.GET("/caughts", middleware.AuthorizeJWT(constant.ReadCaught), handler.Index)
+		api.GET("/caught/inquiry", middleware.AuthorizeJWT(constant.ReadCaught), handler.Inquiry)
+	}
 }
 
 func (h *caughtHandler) Create(c *gin.Context) {

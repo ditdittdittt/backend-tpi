@@ -112,7 +112,7 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 			if userTpi.User.ID == userID {
 				continue
 			}
-			users = append(users, userTpi.User)
+			users = append(users, *userTpi.User)
 		}
 	}
 
@@ -135,7 +135,7 @@ func (u *userUsecase) Index(userID int, tpiID int, districtID int) (users []enti
 			if userTpi.User.ID == userID {
 				continue
 			}
-			users = append(users, userTpi.User)
+			users = append(users, *userTpi.User)
 		}
 	}
 

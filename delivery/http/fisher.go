@@ -27,11 +27,14 @@ type fisherHandler struct {
 
 func NewFisherHandler(server *gin.Engine, fisherUsecase usecase.FisherUsecase) {
 	handler := &fisherHandler{FisherUsecase: fisherUsecase}
-	server.POST("/fisher", middleware.AuthorizeJWT(constant.CreateFisher), handler.Create)
-	server.GET("/fishers", middleware.AuthorizeJWT(constant.ReadFisher), handler.Index)
-	server.PUT("/fisher/:id", middleware.AuthorizeJWT(constant.UpdateFisher), handler.Update)
-	server.GET("/fisher/:id", middleware.AuthorizeJWT(constant.ReadFisher), handler.GetByID)
-	server.DELETE("/fisher/:id", middleware.AuthorizeJWT(constant.DeleteFisher), handler.Delete)
+	api := server.Group("/api/v1")
+	{
+		api.POST("/fisher", middleware.AuthorizeJWT(constant.CreateFisher), handler.Create)
+		api.GET("/fishers", middleware.AuthorizeJWT(constant.ReadFisher), handler.Index)
+		api.PUT("/fisher/:id", middleware.AuthorizeJWT(constant.UpdateFisher), handler.Update)
+		api.GET("/fisher/:id", middleware.AuthorizeJWT(constant.ReadFisher), handler.GetByID)
+		api.DELETE("/fisher/:id", middleware.AuthorizeJWT(constant.DeleteFisher), handler.Delete)
+	}
 }
 
 func (h *fisherHandler) Create(c *gin.Context) {

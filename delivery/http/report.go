@@ -29,12 +29,15 @@ type reportHandler struct {
 
 func NewReportHandler(server *gin.Engine, reportUsecase usecase.ReportUsecase) {
 	handler := &reportHandler{reportUsecase: reportUsecase}
-	server.GET("/report/production", middleware.AuthorizeJWT(constant.Pass), handler.Production)
-	server.GET("/report/transaction", middleware.AuthorizeJWT(constant.Pass), handler.Transaction)
-	server.GET("/report/production/excel", middleware.AuthorizeJWT(constant.Pass), handler.ExportExcelProduction)
-	server.GET("/report/transaction/excel", middleware.AuthorizeJWT(constant.Pass), handler.ExportExcelTransaction)
-	server.GET("/report/production/pdf", middleware.AuthorizeJWT(constant.Pass), handler.ExportPdfProduction)
-	server.GET("/report/transaction/pdf", middleware.AuthorizeJWT(constant.Pass), handler.ExportPdfTransaction)
+	api := server.Group("/api/v1")
+	{
+		api.GET("/report/production", middleware.AuthorizeJWT(constant.Pass), handler.Production)
+		api.GET("/report/transaction", middleware.AuthorizeJWT(constant.Pass), handler.Transaction)
+		api.GET("/report/production/excel", middleware.AuthorizeJWT(constant.Pass), handler.ExportExcelProduction)
+		api.GET("/report/transaction/excel", middleware.AuthorizeJWT(constant.Pass), handler.ExportExcelTransaction)
+		api.GET("/report/production/pdf", middleware.AuthorizeJWT(constant.Pass), handler.ExportPdfProduction)
+		api.GET("/report/transaction/pdf", middleware.AuthorizeJWT(constant.Pass), handler.ExportPdfTransaction)
+	}
 }
 
 func (h *reportHandler) Production(c *gin.Context) {

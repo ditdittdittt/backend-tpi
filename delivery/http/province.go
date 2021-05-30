@@ -20,7 +20,10 @@ type provinceHandler struct {
 
 func NewProvinceHandler(server *gin.Engine, provinceUsecase usecase.ProvinceUsecase) {
 	handler := provinceHandler{provinceUsecase: provinceUsecase}
-	server.GET("/provinces", middleware.AuthorizeJWT(constant.Pass), handler.Index)
+	api := server.Group("/api/v1")
+	{
+		api.GET("/provinces", middleware.AuthorizeJWT(constant.Pass), handler.Index)
+	}
 }
 
 func (h *provinceHandler) Index(c *gin.Context) {

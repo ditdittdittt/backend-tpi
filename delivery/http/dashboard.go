@@ -22,8 +22,11 @@ type dashboardHandler struct {
 
 func NewDashboardHandler(server *gin.Engine, dashboardUsecase usecase.DashboardUsecase) {
 	handler := &dashboardHandler{dashboardUsecase: dashboardUsecase}
-	server.GET("/dashboard/header", middleware.AuthorizeJWT(constant.Pass), handler.GetDashboardHeader)
-	server.GET("/dashboard/detail", middleware.AuthorizeJWT(constant.Pass), handler.GetDashboardDetail)
+	api := server.Group("/api/v1")
+	{
+		api.GET("/dashboard/header", middleware.AuthorizeJWT(constant.Pass), handler.GetDashboardHeader)
+		api.GET("/dashboard/detail", middleware.AuthorizeJWT(constant.Pass), handler.GetDashboardDetail)
+	}
 }
 
 func (h *dashboardHandler) GetDashboardHeader(c *gin.Context) {

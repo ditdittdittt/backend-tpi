@@ -27,11 +27,14 @@ type tpiHandler struct {
 
 func NewTpiHandler(server *gin.Engine, tpiUsecase usecase.TpiUsecase) {
 	handler := &tpiHandler{TpiUsecase: tpiUsecase}
-	server.POST("/tpi", middleware.AuthorizeJWT(constant.CreateTpi), handler.Create)
-	server.GET("/tpis", middleware.AuthorizeJWT(constant.ReadTpi), handler.Index)
-	server.GET("/tpi/:id", middleware.AuthorizeJWT(constant.ReadTpi), handler.GetByID)
-	server.PUT("/tpi/:id", middleware.AuthorizeJWT(constant.UpdateTpi), handler.Update)
-	server.DELETE("/tpi/:id", middleware.AuthorizeJWT(constant.DeleteTpi), handler.Delete)
+	api := server.Group("/api/v1")
+	{
+		api.POST("/tpi", middleware.AuthorizeJWT(constant.CreateTpi), handler.Create)
+		api.GET("/tpis", middleware.AuthorizeJWT(constant.ReadTpi), handler.Index)
+		api.GET("/tpi/:id", middleware.AuthorizeJWT(constant.ReadTpi), handler.GetByID)
+		api.PUT("/tpi/:id", middleware.AuthorizeJWT(constant.UpdateTpi), handler.Update)
+		api.DELETE("/tpi/:id", middleware.AuthorizeJWT(constant.DeleteTpi), handler.Delete)
+	}
 }
 
 func (h *tpiHandler) Create(c *gin.Context) {
