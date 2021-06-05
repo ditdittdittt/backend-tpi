@@ -21,7 +21,10 @@ type districtHandler struct {
 
 func NewDistrictHandler(server *gin.Engine, districtUsecase usecase.DistrictUsecase) {
 	handler := districtHandler{districtUsecase: districtUsecase}
-	server.GET("/districts", middleware.AuthorizeJWT(constant.Pass), handler.Index)
+	api := server.Group("/api/v1")
+	{
+		api.GET("/districts", middleware.AuthorizeJWT(constant.Pass), handler.Index)
+	}
 }
 
 func (h *districtHandler) Index(c *gin.Context) {

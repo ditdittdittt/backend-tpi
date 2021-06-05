@@ -1,9 +1,9 @@
 package entities
 
 type UserTpi struct {
-	ID     int  `json:"id,omitempty"`
-	UserID int  `json:"user_id,omitempty"`
-	User   User `json:"user,omitempty"`
-	TpiID  int  `json:"tpi_id,omitempty"`
-	Tpi    Tpi  `json:"tpi,omitempty"`
+	ID     int   `gorm:"not null" json:"id,omitempty"`
+	UserID int   `gorm:"not null" json:"user_id,omitempty"`
+	User   *User `json:"user,omitempty"`
+	TpiID  int   `gorm:"not null" json:"tpi_id,omitempty"`
+	Tpi    *Tpi  `json:"tpi,omitempty"`
 }

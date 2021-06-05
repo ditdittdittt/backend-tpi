@@ -21,9 +21,12 @@ type userDistrictHandler struct {
 
 func NewUserDistrictHandler(server *gin.Engine, userDistrictUsecase usecase.UserDistrictUsecase) {
 	handler := &userDistrictHandler{UserDistrictUsecase: userDistrictUsecase}
-	user := server.Group("/auth")
+	api := server.Group("/api/v1")
 	{
-		user.POST("/create-district-admin", middleware.AuthorizeJWT(constant.CreateDistrictAdmin), handler.CreateDistrictAdmin)
+		user := api.Group("/auth")
+		{
+			user.POST("/create-district-admin", middleware.AuthorizeJWT(constant.CreateDistrictAdmin), handler.CreateDistrictAdmin)
+		}
 	}
 }
 
@@ -35,7 +38,7 @@ func (h *userDistrictHandler) CreateDistrictAdmin(c *gin.Context) {
 	}
 
 	districtUser := &entities.UserDistrict{
-		User: entities.User{
+		User: &entities.User{
 			RoleID:   2,
 			Nik:      request.Nik,
 			Name:     request.Name,

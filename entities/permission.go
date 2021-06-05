@@ -1,6 +1,6 @@
 package entities
 
 type Permission struct {
-	ID		int
-	Name	string
+	ID   int    `gorm:"not null" json:"id"`
+	Name string `gorm:"not null" json:"name"`
 }

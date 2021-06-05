@@ -3,18 +3,18 @@ package entities
 import "time"
 
 type Fisher struct {
-	ID          int          `json:"id,omitempty"`
-	UserID      int          `json:"user_id,omitempty"`
+	ID          int          `gorm:"not null" json:"id,omitempty"`
+	UserID      int          `gorm:"not null" json:"user_id,omitempty"`
 	User        *User        `json:"user,omitempty"`
-	Nik         string       `gorm:"unique" json:"nik,omitempty"`
-	Name        string       `json:"name,omitempty"`
-	NickName    string       `json:"nick_name,omitempty"`
-	Address     string       `json:"address,omitempty"`
-	ShipType    string       `json:"ship_type,omitempty"`
-	AbkTotal    int          `json:"abk_total,omitempty"`
-	PhoneNumber string       `json:"phone_number,omitempty"`
-	CreatedAt   time.Time    `json:"created_at,omitempty"`
-	UpdatedAt   time.Time    `json:"updated_at,omitempty"`
+	Nik         string       `gorm:"not null,unique" json:"nik,omitempty"`
+	Name        string       `gorm:"not null" json:"name,omitempty"`
+	NickName    string       `gorm:"not null" json:"nick_name,omitempty"`
+	Address     string       `gorm:"not null" json:"address,omitempty"`
+	ShipType    string       `gorm:"not null" json:"ship_type,omitempty"`
+	AbkTotal    int          `gorm:"not null" json:"abk_total,omitempty"`
+	PhoneNumber string       `gorm:"not null" json:"phone_number,omitempty"`
+	CreatedAt   time.Time    `gorm:"not null" json:"created_at,omitempty"`
+	UpdatedAt   time.Time    `gorm:"not null" json:"updated_at,omitempty"`
 	TpiID       int          `json:"tpi_id,omitempty"`
 	Tpi         *Tpi         `json:"tpi,omitempty"`
 	FisherTpi   []*FisherTpi `json:"fisher_tpi,omitempty"`

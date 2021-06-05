@@ -3,17 +3,17 @@ package entities
 import "time"
 
 type Transaction struct {
-	ID               int                `json:"id,omitempty"`
-	UserID           int                `json:"user_id,omitempty"`
+	ID               int                `gorm:"not null" json:"id,omitempty"`
+	UserID           int                `gorm:"not null" json:"user_id,omitempty"`
 	User             *User              `json:"user,omitempty"`
-	TpiID            int                `json:"tpi_id,omitempty"`
+	TpiID            int                `gorm:"not null" json:"tpi_id,omitempty"`
 	Tpi              *Tpi               `json:"tpi,omitempty"`
-	BuyerID          int                `json:"buyer_id,omitempty"`
+	BuyerID          int                `gorm:"not null" json:"buyer_id,omitempty"`
 	Buyer            *Buyer             `json:"buyer,omitempty"`
-	DistributionArea string             `json:"distribution_area,omitempty"`
-	Code             string             `gorm:"unique" json:"code,omitempty"`
-	TotalPrice       float64            `json:"total_price,omitempty"`
-	CreatedAt        time.Time          `json:"created_at,omitempty"`
-	UpdatedAt        time.Time          `json:"updated_at,omitempty"`
-	TransactionItem  []*TransactionItem `json:"transaction_item,omitempty"`
+	DistributionArea string             `gorm:"not null" json:"distribution_area,omitempty"`
+	Code             string             `gorm:"not null,unique" json:"code,omitempty"`
+	TotalPrice       float64            `gorm:"not null" json:"total_price,omitempty"`
+	CreatedAt        time.Time          `gorm:"not null" json:"created_at,omitempty"`
+	UpdatedAt        time.Time          `gorm:"not null" json:"updated_at,omitempty"`
+	TransactionItem  []*TransactionItem `gorm:"not null" json:"transaction_item,omitempty"`
 }

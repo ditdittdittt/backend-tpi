@@ -1,7 +1,7 @@
 package entities
 
 type FishType struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	Code string `gorm:"unique" json:"code"`
+	ID   int    `gorm:"not null" json:"id"`
+	Name string `gorm:"not null" json:"name"`
+	Code string `gorm:"not null" gorm:"unique" json:"code"`
 }

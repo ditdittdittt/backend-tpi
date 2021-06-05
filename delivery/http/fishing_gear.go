@@ -27,11 +27,14 @@ type fishingGearHandler struct {
 
 func NewFishingGearHandler(server *gin.Engine, fishingGearusecase usecase.FishingGearUsecase) {
 	handler := &fishingGearHandler{FishingGearUsecase: fishingGearusecase}
-	server.POST("/fishing-gear", middleware.AuthorizeJWT(constant.CreateFishingGear), handler.Create)
-	server.GET("/fishing-gears", middleware.AuthorizeJWT(constant.ReadFishingGear), handler.Index)
-	server.GET("/fishing-gear/:id", middleware.AuthorizeJWT(constant.ReadFishingGear), handler.GetByID)
-	server.PUT("/fishing-gear/:id", middleware.AuthorizeJWT(constant.UpdateFishingGear), handler.Update)
-	server.DELETE("/fishing-gear/:id", middleware.AuthorizeJWT(constant.DeleteFishingGear), handler.Delete)
+	api := server.Group("/api/v1")
+	{
+		api.POST("/fishing-gear", middleware.AuthorizeJWT(constant.CreateFishingGear), handler.Create)
+		api.GET("/fishing-gears", middleware.AuthorizeJWT(constant.ReadFishingGear), handler.Index)
+		api.GET("/fishing-gear/:id", middleware.AuthorizeJWT(constant.ReadFishingGear), handler.GetByID)
+		api.PUT("/fishing-gear/:id", middleware.AuthorizeJWT(constant.UpdateFishingGear), handler.Update)
+		api.DELETE("/fishing-gear/:id", middleware.AuthorizeJWT(constant.DeleteFishingGear), handler.Delete)
+	}
 }
 
 func (h *fishingGearHandler) Create(c *gin.Context) {

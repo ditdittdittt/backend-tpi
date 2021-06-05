@@ -23,11 +23,14 @@ type usertTpiHandler struct {
 
 func NewUserTpiHandler(server *gin.Engine, userTpiUsecase usecase.UserTpiUsecase) {
 	handler := &usertTpiHandler{UserTpiUsecase: userTpiUsecase}
-	user := server.Group("/auth")
+	api := server.Group("/api/v1")
 	{
-		user.POST("/create-tpi-admin", middleware.AuthorizeJWT(constant.CreateTpiAdmin), handler.CreateTpiAdmin)
-		user.POST("/create-tpi-officer", middleware.AuthorizeJWT(constant.CreateTpiOfficer), handler.CreateTpiOfficer)
-		user.POST("/create-tpi-cashier", middleware.AuthorizeJWT(constant.CreateTpiCashier), handler.CreateTpiCashier)
+		user := api.Group("/auth")
+		{
+			user.POST("/create-tpi-admin", middleware.AuthorizeJWT(constant.CreateTpiAdmin), handler.CreateTpiAdmin)
+			user.POST("/create-tpi-officer", middleware.AuthorizeJWT(constant.CreateTpiOfficer), handler.CreateTpiOfficer)
+			user.POST("/create-tpi-cashier", middleware.AuthorizeJWT(constant.CreateTpiCashier), handler.CreateTpiCashier)
+		}
 	}
 }
 
@@ -39,7 +42,7 @@ func (h *usertTpiHandler) CreateTpiAdmin(c *gin.Context) {
 	}
 
 	tpiUser := &entities.UserTpi{
-		User: entities.User{
+		User: &entities.User{
 			RoleID:   3,
 			Nik:      request.Nik,
 			Name:     request.Name,
@@ -73,7 +76,7 @@ func (h *usertTpiHandler) CreateTpiOfficer(c *gin.Context) {
 	}
 
 	tpiUser := &entities.UserTpi{
-		User: entities.User{
+		User: &entities.User{
 			RoleID:   4,
 			Nik:      request.Nik,
 			Name:     request.Name,
@@ -107,7 +110,7 @@ func (h *usertTpiHandler) CreateTpiCashier(c *gin.Context) {
 	}
 
 	tpiUser := &entities.UserTpi{
-		User: entities.User{
+		User: &entities.User{
 			RoleID:   5,
 			Nik:      request.Nik,
 			Name:     request.Name,

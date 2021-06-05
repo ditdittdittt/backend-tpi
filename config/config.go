@@ -3,9 +3,16 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/spf13/viper"
+)
+
+const (
+	dev  = "development"
+	prod = "production"
 )
 
 var (
@@ -15,6 +22,23 @@ var (
 )
 
 func Init() {
+	if getAppEnv() == prod {
+		initProd()
+	} else {
+		initDev()
+	}
+}
+
+func getAppEnv() string {
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		return dev
+	}
+
+	return prod
+}
+
+func initDev() {
 	viper.SetConfigFile(`config.json`)
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -39,5 +63,19 @@ func Init() {
 	TimeoutContext = time.Duration(viper.GetInt("context.timeout")) * time.Second
 
 	JwtSecret = []byte(viper.GetString(`jwt_secret`))
+}
 
+func initProd() {
+	dbHost := os.Getenv(`DB_HOST`)
+	dbPort := os.Getenv(`DB_PORT`)
+	dbUser := os.Getenv(`DB_USER`)
+	dbPass := os.Getenv(`DB_PASS`)
+	dbName := os.Getenv(`DB_NAME`)
+
+	Dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
+
+	timeout, _ := strconv.Atoi(os.Getenv("TIMEOUT"))
+	TimeoutContext = time.Duration(timeout) * time.Second
+
+	JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 }

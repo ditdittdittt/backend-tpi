@@ -27,11 +27,14 @@ type transactionHandler struct {
 
 func NewTransactionHandler(server *gin.Engine, transactionUsecase usecase.TransactionUsecase) {
 	handler := &transactionHandler{transactionUsecase: transactionUsecase}
-	server.POST("/transaction", middleware.AuthorizeJWT(constant.CreateTransaction), handler.Create)
-	server.GET("/transactions", middleware.AuthorizeJWT(constant.Pass), handler.Index)
-	server.GET("/transaction/getbyid/:id", middleware.AuthorizeJWT(constant.ReadTransaction), handler.GetByID)
-	server.PUT("/transaction/update/:id", middleware.AuthorizeJWT(constant.UpdateTransaction), handler.Update)
-	server.DELETE("/transaction/delete/:id", middleware.AuthorizeJWT(constant.DeleteTransaction), handler.Delete)
+	api := server.Group("/api/v1")
+	{
+		api.POST("/transaction", middleware.AuthorizeJWT(constant.CreateTransaction), handler.Create)
+		api.GET("/transactions", middleware.AuthorizeJWT(constant.Pass), handler.Index)
+		api.GET("/transaction/getbyid/:id", middleware.AuthorizeJWT(constant.ReadTransaction), handler.GetByID)
+		api.PUT("/transaction/update/:id", middleware.AuthorizeJWT(constant.UpdateTransaction), handler.Update)
+		api.DELETE("/transaction/delete/:id", middleware.AuthorizeJWT(constant.DeleteTransaction), handler.Delete)
+	}
 }
 
 func (h *transactionHandler) Create(c *gin.Context) {

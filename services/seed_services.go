@@ -236,7 +236,7 @@ func seedSuperadmin() {
 	userSuperadmin := &entities.UserSuperadmin{
 		ID:     1,
 		UserID: 1,
-		User: entities.User{
+		User: &entities.User{
 			ID:           1,
 			RoleID:       1,
 			UserStatusID: 1,
