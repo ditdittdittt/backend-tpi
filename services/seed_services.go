@@ -222,7 +222,7 @@ func seedRoleAndPermission() {
 		ID:   5,
 		Name: "tpi-cashier",
 	}
-	permissionTpiCashier := []int{5, 6, 7, 17, 20, 21, 28, 30}
+	permissionTpiCashier := []int{5, 6, 7, 17, 20, 21, 26, 28, 30, 42}
 	for _, permissionID := range permissionTpiCashier {
 		permission := &entities.Permission{ID: permissionID}
 		roleTpiCashier.Permission = append(roleTpiCashier.Permission, permission)
