@@ -12,7 +12,7 @@ import (
 )
 
 func Seed() {
-	seedProvinceAndDistrict()
+	//seedProvinceAndDistrict()
 	seedCaughtStatus()
 	seedFishType()
 	seedFishingGear()
@@ -164,6 +164,9 @@ func seedRoleAndPermission() {
 		43: constant.DeleteFishType,
 	}
 	for index, key := range permissionMap {
+		if index == 0 {
+			continue
+		}
 		permission := &entities.Permission{
 			ID:   index,
 			Name: key,

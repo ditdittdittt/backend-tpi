@@ -35,13 +35,13 @@ func AuthorizeJWT(function string) gin.HandlerFunc {
 			return
 		}
 
-		username, err := authService.ExtractClaims(token.Raw)
+		id, err := authService.ExtractClaims(token.Raw)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
 		}
 
 		userRepository := mysql.NewUserRepository(*database.DB)
-		curUser, err := userRepository.GetByUsername(username)
+		curUser, err := userRepository.GetByID(id)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "Unauthorized"})
 			return

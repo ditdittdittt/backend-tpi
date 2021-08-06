@@ -3,8 +3,8 @@ package entities
 import "time"
 
 type Tpi struct {
-	ID          int       `gorm:"not null" json:"id,omitempty"`
-	DistrictID  int       `gorm:"not null" json:"district_id,omitempty"`
+	ID          int       `gorm:"not null, index" json:"id,omitempty"`
+	DistrictID  int       `gorm:"not null, index" json:"district_id,omitempty"`
 	District    *District `json:"district,omitempty"`
 	UserID      int       `gorm:"not null" json:"user_id,omitempty"`
 	Name        string    `gorm:"not null" json:"name,omitempty"`

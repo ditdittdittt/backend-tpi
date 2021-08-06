@@ -15,7 +15,7 @@ type Fisher struct {
 	PhoneNumber string       `gorm:"not null" json:"phone_number,omitempty"`
 	CreatedAt   time.Time    `gorm:"not null" json:"created_at,omitempty"`
 	UpdatedAt   time.Time    `gorm:"not null" json:"updated_at,omitempty"`
-	TpiID       int          `json:"tpi_id,omitempty"`
+	TpiID       int          `gorm:"index" json:"tpi_id,omitempty"`
 	Tpi         *Tpi         `json:"tpi,omitempty"`
 	FisherTpi   []*FisherTpi `json:"fisher_tpi,omitempty"`
 

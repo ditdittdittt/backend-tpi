@@ -15,7 +15,7 @@ import (
 type JWTService interface {
 	GenerateToken(user *entities.User) (string, error)
 	ValidateToken(token string) (*jwt.Token, error)
-	ExtractClaims(tokenStr string) (string, error)
+	ExtractClaims(tokenStr string) (int, error)
 }
 type AuthCustomClaims struct {
 	Username string `json:"username"`
@@ -78,7 +78,7 @@ func (service *jwtServices) ValidateToken(encodedToken string) (*jwt.Token, erro
 
 }
 
-func (service *jwtServices) ExtractClaims(tokenStr string) (string, error) {
+func (service *jwtServices) ExtractClaims(tokenStr string) (int, error) {
 	hmacSecretString := service.secretKey
 	hmacSecret := []byte(hmacSecretString)
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -87,17 +87,21 @@ func (service *jwtServices) ExtractClaims(tokenStr string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		accessUsername, ok := claims["username"]
+		accessID, ok := claims["jti"].(string)
 		if !ok {
-			return "", err
+			return 0, err
 		}
-		return accessUsername.(string), nil
+		id, err := strconv.Atoi(accessID)
+		if err != nil {
+			return 0, err
+		}
+		return id, nil
 	} else {
 		log.Printf("Invalid JWT Token")
-		return "", err
+		return 0, err
 	}
 }

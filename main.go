@@ -27,6 +27,9 @@ func main() {
 		case "seed":
 			services.Seed()
 			break
+		case "test":
+			services.Test()
+			break
 		}
 		return
 	}

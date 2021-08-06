@@ -3,7 +3,7 @@ package entities
 import "time"
 
 type User struct {
-	ID           int         `gorm:"not null" json:"id,omitempty"`
+	ID           int         `gorm:"not null, index" json:"id,omitempty"`
 	RoleID       int         `gorm:"not null" json:"role_id,omitempty"`
 	Role         *Role       `json:"role,omitempty"`
 	UserStatusID int         `gorm:"not null" json:"user_status_id,omitempty"`

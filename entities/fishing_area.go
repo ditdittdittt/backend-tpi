@@ -2,7 +2,7 @@ package entities
 
 type FishingArea struct {
 	ID                  int       `gorm:"not null" json:"id,omitempty"`
-	DistrictID          int       `gorm:"not null" json:"district_id,omitempty"`
+	DistrictID          int       `gorm:"not null, index" json:"district_id,omitempty"`
 	District            *District `json:"district,omitempty"`
 	Name                string    `gorm:"not null" gorm:"unique" json:"name,omitempty"`
 	SouthLatitudeDegree string    `gorm:"not null" json:"south_latitude_degree,omitempty"`
