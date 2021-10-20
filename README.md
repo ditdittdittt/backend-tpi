@@ -37,3 +37,7 @@ https://golang.org/doc/install/source
 ### Migrate and Seed Database
 - ```./backend-tpi migrate```
 - ```./backend-tpi seed```
+
+### Login
+- It will create superadmin account with username superadmin and password superadmin
+- Login with superadmin account and change the password
